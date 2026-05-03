@@ -1,42 +1,22 @@
 name: LINEASTR Keeper
 
-# Phase 3 testnet keeper cron — runs every 10 minutes for ~24 hours.
+# Phase 3.5 testnet keeper — calls bot.executeRound on schedule.
 #
-# Each scheduled run does:
-#   1. (Conditional) Auto-seed strategy.currentFees with 0.05 ETH if depleted
-#   2. Calls bot.executeRound(<run_number>) — bot tries buyTokens / sellTokens / processTokenTwap
+# After Phase 3.5 the strategy.hookAddress is the real LINEASTRHook contract,
+# so manual `addFees` from an EOA reverts (OnlyHook). Fees now arrive only via
+# real swap activity (marketsim cron + user UI swaps). We removed the auto-seed
+# step and rely on a separate marketsim workflow + user activity to drive fees.
 #
-# Auto-stop: after 144 scheduled runs (10 min × 144 = 24 hours), workflow exits without doing
-# anything. To stop earlier, disable the workflow in the Actions tab. To re-enable for another
-# observation window, edit MAX_RUNS or disable+re-enable the workflow (resets run_number).
-#
-# Manual trigger: workflow_dispatch with action input lets you run round/seed/both ad-hoc.
+# Auto-stop after MAX_RUNS scheduled invocations. Manual workflow_dispatch is
+# exempt from the counter.
 
 on:
   schedule:
     - cron: "*/30 * * * *"   # every 30 min (48 rounds per 24h) — compressed test cadence
   workflow_dispatch:
-    inputs:
-      action:
-        description: "Manual action"
-        type: choice
-        required: true
-        default: "round"
-        options:
-          - round       # call bot.executeRound only
-          - seed        # call addFees{value:0.05ether} only
-          - both        # do both
 
 env:
-  # Auto-stop after 48 scheduled runs (= 48 × 30min = 24h compressed observation window).
-  # Manual workflow_dispatch runs are exempt from this counter.
   MAX_RUNS: "48"
-
-  # Per-round seed amount when strategy.currentFees is depleted. Smaller = longer keeper lifetime.
-  # Bot's buyThreshold defaults to 0.02 ETH, so SEED_AMOUNT >= 0.02 ETH guarantees bot can buy each round.
-  SEED_AMOUNT: "0.025ether"
-
-  # Contract addresses on Base Sepolia (chainId 84532) — see docs/80-phase-3-testnet-runbook.md
   RPC_URL: "https://base-sepolia-rpc.publicnode.com"
   STRATEGY_ADDR: "0x6ddbC0bF9e8Bb2f8Bd9Dfd27876197340dDc7EB2"
   BOT_ADDR: "0x5CAbfF553d8D7B9564CceE758A22b58c850d23Fc"
@@ -50,50 +30,25 @@ jobs:
         if: github.event_name == 'schedule'
         run: |
           if [ "${{ github.run_number }}" -gt "${{ env.MAX_RUNS }}" ]; then
-            echo "Run #${{ github.run_number }} exceeds MAX_RUNS (${{ env.MAX_RUNS }}). Phase 3 observation window complete."
-            echo "Disable this workflow in the Actions tab to stop further runs."
+            echo "Run #${{ github.run_number }} exceeds MAX_RUNS (${{ env.MAX_RUNS }}). Phase 3.5 observation window complete."
             exit 0
           fi
-          echo "Run #${{ github.run_number }} of ${{ env.MAX_RUNS }} max. Proceeding."
+          echo "Run #${{ github.run_number }} of ${{ env.MAX_RUNS }} max."
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
           version: stable
 
-      - name: Check pre-run strategy state
-        id: state
+      - name: Pre-run state
         run: |
-          AVAILABLE=$(cast call ${{ env.STRATEGY_ADDR }} "availableFunds()(uint256)" --rpc-url ${{ env.RPC_URL }})
-          CURRENT_FEES=$(cast call ${{ env.STRATEGY_ADDR }} "currentFees()(uint256)" --rpc-url ${{ env.RPC_URL }})
-          BOT_BAL=$(cast balance ${{ env.BOT_ADDR }} --rpc-url ${{ env.RPC_URL }})
-          echo "availableFunds=$AVAILABLE" >> "$GITHUB_OUTPUT"
-          echo "currentFees=$CURRENT_FEES" >> "$GITHUB_OUTPUT"
-          echo "bot_balance=$BOT_BAL" >> "$GITHUB_OUTPUT"
-          echo "  availableFunds: $AVAILABLE wei"
-          echo "  currentFees:    $CURRENT_FEES wei"
-          echo "  bot ETH bal:    $BOT_BAL wei"
-
-      - name: Auto-seed fees if depleted (currentFees < 0.005 ETH)
-        if: |
-          github.event.inputs.action == 'seed' ||
-          github.event.inputs.action == 'both' ||
-          steps.state.outputs.currentFees < '5000000000000000'
-        run: |
-          echo "Seeding ${{ env.SEED_AMOUNT }} into strategy.currentFees..."
-          cast send ${{ env.STRATEGY_ADDR }} \
-            "addFees()" \
-            --value ${{ env.SEED_AMOUNT }} \
-            --rpc-url ${{ env.RPC_URL }} \
-            --private-key ${{ secrets.KEEPER_PK }} \
-            --json | python3 -c "import json,sys;d=json.load(sys.stdin);print(f'  tx={d[\"transactionHash\"]} status={d.get(\"status\",\"?\")} block={d.get(\"blockNumber\",\"?\")}')"
+          echo "  currentFees:    $(cast call ${{ env.STRATEGY_ADDR }} 'currentFees()(uint256)' --rpc-url ${{ env.RPC_URL }})"
+          echo "  availableFunds: $(cast call ${{ env.STRATEGY_ADDR }} 'availableFunds()(uint256)' --rpc-url ${{ env.RPC_URL }})"
+          echo "  ethToTwap:      $(cast call ${{ env.STRATEGY_ADDR }} 'ethToTwap()(uint256)' --rpc-url ${{ env.RPC_URL }})"
+          echo "  lastBagId:      $(cast call ${{ env.STRATEGY_ADDR }} 'lastBagId()(uint256)' --rpc-url ${{ env.RPC_URL }})"
+          echo "  bot ETH bal:    $(cast balance ${{ env.BOT_ADDR }} --rpc-url ${{ env.RPC_URL }})"
 
       - name: Execute bot round
-        if: |
-          github.event_name == 'schedule' ||
-          github.event.inputs.action == 'round' ||
-          github.event.inputs.action == 'both' ||
-          github.event.inputs.action == ''
         run: |
           ROUND_ID=${{ github.run_number }}
           echo "Calling bot.executeRound($ROUND_ID)..."
@@ -107,14 +62,9 @@ jobs:
       - name: Post-run state
         if: always()
         run: |
-          echo "=== Post-run strategy state ==="
-          AVAILABLE=$(cast call ${{ env.STRATEGY_ADDR }} "availableFunds()(uint256)" --rpc-url ${{ env.RPC_URL }})
-          CURRENT_FEES=$(cast call ${{ env.STRATEGY_ADDR }} "currentFees()(uint256)" --rpc-url ${{ env.RPC_URL }})
-          ETH_TO_TWAP=$(cast call ${{ env.STRATEGY_ADDR }} "ethToTwap()(uint256)" --rpc-url ${{ env.RPC_URL }})
-          LAST_BAG_ID=$(cast call ${{ env.STRATEGY_ADDR }} "lastBagId()(uint256)" --rpc-url ${{ env.RPC_URL }})
-          BOT_BAL=$(cast balance ${{ env.BOT_ADDR }} --rpc-url ${{ env.RPC_URL }} --ether)
-          echo "  availableFunds: $AVAILABLE wei"
-          echo "  currentFees:    $CURRENT_FEES wei"
-          echo "  ethToTwap:      $ETH_TO_TWAP wei"
-          echo "  lastBagId:      $LAST_BAG_ID"
-          echo "  bot ETH bal:    $BOT_BAL ETH"
+          echo "=== Post-run ==="
+          echo "  currentFees:    $(cast call ${{ env.STRATEGY_ADDR }} 'currentFees()(uint256)' --rpc-url ${{ env.RPC_URL }})"
+          echo "  availableFunds: $(cast call ${{ env.STRATEGY_ADDR }} 'availableFunds()(uint256)' --rpc-url ${{ env.RPC_URL }})"
+          echo "  ethToTwap:      $(cast call ${{ env.STRATEGY_ADDR }} 'ethToTwap()(uint256)' --rpc-url ${{ env.RPC_URL }})"
+          echo "  lastBagId:      $(cast call ${{ env.STRATEGY_ADDR }} 'lastBagId()(uint256)' --rpc-url ${{ env.RPC_URL }})"
+          echo "  bot ETH bal:    $(cast balance ${{ env.BOT_ADDR }} --rpc-url ${{ env.RPC_URL }} --ether)"
