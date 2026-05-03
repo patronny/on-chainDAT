@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { RainbowKitProvider, darkTheme, lightTheme } from "@rainbow-me/rainbowkit";
+import { RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { WagmiProvider } from "wagmi";
 
@@ -20,21 +19,15 @@ const queryClient = new QueryClient({
 });
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<"luxury" | "linea" | "cyberpunk">("luxury");
-
-  useEffect(() => {
-    const stored = localStorage.getItem("lineastr-theme") as typeof theme | null;
-    if (stored === "luxury" || stored === "linea" || stored === "cyberpunk") {
-      setTheme(stored);
-    }
-    document.documentElement.setAttribute("data-theme", stored ?? "luxury");
-  }, []);
-
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider
-          theme={theme === "linea" ? lightTheme() : darkTheme()}
+          theme={darkTheme({
+            accentColor: "hsl(320, 100%, 60%)",
+            accentColorForeground: "hsl(0, 0%, 8%)",
+            borderRadius: "small",
+          })}
           initialChain={84532}
           showRecentTransactions={true}
         >

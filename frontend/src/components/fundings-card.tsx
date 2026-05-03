@@ -64,9 +64,9 @@ export function FundingsCard() {
 
       {/* Progress bar — fees accumulated vs market price needed to buy a bag */}
       <div className="px-4 sm:px-5 pt-3 pb-4 border-t border-border">
-        <div className="flex items-center justify-between text-xs mb-2">
-          <span className="font-semibold">{progressPct.toFixed(1)}% Progress</span>
-          <span className="text-muted-foreground">toward market price for next bag</span>
+        <div className="flex items-baseline justify-between gap-3 text-xs mb-2 flex-wrap">
+          <span className="font-semibold whitespace-nowrap">{progressPct.toFixed(1)}% Progress</span>
+          <span className="text-muted-foreground text-right">toward market price for next bag</span>
         </div>
         <div className="h-3 bg-secondary rounded overflow-hidden">
           <div

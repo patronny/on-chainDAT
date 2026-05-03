@@ -2,15 +2,14 @@
 
 import Link from "next/link";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { ThemeSwitcher } from "./theme-switcher";
 
 export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md">
-      <div className="container flex h-14 sm:h-16 items-center justify-between gap-4">
+      <div className="container flex h-14 sm:h-16 items-center justify-between gap-3 sm:gap-4">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2">
-          <span className="text-lg sm:text-xl font-display font-bold tracking-tight">
+        <Link href="/" className="flex items-center gap-2 flex-shrink-0">
+          <span className="text-base sm:text-lg md:text-xl font-display font-bold tracking-tight whitespace-nowrap">
             LINEA<span className="text-primary">STR</span>
           </span>
         </Link>
@@ -32,21 +31,13 @@ export function Header() {
         </nav>
 
         {/* Right cluster */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          <div className="hidden sm:block">
-            <ThemeSwitcher />
-          </div>
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <ConnectButton
             accountStatus={{ smallScreen: "avatar", largeScreen: "full" }}
             chainStatus={{ smallScreen: "icon", largeScreen: "full" }}
             showBalance={{ smallScreen: false, largeScreen: true }}
           />
         </div>
-      </div>
-
-      {/* Mobile theme toggle row */}
-      <div className="sm:hidden border-t border-border px-4 py-2 flex items-center justify-center">
-        <ThemeSwitcher />
       </div>
     </header>
   );

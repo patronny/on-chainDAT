@@ -44,3 +44,7 @@ lcov.info
 # Agent artefacts (research-time scratch)
 .playwright-mcp/
 .claude-research/
+
+# Local UI test artifacts (Playwright screenshots from lineastr-ui-tester subagent)
+ui-test/
+.playwright-mcp/

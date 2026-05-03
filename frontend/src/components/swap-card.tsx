@@ -93,22 +93,26 @@ export function SwapCard() {
       <div className="p-4 sm:p-5 space-y-3">
         {/* Selling */}
         <div className="rounded-md border border-border bg-secondary/30 p-3 space-y-2">
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>Selling</span>
-            <span className="font-mono">
+          <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+            <span className="flex-shrink-0">Selling</span>
+            <span className="font-mono truncate text-right">
               Balance: {side === "buy" ? `${formatEth(sellingBalance)} ETH` : formatTokens(sellingBalance)}
             </span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <input
               type="text"
               inputMode="decimal"
               placeholder="0.0"
+              autoComplete="off"
+              spellCheck={false}
+              aria-label={`Amount to sell in ${sellingLabel}`}
               value={amountStr}
               onChange={(e) => setAmountStr(e.target.value)}
-              className="flex-1 bg-transparent text-2xl font-mono tabular focus:outline-none"
+              className="flex-1 min-w-0 w-0 bg-transparent text-xl sm:text-2xl font-mono tabular focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm"
             />
             <button
+              type="button"
               onClick={() => {
                 if (side === "buy" && userEth > parseEther("0.0001")) {
                   setAmountStr(((Number(userEth - parseEther("0.0001")) / 1e18)).toFixed(6));
@@ -116,11 +120,12 @@ export function SwapCard() {
                   setAmountStr((Number(userLin) / 1e18).toString());
                 }
               }}
-              className="px-2 py-1 text-xs rounded bg-secondary hover:opacity-80"
+              className="flex-shrink-0 px-2 py-1 text-xs rounded bg-secondary hover:opacity-80 focus-visible:ring-2 focus-visible:ring-primary"
+              aria-label={`Set max ${sellingLabel} balance`}
             >
               Max
             </button>
-            <span className="font-semibold text-sm font-mono">{sellingLabel}</span>
+            <span className="flex-shrink-0 font-semibold text-sm font-mono">{sellingLabel}</span>
           </div>
         </div>
 
@@ -138,11 +143,11 @@ export function SwapCard() {
         {/* Buying */}
         <div className="rounded-md border border-border bg-secondary/30 p-3 space-y-2">
           <div className="text-xs text-muted-foreground">Buying</div>
-          <div className="flex items-center gap-3">
-            <span className="flex-1 text-2xl font-mono tabular text-muted-foreground">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <span className="flex-1 min-w-0 w-0 text-xl sm:text-2xl font-mono tabular text-muted-foreground truncate">
               {valid ? "≈ output" : "0.0"}
             </span>
-            <span className="font-semibold text-sm font-mono">{buyingLabel}</span>
+            <span className="flex-shrink-0 font-semibold text-sm font-mono">{buyingLabel}</span>
           </div>
         </div>
 
@@ -154,25 +159,25 @@ export function SwapCard() {
             <Button className="w-full" disabled size="lg">Insufficient ETH</Button>
           ) : (
             <Button className="w-full" onClick={executeBuy} disabled={isPending} size="lg">
-              {isPending ? "Buying..." : `Buy LINEASTR with ${amountStr} ETH`}
+              {isPending ? "Buying…" : `Buy LINEASTR with ${amountStr} ETH`}
             </Button>
           )
         ) : !enoughForSell ? (
           <Button className="w-full" disabled size="lg">Insufficient LINEASTR</Button>
         ) : !enoughAllowance ? (
           <Button className="w-full" onClick={approve} disabled={isPending} size="lg">
-            {isPending ? "Approving..." : "Approve LINEASTR"}
+            {isPending ? "Approving…" : "Approve LINEASTR"}
           </Button>
         ) : (
           <Button className="w-full" onClick={executeSell} disabled={isPending} size="lg">
-            {isPending ? "Selling..." : `Sell ${amountStr} LINEASTR`}
+            {isPending ? "Selling…" : `Sell ${amountStr} LINEASTR`}
           </Button>
         )}
       </div>
 
-      <div className="px-4 sm:px-5 py-3 border-t border-border flex items-center justify-between text-xs">
-        <span className="text-muted-foreground">Protocol fee</span>
-        <span className="font-mono tabular font-semibold">
+      <div className="px-4 sm:px-5 py-3 border-t border-border flex items-center justify-between gap-3 text-xs">
+        <span className="text-muted-foreground flex-shrink-0">Protocol fee</span>
+        <span className="font-mono tabular font-semibold truncate text-right">
           {feePercent.toFixed(feePercent < 100 && feePercent !== Math.floor(feePercent) ? 2 : 0)}% on this swap
         </span>
       </div>
