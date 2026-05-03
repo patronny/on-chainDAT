@@ -101,8 +101,10 @@ contract DeployBaseSepolia is Script {
         console.log("[4] Factory.setStrategyImplementation: ok");
 
         // Step 5: Set hook to deployer EOA (Phase 3 testnet shortcut — deployer can call addFees)
-        factory.updateHookAddress(deployer);
-        console.log("[5] Factory.updateHookAddress -> deployer EOA");
+        // Use the *Unchecked variant because deployer is an EOA (no code), the production
+        // updateHookAddress requires a real CREATE2-mined hook contract.
+        factory.updateHookAddressUnchecked(deployer);
+        console.log("[5] Factory.updateHookAddressUnchecked -> deployer EOA");
 
         // Step 6: Deploy LINEASTR strategy proxy (the self-launch token)
         address proxyAddr = factory.deployStrategy(

@@ -119,6 +119,19 @@ contract LINEASTRFactory is Ownable, ReentrancyGuard {
         return _hook;
     }
 
+    /// @notice TESTNET-ONLY hook setter that accepts any non-zero address (including EOAs).
+    /// @dev Used in Phase 3 (Base Sepolia) where the deployer EOA acts as a stand-in for the real
+    ///      CREATE2-mined LINEASTRHook. The hook contract itself is not needed because we don't
+    ///      run a real Uniswap v4 pool on testnet — strategy P2P mechanics (buyTokens, sellTokens)
+    ///      work without a pool. Phase 4 (Linea mainnet) MUST use `updateHookAddress` with a real
+    ///      hook deployed via CREATE2.
+    function updateHookAddressUnchecked(address _hook) external onlyOwner returns (address) {
+        if (_hook == address(0)) revert InvalidHookAddress();
+        hookAddress = _hook;
+        emit HookAddressSet(_hook);
+        return _hook;
+    }
+
     /// @notice Permanently disables `deployStrategy` (no more new tokens via this factory)
     function disableLaunchUpgradeable() external onlyOwner {
         launchEnabled = false;
