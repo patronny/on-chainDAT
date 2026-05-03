@@ -69,11 +69,14 @@ jobs:
           echo "  currentFees:    $CURRENT_FEES wei"
           echo "  bot ETH bal:    $BOT_BAL wei"
 
-      - name: Auto-seed fees if depleted (currentFees < 0.01 ETH AND every 3rd run)
+      - name: Auto-seed fees if depleted (currentFees < 0.01 ETH)
+        # GitHub Actions expressions don't support % (modulo), so we can't easily throttle to "every Nth run".
+        # Seed unconditionally whenever currentFees is below threshold — this means whenever the bot has
+        # consumed all fees on the previous round. Manual `seed` and `both` triggers always seed.
         if: |
           github.event.inputs.action == 'seed' ||
           github.event.inputs.action == 'both' ||
-          (steps.state.outputs.currentFees < '10000000000000000' && (github.run_number % 3 == 0))
+          steps.state.outputs.currentFees < '10000000000000000'
         run: |
           echo "Seeding 0.05 ETH into strategy.currentFees..."
           cast send ${{ env.STRATEGY_ADDR }} \
