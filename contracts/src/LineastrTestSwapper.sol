@@ -19,6 +19,10 @@ interface ITokenLike {
     function balanceOf(address) external view returns (uint256);
 }
 
+interface ITokenLikeWithApprove {
+    function transferFrom(address from, address to, uint256 amount) external returns (bool);
+}
+
 contract LineastrTestSwapper is IUnlockCallback {
     IPoolManager public immutable poolManager;
 
@@ -43,6 +47,22 @@ contract LineastrTestSwapper is IUnlockCallback {
             recipient: recipient,
             zeroForOne: true,
             amountSpecified: -int256(msg.value)
+        });
+        poolManager.unlock(abi.encode(data));
+    }
+
+    /// @notice Swap exact LINEASTR (currency1) for ETH (currency0). Caller must `approve` first.
+    /// @dev Pulls `amountIn` from msg.sender via transferFrom; ETH sent to recipient via PoolManager.take.
+    function sellExactInput(PoolKey calldata key, uint256 amountIn, address recipient) external {
+        require(amountIn > 0, "Zero amount");
+        // Pull tokens from caller (caller must approve us first)
+        ITokenLikeWithApprove(Currency.unwrap(key.currency1)).transferFrom(msg.sender, address(this), amountIn);
+
+        SwapData memory data = SwapData({
+            key: key,
+            recipient: recipient,
+            zeroForOne: false,
+            amountSpecified: -int256(amountIn)
         });
         poolManager.unlock(abi.encode(data));
     }

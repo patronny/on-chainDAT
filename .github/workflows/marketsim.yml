@@ -1,0 +1,69 @@
+name: LINEASTR Market Simulator
+
+# Phase 3.5 — generates random ETH<->LINEASTR swaps to drive real hook fees into strategy.
+# Each scheduled run executes one buy or sell via LineastrTestSwapper.
+#
+# Goal: accumulate strategy.currentFees > bot.buyThreshold (0.02 ETH) so bot.executeRound
+# starts buying tLINEA bags from the open market. ~13-25 buy rounds at 0.001 ETH each
+# generate enough fees (each round produces 0.0006-0.0008 ETH in fees during dynamic ramp).
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"   # every 30 min (48 rounds per 24h)
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Force action"
+        type: choice
+        required: false
+        default: "auto"
+        options: [auto, buy, sell]
+
+env:
+  MAX_RUNS: "48"             # 48 × 30min = 24h observation
+  RPC_URL: "https://base-sepolia-rpc.publicnode.com"
+
+jobs:
+  market-sim:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Auto-stop after MAX_RUNS scheduled runs
+        if: github.event_name == 'schedule'
+        run: |
+          if [ "${{ github.run_number }}" -gt "${{ env.MAX_RUNS }}" ]; then
+            echo "Run #${{ github.run_number }} exceeds MAX_RUNS (${{ env.MAX_RUNS }}). Phase 3.5 sim window complete."
+            exit 0
+          fi
+          echo "Run #${{ github.run_number }} of ${{ env.MAX_RUNS }} max. Proceeding."
+
+      - uses: actions/checkout@v4
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+
+      - name: Build contracts
+        working-directory: contracts
+        run: forge build --skip "test/*"
+
+      - name: Pre-round state
+        working-directory: contracts
+        run: |
+          STRAT=0x6ddbC0bF9e8Bb2f8Bd9Dfd27876197340dDc7EB2
+          DEPLOYER=0xbc6af64859dF1008c8187F94dF89323000dEE668
+          echo "Strategy.currentFees: $(cast call $STRAT 'currentFees()(uint256)' --rpc-url ${{ env.RPC_URL }})"
+          echo "Strategy.lastBagId:   $(cast call $STRAT 'lastBagId()(uint256)' --rpc-url ${{ env.RPC_URL }})"
+          echo "Deployer ETH bal:     $(cast balance $DEPLOYER --rpc-url ${{ env.RPC_URL }})"
+          echo "Deployer LINEASTR:    $(cast call $STRAT 'balanceOf(address)(uint256)' $DEPLOYER --rpc-url ${{ env.RPC_URL }})"
+
+      - name: Execute MarketSim round
+        working-directory: contracts
+        env:
+          ROUND_ID: ${{ github.run_number }}
+        run: |
+          forge script script/MarketSimRound.s.sol:MarketSimRound \
+            --rpc-url ${{ env.RPC_URL }} \
+            --broadcast --private-key ${{ secrets.KEEPER_PK }} \
+            -vv | tail -30

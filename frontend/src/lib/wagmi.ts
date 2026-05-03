@@ -24,6 +24,19 @@ export const ADDR = {
   factory: addressOr0(process.env.NEXT_PUBLIC_FACTORY_ADDRESS),
   strategy: addressOr0(process.env.NEXT_PUBLIC_STRATEGY_ADDRESS),
   bot: addressOr0(process.env.NEXT_PUBLIC_BOT_ADDRESS),
+  // Phase 3.5 — real Uniswap v4 hook + ETH/LINEASTR pool
+  hook: (process.env.NEXT_PUBLIC_HOOK_ADDRESS || "0x61116044DC8eB623A618021cEDB14836D6512444") as `0x${string}`,
+  swapper: (process.env.NEXT_PUBLIC_SWAPPER_ADDRESS || "0x1a1434d72B23B1A968824191195efcf95B07116c") as `0x${string}`,
+} as const;
+
+/// LINEASTR Uniswap v4 pool key (currency0=ETH, currency1=LINEASTR, dynamic fee).
+/// Used by LineastrTestSwapper for Buy/Sell on Base Sepolia (Phase 3.5).
+export const POOL_KEY = {
+  currency0: "0x0000000000000000000000000000000000000000" as `0x${string}`,
+  currency1: ADDR.strategy,
+  fee: 0x800000, // DYNAMIC_FEE_FLAG
+  tickSpacing: 60,
+  hooks: ADDR.hook,
 } as const;
 
 export const BLOCK_EXPLORER_URL =

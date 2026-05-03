@@ -1,16 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import { parseEther } from "viem";
 import { useAccount, useReadContract, useWriteContract } from "wagmi";
 import { strategyAbi } from "@/lib/abis/strategy";
 import { erc20Abi } from "@/lib/abis/erc20";
-import { ADDR } from "@/lib/wagmi";
+import { swapperAbi } from "@/lib/abis/swapper";
+import { ADDR, POOL_KEY } from "@/lib/wagmi";
 import { useStrategyStats } from "@/hooks/useStrategyStats";
 import { formatEth, formatTokens } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 
-type Tab = "buy" | "faucet" | "twap";
+type Tab = "swap" | "buy" | "faucet" | "twap";
 
 /**
  * Sticky right-rail trade widget. On mobile, this surfaces ABOVE bags-for-sale.
@@ -21,18 +23,18 @@ type Tab = "buy" | "faucet" | "twap";
  *   - TWAP: anyone can trigger processTokenTwap (earns 0.5% reward)
  */
 export function TradeWidgetClient() {
-  const [tab, setTab] = useState<Tab>("buy");
+  const [tab, setTab] = useState<Tab>("swap");
   const { isConnected } = useAccount();
 
   return (
     <Card className="overflow-hidden">
       {/* Tab nav */}
-      <div className="grid grid-cols-3 border-b border-border">
-        {(["buy", "faucet", "twap"] as Tab[]).map((t) => (
+      <div className="grid grid-cols-4 border-b border-border">
+        {(["swap", "buy", "faucet", "twap"] as Tab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`px-3 py-3 text-xs sm:text-sm font-medium uppercase tracking-wider transition-colors ${
+            className={`px-2 py-3 text-xs sm:text-sm font-medium uppercase tracking-wider transition-colors ${
               tab === t
                 ? "text-primary border-b-2 border-primary -mb-px bg-primary/5"
                 : "text-muted-foreground hover:bg-secondary"
@@ -44,11 +46,157 @@ export function TradeWidgetClient() {
       </div>
 
       <div className="p-4 sm:p-6">
+        {tab === "swap" && <SwapTab disabled={!isConnected} />}
         {tab === "buy" && <BuyTab disabled={!isConnected} />}
         {tab === "faucet" && <FaucetTab disabled={!isConnected} />}
         {tab === "twap" && <TwapTab disabled={!isConnected} />}
       </div>
     </Card>
+  );
+}
+
+function SwapTab({ disabled }: { disabled: boolean }) {
+  const [side, setSide] = useState<"buy" | "sell">("buy");
+  const [amountStr, setAmountStr] = useState("");
+  const { address } = useAccount();
+  const { writeContract, isPending } = useWriteContract();
+
+  const { data: linEastrBal } = useReadContract({
+    address: ADDR.strategy,
+    abi: erc20Abi,
+    functionName: "balanceOf",
+    args: address ? [address] : undefined,
+    query: { enabled: !!address && ADDR.strategy !== "0x0000000000000000000000000000000000000000", refetchInterval: 12_000 },
+  });
+
+  const { data: lineastrAllowance } = useReadContract({
+    address: ADDR.strategy,
+    abi: erc20Abi,
+    functionName: "allowance",
+    args: address ? [address, ADDR.swapper] : undefined,
+    query: { enabled: !!address && ADDR.strategy !== "0x0000000000000000000000000000000000000000", refetchInterval: 12_000 },
+  });
+
+  let amountWei = 0n;
+  let valid = false;
+  try {
+    if (amountStr.trim().length > 0) {
+      amountWei = parseEther(amountStr);
+      valid = amountWei > 0n;
+    }
+  } catch {
+    valid = false;
+  }
+
+  const userLinBal = linEastrBal ?? 0n;
+  const userLinAllowance = lineastrAllowance ?? 0n;
+  const enoughForSell = side === "sell" ? userLinBal >= amountWei : true;
+  const enoughAllowance = side === "buy" ? true : userLinAllowance >= amountWei;
+
+  function approveLineastr() {
+    writeContract({
+      address: ADDR.strategy,
+      abi: erc20Abi,
+      functionName: "approve",
+      args: [ADDR.swapper, amountWei],
+    });
+  }
+
+  function executeBuy() {
+    if (!address) return;
+    writeContract({
+      address: ADDR.swapper,
+      abi: swapperAbi,
+      functionName: "buyExactInput",
+      args: [POOL_KEY, address],
+      value: amountWei,
+    });
+  }
+
+  function executeSell() {
+    if (!address) return;
+    writeContract({
+      address: ADDR.swapper,
+      abi: swapperAbi,
+      functionName: "sellExactInput",
+      args: [POOL_KEY, amountWei, address],
+    });
+  }
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Trade LINEASTR</div>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          Swap on the live Uniswap v4 pool (testnet). Hook charges a dynamic fee that
+          ramps from 99% → 10% over 89 minutes after launch — fees become protocol revenue.
+        </p>
+      </div>
+
+      {/* Side toggle */}
+      <div className="grid grid-cols-2 gap-2">
+        <Button
+          variant={side === "buy" ? "default" : "secondary"}
+          onClick={() => { setSide("buy"); setAmountStr(""); }}
+          className="w-full"
+        >
+          Buy LINEASTR
+        </Button>
+        <Button
+          variant={side === "sell" ? "default" : "secondary"}
+          onClick={() => { setSide("sell"); setAmountStr(""); }}
+          className="w-full"
+        >
+          Sell LINEASTR
+        </Button>
+      </div>
+
+      {/* Amount input */}
+      <div>
+        <label className="text-xs text-muted-foreground uppercase tracking-wider mb-1 block">
+          {side === "buy" ? "ETH amount" : "LINEASTR amount"}
+        </label>
+        <input
+          type="text"
+          inputMode="decimal"
+          placeholder={side === "buy" ? "0.001" : "200"}
+          value={amountStr}
+          onChange={(e) => setAmountStr(e.target.value)}
+          className="w-full bg-secondary border border-border rounded-md px-3 py-2 text-sm font-mono tabular focus:outline-none focus:ring-2 focus:ring-primary/50"
+        />
+      </div>
+
+      <div className="space-y-2 text-sm">
+        {side === "sell" && (
+          <Row label="Your LINEASTR balance" value={formatTokens(userLinBal)} muted={!enoughForSell && valid} />
+        )}
+        <Row label="Pool" value="ETH/LINEASTR (v4 dynamic)" />
+      </div>
+
+      {!valid ? (
+        <Button className="w-full" disabled>Enter amount</Button>
+      ) : side === "buy" ? (
+        <Button className="w-full" onClick={executeBuy} disabled={disabled || isPending}>
+          {isPending ? "Buying..." : `Buy with ${amountStr} ETH`}
+        </Button>
+      ) : !enoughForSell ? (
+        <Button className="w-full" disabled>
+          Insufficient LINEASTR
+        </Button>
+      ) : !enoughAllowance ? (
+        <Button className="w-full" onClick={approveLineastr} disabled={disabled || isPending}>
+          {isPending ? "Approving..." : "Approve LINEASTR"}
+        </Button>
+      ) : (
+        <Button className="w-full" onClick={executeSell} disabled={disabled || isPending}>
+          {isPending ? "Selling..." : `Sell ${amountStr} LINEASTR`}
+        </Button>
+      )}
+
+      <p className="text-xs text-muted-foreground text-center">
+        First swaps after launch pay ~85% fee (decaying every minute). Slippage is high in shallow pools.
+      </p>
+    </div>
   );
 }
 
