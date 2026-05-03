@@ -44,7 +44,8 @@ export function ActivityFeedClient() {
     async function fetchEvents() {
       try {
         const latest = await client!.getBlockNumber();
-        const fromBlock = latest > 50_000n ? latest - 50_000n : 0n;
+        // drpc.org free tier limits getLogs to 10k blocks. 5k = ~3h on Base Sepolia.
+        const fromBlock = latest > 5_000n ? latest - 5_000n : 0n;
 
         const [bought, sold, burned, swaps] = await Promise.all([
           client!.getContractEvents({

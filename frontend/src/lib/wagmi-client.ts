@@ -23,7 +23,9 @@ export const config = getDefaultConfig({
   chains: [baseSepolia, linea],
   transports: {
     [baseSepolia.id]: http(
-      process.env.NEXT_PUBLIC_RPC_URL || "https://base-sepolia.drpc.org"
+      // publicnode has no getLogs range limit (drpc free tier caps at 10k blocks).
+      // For production with high traffic, set NEXT_PUBLIC_RPC_URL to an Alchemy/Infura URL.
+      process.env.NEXT_PUBLIC_RPC_URL || "https://base-sepolia-rpc.publicnode.com"
     ),
     [linea.id]: http("https://rpc.linea.build"),
   },
