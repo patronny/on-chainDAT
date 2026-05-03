@@ -41,37 +41,39 @@ export function useStrategyStats() {
     },
   });
 
-  if (!data || data.some((d) => d.status === "failure")) {
-    return {
-      data: undefined,
-      isLoading,
-      error,
-      refetch,
-    };
+  // Partial-data resolution: a single failing multicall slot must NOT zero the whole
+  // dashboard. Each field falls back to its zero/default; consumers render dashes
+  // for genuinely-missing values and live numbers for everything else.
+  if (!data) {
+    return { data: undefined, isLoading, error, refetch };
   }
 
+  const big = (i: number): bigint =>
+    data[i]?.status === "success" ? (data[i].result as bigint) : 0n;
+  const str = (i: number): string =>
+    data[i]?.status === "success" ? (data[i].result as string) : "";
+  const slot0Raw = data[17]?.status === "success" ? (data[17].result as `0x${string}`) : undefined;
+
   const stats = {
-    name: data[0].result as string,
-    symbol: data[1].result as string,
-    totalSupply: data[2].result as bigint,
-    bagSize: data[3].result as bigint,
-    buyIncrement: data[4].result as bigint,
-    priceMultiplier: data[5].result as bigint,
-    currentFees: data[6].result as bigint,
-    ethToTwap: data[7].result as bigint,
-    twapIncrement: data[8].result as bigint,
-    twapDelayInBlocks: data[9].result as bigint,
-    lastBuyBlock: data[10].result as bigint,
-    lastTwapBlock: data[11].result as bigint,
-    lastBagId: data[12].result as bigint,
-    availableFunds: data[13].result as bigint,
-    maxPriceForBuy: data[14].result as bigint,
-    treasuryUnderlying: data[15].result as bigint,
-    burned: data[16].result as bigint,
-    slot0: data[17].result as `0x${string}`,
-    sqrtPriceX96: data[17].result
-      ? BigInt(data[17].result as `0x${string}`) & ((1n << 160n) - 1n)
-      : 0n,
+    name: str(0),
+    symbol: str(1),
+    totalSupply: big(2),
+    bagSize: big(3),
+    buyIncrement: big(4),
+    priceMultiplier: big(5),
+    currentFees: big(6),
+    ethToTwap: big(7),
+    twapIncrement: big(8),
+    twapDelayInBlocks: big(9),
+    lastBuyBlock: big(10),
+    lastTwapBlock: big(11),
+    lastBagId: big(12),
+    availableFunds: big(13),
+    maxPriceForBuy: big(14),
+    treasuryUnderlying: big(15),
+    burned: big(16),
+    slot0: (slot0Raw ?? "0x0") as `0x${string}`,
+    sqrtPriceX96: slot0Raw ? BigInt(slot0Raw) & ((1n << 160n) - 1n) : 0n,
   };
 
   return { data: stats, isLoading, error, refetch };
