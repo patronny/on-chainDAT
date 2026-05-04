@@ -30,7 +30,7 @@ export default function HomePage() {
               <br />
               <span className="whitespace-nowrap">
                 DAT{" "}
-                <span className="text-xs sm:text-sm md:text-base lg:text-lg font-sans font-normal text-muted-foreground align-middle">
+                <span className="text-sm sm:text-base md:text-xl lg:text-2xl font-mono font-medium tracking-tight text-foreground/80 align-middle">
                   (digital asset treasuries)
                 </span>
               </span>
