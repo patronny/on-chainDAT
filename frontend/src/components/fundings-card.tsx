@@ -27,7 +27,8 @@ function useFundingsData() {
 }
 
 /**
- * "$LINEASTR is currently holding X ETH ↳ Y tLINEA in treasury"
+ * "$LINEASTR is currently holding X ETH" + boxed "+ N $tLINEA" pill below.
+ * Pill mirrors the WBTCSTR reference: bordered, rounded, slightly tinted bg.
  */
 export function FundingsCard() {
   const { currentFees, treasuryUnderlying } = useFundingsData();
@@ -36,7 +37,7 @@ export function FundingsCard() {
       <div className="text-xs text-muted-foreground">$LINEASTR is currently holding</div>
       <div className="text-3xl font-display font-bold mt-1 tabular">{formatEth(currentFees)} ETH</div>
       <div className="mt-3">
-        <span className="inline-block px-2.5 py-1 text-xs font-mono text-muted-foreground border border-border rounded bg-secondary/20">
+        <span className="inline-block px-3 py-1.5 text-xs font-mono text-foreground border border-secondary/60 rounded-md bg-secondary/15">
           + {formatTokens(treasuryUnderlying)} $tLINEA
         </span>
       </div>
