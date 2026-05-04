@@ -79,10 +79,10 @@ export function ProgressTitle() {
 }
 
 /**
- * 100 vertical neon bars. Each bar = 1% slice. Filled top-down with neon
- * green; unfilled remainder is neon magenta. The N+1-th bar is partially
- * filled to render fractional progress (e.g. 55.5% → 55 full green bars,
- * the 56th half green on top + half magenta on bottom).
+ * 100 vertical neon bars. Each bar = 1% slice. Filled bottom-up with neon
+ * green; unfilled remainder stays neon magenta on top. The N+1-th bar is
+ * partially filled to render fractional progress (e.g. 55.5% → 55 full
+ * green bars, the 56th half magenta on top + half green on bottom).
  *
  * Bar freezes at 100% and only resets when the keeper executes a buy
  * (which drains currentFees on-chain → next refetch shows 0%).
@@ -109,27 +109,27 @@ export function ProgressCard() {
 
           return (
             <div key={i} className="flex-1 relative">
-              {greenPct > 0 ? (
-                <div
-                  className="absolute inset-x-0 top-0 transition-[height] duration-300"
-                  style={{
-                    height: `${greenPct}%`,
-                    background: NEON_GREEN,
-                    boxShadow: isFull
-                      ? `0 0 4px ${NEON_GREEN}, 0 0 8px ${NEON_GREEN}`
-                      : `0 0 3px ${NEON_GREEN}`,
-                  }}
-                />
-              ) : null}
               {magentaPct > 0 ? (
                 <div
-                  className="absolute inset-x-0 bottom-0 transition-[height] duration-300"
+                  className="absolute inset-x-0 top-0 transition-[height] duration-300"
                   style={{
                     height: `${magentaPct}%`,
                     background: NEON_MAGENTA,
                     boxShadow: isEmpty
                       ? `0 0 4px ${NEON_MAGENTA}, 0 0 8px ${NEON_MAGENTA}`
                       : `0 0 3px ${NEON_MAGENTA}`,
+                  }}
+                />
+              ) : null}
+              {greenPct > 0 ? (
+                <div
+                  className="absolute inset-x-0 bottom-0 transition-[height] duration-300"
+                  style={{
+                    height: `${greenPct}%`,
+                    background: NEON_GREEN,
+                    boxShadow: isFull
+                      ? `0 0 4px ${NEON_GREEN}, 0 0 8px ${NEON_GREEN}`
+                      : `0 0 3px ${NEON_GREEN}`,
                   }}
                 />
               ) : null}
