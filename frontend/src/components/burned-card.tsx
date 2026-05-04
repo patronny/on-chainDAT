@@ -5,8 +5,13 @@ import { formatTokens } from "@/lib/utils";
 import { Flame } from "lucide-react";
 
 /**
- * Burned amount with animated fire backdrop.
- * Three radial-gradient layers + CSS keyframe flicker for that WBTCSTR-style ember glow.
+ * Burned amount with realistic layered fire backdrop:
+ *   1. coal bed at the bottom (deep red glow)
+ *   2. main flame body (orange + red, ~2.4s flicker)
+ *   3. inner mid flames (~1.7s, side-to-side wobble)
+ *   4. yellow/white flame tips (~1.1s, vertical pulse)
+ *   5. sparks layer — tiny embers rising upward (~3s loop)
+ *   6. dark vignette around the edges so the fire looks contained
  */
 export function BurnedCard() {
   const { data } = useStrategyStats();
@@ -20,12 +25,21 @@ export function BurnedCard() {
   }
 
   return (
-    <div className="relative overflow-hidden bg-[#1a0500] p-4 sm:p-5">
+    <div className="relative overflow-hidden bg-[#0a0200] p-4 sm:p-5 min-h-[180px]">
+      {/* coal bed */}
+      <div className="fire-coal absolute inset-x-0 bottom-0 h-1/2 pointer-events-none" aria-hidden />
+      {/* main flame */}
       <div className="fire-bg absolute inset-0 pointer-events-none" aria-hidden />
+      {/* mid wobble */}
       <div className="fire-bg-2 absolute inset-0 pointer-events-none" aria-hidden />
+      {/* hot tips */}
       <div className="fire-bg-3 absolute inset-x-0 bottom-0 h-2/3 pointer-events-none" aria-hidden />
+      {/* rising sparks */}
+      <div className="fire-sparks absolute inset-0 pointer-events-none" aria-hidden />
+      {/* edge vignette */}
+      <div className="fire-vignette absolute inset-0 pointer-events-none" aria-hidden />
 
-      <div className="relative z-10 text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+      <div className="relative z-10 text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)]">
         <div className="flex items-center gap-2 text-xs uppercase tracking-wider opacity-95">
           <Flame className="w-3.5 h-3.5 text-orange-300 animate-pulse" />
           $LINEASTR burned

@@ -15,7 +15,8 @@ import { CardShell } from "./card-shell";
 
 export interface DraggableSection {
   id: string;
-  title: string;
+  /** Plain string for static headers, or a live ReactNode for dynamic ones (e.g. progress %). */
+  title: ReactNode;
   subtitle?: string;
   /** Renderer is a function so we can avoid wasted renders during drag */
   render: () => ReactNode;

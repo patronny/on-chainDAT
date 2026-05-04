@@ -8,7 +8,8 @@ import { ChevronDown, ChevronRight, GripVertical } from "lucide-react";
 
 interface CardShellProps {
   id: string;
-  title: string;
+  /** Title can be a plain string or a live React node for dynamic headers (e.g. "55.5% Progress…"). */
+  title: ReactNode;
   subtitle?: string;
   collapsed: boolean;
   onToggle: () => void;
@@ -40,7 +41,7 @@ export function CardShell({ id, title, subtitle, collapsed, onToggle, children, 
             {...attributes}
             {...listeners}
             className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground p-1 -ml-1 touch-none"
-            aria-label={`Drag ${title}`}
+            aria-label={typeof title === "string" ? `Drag ${title}` : "Drag card"}
           >
             <GripVertical className="w-4 h-4" />
           </button>
@@ -52,7 +53,7 @@ export function CardShell({ id, title, subtitle, collapsed, onToggle, children, 
           <button
             onClick={onToggle}
             className="p-1 rounded hover:bg-secondary text-muted-foreground hover:text-foreground"
-            aria-label={collapsed ? `Expand ${title}` : `Collapse ${title}`}
+            aria-label={collapsed ? "Expand card" : "Collapse card"}
           >
             {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </button>
