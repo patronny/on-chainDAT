@@ -10,7 +10,7 @@ export function Header() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 flex-shrink-0">
           <span className="text-base sm:text-lg md:text-xl font-display font-bold tracking-tight whitespace-nowrap">
-            LINEA<span className="text-primary">STR</span>
+            Linea<span className="text-primary">DAT</span>
           </span>
         </Link>
 

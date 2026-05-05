@@ -6,7 +6,7 @@ import Link from "next/link";
 
 /**
  * /launch — placeholder for future strategies launchpad.
- * In Phase 3 (testnet) only LINEASTR exists. Phase 4+ may enable launching new LINEASTR-family strategies.
+ * In Phase 3 (testnet) only LineaDAT exists. Phase 4+ may enable launching new LineaDAT-family strategies.
  */
 export default function LaunchPage() {
   return (
@@ -15,8 +15,8 @@ export default function LaunchPage() {
       <main className="container py-10 sm:py-16 min-h-[calc(100vh-3.5rem)]">
         <h1 className="text-3xl sm:text-4xl font-display font-bold mb-2">Launch a new strategy</h1>
         <p className="text-muted-foreground mb-8 max-w-2xl">
-          Launch is currently disabled. The first strategy (LINEASTR) is live and is the only deployment in Phase 3.
-          New strategies will be enabled after the LINEASTR mainnet launch on Linea (Phase 4).
+          Launch is currently disabled. The first strategy (LineaDAT) is live and is the only deployment in Phase 3.
+          New strategies will be enabled after the LineaDAT mainnet launch on Linea (Phase 4).
         </p>
 
         <Card className="p-6 sm:p-10 max-w-2xl">

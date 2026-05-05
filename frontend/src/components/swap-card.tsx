@@ -116,8 +116,8 @@ export function SwapCard() {
   }
 
   // Selling/Buying assignments based on side
-  const sellingLabel = side === "buy" ? "ETH" : "LINEASTR";
-  const buyingLabel = side === "buy" ? "LINEASTR" : "ETH";
+  const sellingLabel = side === "buy" ? "ETH" : "LINEADAT";
+  const buyingLabel = side === "buy" ? "LINEADAT" : "ETH";
   const sellingBalance = side === "buy" ? userEth : userLin;
   const buyingBalance = side === "buy" ? userLin : userEth;
 
@@ -202,18 +202,18 @@ export function SwapCard() {
             <Button className="w-full" disabled size="lg">Insufficient ETH</Button>
           ) : (
             <Button className="w-full" onClick={executeBuy} disabled={isPending} size="lg">
-              {isPending ? "Buying…" : `Buy LINEASTR with ${amountStr} ETH`}
+              {isPending ? "Buying…" : `Buy LINEADAT with ${amountStr} ETH`}
             </Button>
           )
         ) : !enoughForSell ? (
-          <Button className="w-full" disabled size="lg">Insufficient LINEASTR</Button>
+          <Button className="w-full" disabled size="lg">Insufficient LINEADAT</Button>
         ) : !enoughAllowance ? (
           <Button className="w-full" onClick={approve} disabled={isPending} size="lg">
-            {isPending ? "Approving…" : "Approve LINEASTR"}
+            {isPending ? "Approving…" : "Approve LINEADAT"}
           </Button>
         ) : (
           <Button className="w-full" onClick={executeSell} disabled={isPending} size="lg">
-            {isPending ? "Selling…" : `Sell ${amountStr} LINEASTR`}
+            {isPending ? "Selling…" : `Sell ${amountStr} LINEADAT`}
           </Button>
         )}
       </div>

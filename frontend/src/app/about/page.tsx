@@ -6,13 +6,13 @@ export default function AboutPage() {
     <>
       <Header />
       <main className="container py-10 sm:py-16 min-h-[calc(100vh-3.5rem)] max-w-3xl">
-        <h1 className="text-3xl sm:text-4xl font-display font-bold mb-6">About LINEASTR</h1>
+        <h1 className="text-3xl sm:text-4xl font-display font-bold mb-6">About LineaDAT</h1>
 
         <div className="prose-style space-y-6 text-base text-muted-foreground leading-relaxed">
           <p>
-            LINEASTR is a deflationary token strategy on Linea L2, modeled on TokenWorks'
+            LineaDAT is a deflationary digital asset treasury on Linea L2, modeled on TokenWorks'
             ERC20Strategy v3 (also known as WBTCSTR on mainnet). The strategy holds $LINEA in its treasury,
-            issues bags through a P2P auction mechanism, and burns its own LINEASTR token forever
+            issues bags through a P2P auction mechanism, and burns its own LINEADAT token forever
             via a TWAP buy-and-burn loop.
           </p>
 
@@ -30,7 +30,7 @@ export default function AboutPage() {
           <p>
             <strong className="text-foreground">Step 3.</strong> Sold-bag ETH lands in{" "}
             <code className="bg-muted px-1.5 py-0.5 rounded text-sm">ethToTwap</code>, which gradually
-            buys LINEASTR off the open market and burns it. Total supply only ever decreases.
+            buys LINEADAT off the open market and burns it. Total supply only ever decreases.
           </p>
 
           <h2 className="text-xl font-display font-semibold text-foreground pt-4">Slow-rug protection</h2>
@@ -45,9 +45,9 @@ export default function AboutPage() {
 
           <h2 className="text-xl font-display font-semibold text-foreground pt-4">Open source</h2>
           <p>
-            LINEASTR is forked from TokenWorks ERC20Strategy v3 (MIT licensed). All code is on{" "}
+            LineaDAT is forked from TokenWorks ERC20Strategy v3 (MIT licensed). All code is on{" "}
             <a
-              href="https://github.com/patronny/LINEASTR"
+              href="https://github.com/patronny/LineaDAT"
               target="_blank"
               rel="noopener noreferrer"
               className="text-primary underline hover:no-underline"

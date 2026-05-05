@@ -27,14 +27,14 @@ function useFundingsData() {
 }
 
 /**
- * "$LINEASTR is currently holding X ETH" + boxed "+ N $tLINEA" pill below.
+ * "$LINEADAT is currently holding X ETH" + boxed "+ N $tLINEA" pill below.
  * Pill mirrors the WBTCSTR reference: bordered, rounded, slightly tinted bg.
  */
 export function FundingsCard() {
   const { currentFees, treasuryUnderlying } = useFundingsData();
   return (
     <div className="p-4 sm:p-5">
-      <div className="text-xs text-muted-foreground">$LINEASTR is currently holding</div>
+      <div className="text-xs text-muted-foreground">$LINEADAT is currently holding</div>
       <div className="text-3xl font-display font-bold mt-1 tabular">{formatEth(currentFees)} ETH</div>
       <div className="mt-3">
         <span className="inline-block px-3 py-1.5 text-xs font-mono text-foreground border border-secondary/60 rounded-md bg-secondary/15">
@@ -62,7 +62,7 @@ export function BotIntentTitle() {
   else compact = formatTokens(bagSize);
   return (
     <span>
-      LINEASTR is trying to buy <span className="font-mono">{compact} tLINEA</span>
+      Trying to buy <span className="font-mono">{compact} tLINEA</span>
     </span>
   );
 }
@@ -90,7 +90,7 @@ export function BotIntentCard() {
  */
 export function ProgressTitle() {
   const { progressPct } = useFundingsData();
-  return <span>{progressPct.toFixed(1)}% Progress to the next bag</span>;
+  return <span>{progressPct.toFixed(1)}% to next bag</span>;
 }
 
 /**

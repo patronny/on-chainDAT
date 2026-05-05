@@ -39,7 +39,7 @@ export default function HomePage() {
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
               <Button size="xl" asChild>
                 <Link href={`/strategies/${ADDR.strategy}` as never}>
-                  Buy LINEASTR
+                  Buy LineaDAT
                 </Link>
               </Button>
               <Button size="xl" variant="outline" asChild>
@@ -81,7 +81,7 @@ export default function HomePage() {
         {/* MECHANICS */}
         <section className="container py-8 sm:py-12">
           <Card className="p-6 sm:p-10">
-            <h2 className="text-2xl sm:text-3xl font-display font-bold mb-4">How LINEASTR works</h2>
+            <h2 className="text-2xl sm:text-3xl font-display font-bold mb-4">How LineaDAT works</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm sm:text-base text-muted-foreground leading-relaxed">
               <div>
                 <h4 className="text-foreground font-semibold mb-2">1. Bot buys a bag</h4>
@@ -102,7 +102,7 @@ export default function HomePage() {
                 <p>
                   Sold-bag ETH lands in <span className="font-mono text-foreground">ethToTwap</span>. Once it's
                   enough, anyone can call <span className="font-mono text-foreground">processTokenTwap()</span> to
-                  buy LINEASTR on Uniswap v4 and burn it. The caller earns 0.5% reward.
+                  buy LINEADAT on Uniswap v4 and burn it. The caller earns 0.5% reward.
                 </p>
               </div>
               <div>

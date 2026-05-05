@@ -131,7 +131,7 @@ export function PaginatedSwapsTable() {
               <th className="text-left py-3 px-4 font-medium">Date</th>
               <th className="text-left py-3 px-4 font-medium">Side</th>
               <th className="text-right py-3 px-4 font-medium">ETH</th>
-              <th className="text-right py-3 px-4 font-medium">LINEASTR</th>
+              <th className="text-right py-3 px-4 font-medium">LINEADAT</th>
               <th className="text-left py-3 px-4 font-medium">Trader</th>
               <th className="text-right py-3 px-4 font-medium"></th>
             </tr>
@@ -200,7 +200,7 @@ export function PaginatedSwapsTable() {
               </span>
             </div>
             <div className="text-sm font-mono tabular">
-              {formatEth(r.ethAmount)} ETH {r.side === "buy" ? "→" : "←"} {formatTokens(r.tokenAmount)} LINEASTR
+              {formatEth(r.ethAmount)} ETH {r.side === "buy" ? "→" : "←"} {formatTokens(r.tokenAmount)} LINEADAT
             </div>
             <div className="text-xs text-muted-foreground font-mono">
               {r.origin ? shortAddress(r.origin) : "—"}

@@ -7,13 +7,13 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-sans", display: "swa
 const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono", display: "swap" });
 
 export const metadata: Metadata = {
-  title: "LINEASTR — Linea-Backed Token Strategy",
+  title: "LineaDAT — Perpetual, Automated DAT on Linea",
   description:
-    "LINEASTR is a deflationary token strategy on Linea L2. Buy and sell bags through a P2P mechanism with built-in slow-rug protection. The protocol burns LINEASTR on every cycle.",
-  metadataBase: new URL("https://lineastrategy.com"),
+    "LineaDAT is a deflationary, perpetual digital asset treasury on Linea L2. Buy and sell bags through a P2P mechanism with built-in slow-rug protection. The protocol burns LINEADAT on every cycle.",
+  metadataBase: new URL("https://www.on-chaindat.com"),
   openGraph: {
-    title: "LINEASTR",
-    description: "Linea-backed deflationary token strategy on Linea L2",
+    title: "LineaDAT",
+    description: "Perpetual, automated digital asset treasury on Linea L2",
     type: "website",
   },
 };

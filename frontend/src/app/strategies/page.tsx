@@ -8,15 +8,15 @@ import { ADDR } from "@/lib/wagmi";
 /**
  * /strategies — index of all known LINEASTR strategies on the current chain.
  *
- * Phase 3 has only 1 strategy (LINEASTR itself). Phase 4 may add more strategies for the
- * LINEASTR-family if the launchpad pattern is enabled.
+ * Phase 3 has only 1 strategy (LineaDAT itself). Phase 4 may add more strategies for the
+ * LineaDAT-family if the launchpad pattern is enabled.
  */
 export default function StrategiesIndexPage() {
   const strategies = [
     {
       address: ADDR.strategy,
-      name: "LINEASTR",
-      symbol: "LINEASTR",
+      name: "LineaDAT",
+      symbol: "LINEADAT",
       underlying: "tLINEA",
       bagSize: "150 000",
     },
@@ -27,7 +27,7 @@ export default function StrategiesIndexPage() {
       <Header />
       <main className="container py-10 sm:py-16 min-h-[calc(100vh-3.5rem)]">
         <h1 className="text-3xl sm:text-4xl font-display font-bold mb-2">Strategies</h1>
-        <p className="text-muted-foreground mb-8">All LINEASTR-family strategies live on this chain.</p>
+        <p className="text-muted-foreground mb-8">All LineaDAT-family strategies live on this chain.</p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {strategies.map((s) => (

@@ -7,10 +7,10 @@ export function Footer() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8">
           <div className="col-span-2 sm:col-span-1">
             <h3 className="text-lg font-display font-bold mb-2">
-              LINEA<span className="text-primary">STR</span>
+              Linea<span className="text-primary">DAT</span>
             </h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Linea-backed deflationary strategy. Buy bags, sell bags, watch supply burn.
+              Perpetual, automated digital asset treasury on Linea. Buy bags, sell bags, watch supply burn.
             </p>
           </div>
           <div>
@@ -24,8 +24,8 @@ export function Footer() {
           <div>
             <h4 className="text-sm font-semibold mb-3">Resources</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><a href="https://github.com/patronny/LINEASTR/tree/main/docs" target="_blank" rel="noopener noreferrer" className="hover:text-foreground">Docs</a></li>
-              <li><a href="https://github.com/patronny/LINEASTR" target="_blank" rel="noopener noreferrer" className="hover:text-foreground">GitHub</a></li>
+              <li><a href="https://github.com/patronny/LineaDAT/tree/main/docs" target="_blank" rel="noopener noreferrer" className="hover:text-foreground">Docs</a></li>
+              <li><a href="https://github.com/patronny/LineaDAT" target="_blank" rel="noopener noreferrer" className="hover:text-foreground">GitHub</a></li>
             </ul>
           </div>
           <div>
@@ -37,7 +37,7 @@ export function Footer() {
           </div>
         </div>
         <div className="mt-8 pt-6 border-t border-border text-xs text-muted-foreground text-center">
-          © 2026 LINEASTR. Forked from TokenWorks ERC20Strategy v3 (MIT). Open source.
+          © 2026 LineaDAT. Forked from TokenWorks ERC20Strategy v3 (MIT). Open source.
         </div>
       </div>
     </footer>

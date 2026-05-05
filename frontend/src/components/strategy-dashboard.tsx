@@ -13,7 +13,7 @@ import { ActionsCard } from "./actions-card";
 const leftSections: DraggableSection[] = [
   {
     id: "chart",
-    title: "$LINEASTR Chart",
+    title: "$LINEADAT Chart",
     subtitle: "Powered by Dexscreener (testnet pool may not appear)",
     render: () => <DexChart />,
   },
@@ -32,7 +32,7 @@ const leftSections: DraggableSection[] = [
   {
     id: "swaps",
     title: "Last swaps",
-    subtitle: "Most recent ETH ↔ LINEASTR swaps from the live v4 pool.",
+    subtitle: "Most recent ETH ↔ LINEADAT swaps from the live v4 pool.",
     render: () => <PaginatedSwapsTable />,
   },
 ];

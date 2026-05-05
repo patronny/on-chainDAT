@@ -33,7 +33,7 @@ const baseSepoliaRpcs = customRpc && !KNOWN_NO_CORS.test(customRpc)
   : corsFriendlyFallbacks;
 
 export const config = getDefaultConfig({
-  appName: "LINEASTR",
+  appName: "LineaDAT",
   projectId: wcProjectId,
   chains: [baseSepolia, linea],
   transports: {
