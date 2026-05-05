@@ -1,19 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { fetchOldestSwapSince, INDEXER_ENABLED } from "@/lib/indexer";
+import { fetchBaselineSwapFor24h, INDEXER_ENABLED } from "@/lib/indexer";
 import { lineastrPriceInEth } from "@/lib/utils";
 
 /**
  * 24h LINEASTR price change in percent vs the price 24 hours ago.
  *
- * Baseline = sqrtPriceX96 of the earliest swap with timestamp >= now-24h
- * (queried from the Ponder indexer). Current = sqrtPriceX96 from the live
- * pool (passed in by caller — usually `useStrategyStats().sqrtPriceX96`).
+ * Baseline = sqrtPriceX96 of the earliest swap with timestamp >= now-24h.
+ * During quiet testnet windows, falls back to the latest swap before the
+ * 24h boundary so the widget doesn't disappear just because no one traded.
  *
  * Returns null when:
  *   - indexer disabled / down
- *   - no swap exists in the last 24h (nothing to anchor against)
+ *   - no swap exists in the indexer at all
  *   - current sqrtPriceX96 is unavailable
  */
 export function usePriceChange24h(currentSqrtPriceX96: bigint | undefined): number | null {
@@ -29,7 +29,7 @@ export function usePriceChange24h(currentSqrtPriceX96: bigint | undefined): numb
     async function run() {
       try {
         const since = Math.floor(Date.now() / 1000) - 86400;
-        const baseline = await fetchOldestSwapSince(since, ctrl.signal);
+        const baseline = await fetchBaselineSwapFor24h(since, ctrl.signal);
         if (cancelled) return;
         if (!baseline) {
           setPct(null);
