@@ -1,11 +1,16 @@
-name: LINEASTR Keeper
+name: LineaDAT Keeper
 
 # Phase 3.5 testnet keeper — calls bot.executeRound on schedule.
 #
-# After Phase 3.5 the strategy.hookAddress is the real LINEASTRHook contract,
+# After Phase 3.5 the strategy.hookAddress is the real LineaDATHook contract,
 # so manual `addFees` from an EOA reverts (OnlyHook). Fees now arrive only via
 # real swap activity (marketsim cron + user UI swaps). We removed the auto-seed
 # step and rely on a separate marketsim workflow + user activity to drive fees.
+#
+# NOTE on launch gate: until block.timestamp >= hook.deploymentTime[strategy],
+# all swaps revert with NotYetLaunched. The keeper still runs but bot rounds
+# are no-ops because currentFees stays at 0 (no fees can accrue pre-launch).
+# That's expected.
 #
 # Auto-stop after MAX_RUNS scheduled invocations. Manual workflow_dispatch is
 # exempt from the counter.
@@ -18,8 +23,8 @@ on:
 env:
   MAX_RUNS: "48"
   RPC_URL: "https://base-sepolia-rpc.publicnode.com"
-  STRATEGY_ADDR: "0x6ddbC0bF9e8Bb2f8Bd9Dfd27876197340dDc7EB2"
-  BOT_ADDR: "0x5CAbfF553d8D7B9564CceE758A22b58c850d23Fc"
+  STRATEGY_ADDR: "0x615937AE1eB71248DA407F39AcFea9288CF1784F"
+  BOT_ADDR: "0x8FC3c32fd69D714413C1ecD66FA4067b08eE3532"
 
 jobs:
   run-keeper:

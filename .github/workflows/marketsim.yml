@@ -1,7 +1,10 @@
-name: LINEASTR Market Simulator
+name: LineaDAT Market Simulator
 
-# Phase 3.5 — generates random ETH<->LINEASTR swaps to drive real hook fees into strategy.
-# Each scheduled run executes one buy or sell via LineastrTestSwapper.
+# Phase 3.5 — generates random ETH<->LINEADAT swaps to drive real hook fees into strategy.
+# Each scheduled run executes one buy or sell via LineaDATTestSwapper.
+#
+# NOTE on launch gate: pre-launch (block.timestamp < hook.deploymentTime[strategy]) every
+# swap reverts with NotYetLaunched. The marketsim run will fail-soft until the gate opens.
 #
 # Goal: accumulate strategy.currentFees > bot.buyThreshold (0.02 ETH) so bot.executeRound
 # starts buying tLINEA bags from the open market. ~13-25 buy rounds at 0.001 ETH each
@@ -51,12 +54,12 @@ jobs:
       - name: Pre-round state
         working-directory: contracts
         run: |
-          STRAT=0x6ddbC0bF9e8Bb2f8Bd9Dfd27876197340dDc7EB2
+          STRAT=0x615937AE1eB71248DA407F39AcFea9288CF1784F
           DEPLOYER=0xbc6af64859dF1008c8187F94dF89323000dEE668
           echo "Strategy.currentFees: $(cast call $STRAT 'currentFees()(uint256)' --rpc-url ${{ env.RPC_URL }})"
           echo "Strategy.lastBagId:   $(cast call $STRAT 'lastBagId()(uint256)' --rpc-url ${{ env.RPC_URL }})"
           echo "Deployer ETH bal:     $(cast balance $DEPLOYER --rpc-url ${{ env.RPC_URL }})"
-          echo "Deployer LINEASTR:    $(cast call $STRAT 'balanceOf(address)(uint256)' $DEPLOYER --rpc-url ${{ env.RPC_URL }})"
+          echo "Deployer LINEADAT:    $(cast call $STRAT 'balanceOf(address)(uint256)' $DEPLOYER --rpc-url ${{ env.RPC_URL }})"
 
       - name: Execute MarketSim round
         working-directory: contracts

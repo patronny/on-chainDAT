@@ -24,9 +24,10 @@ import {Currency} from "@uniswap/v4-core/src/types/Currency.sol";
 ///     --broadcast --private-key $PRIVATE_KEY -vvv
 contract MarketSimRound is Script {
     address constant POOL_MANAGER = 0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408;
-    address constant LINEADAT_PROXY = 0x6ddbC0bF9e8Bb2f8Bd9Dfd27876197340dDc7EB2;
-    address constant SWAPPER = 0x1a1434d72B23B1A968824191195efcf95B07116c;
-    address constant HOOK = 0x61116044DC8eB623A618021cEDB14836D6512444;
+    // LineaDAT Phase 3.5 (with launch gate, deployed 2026-05-05)
+    address constant LINEADAT_PROXY = 0x615937AE1eB71248DA407F39AcFea9288CF1784F;
+    address constant SWAPPER = 0x1e4B059b392a8eCee33bCf2D7463D2F201835F91;
+    address constant HOOK = 0x512dd6871eb3a28aD07885A9B75a2e26eDa2a444;
     int24 constant TICK_SPACING = 60;
     uint24 constant DYNAMIC_FEE_FLAG = 0x800000;
 
