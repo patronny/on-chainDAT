@@ -4,11 +4,11 @@ pragma solidity ^0.8.26;
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
 
-import {LINEASTRHook} from "../src/LINEASTRHook.sol";
-import {ILineastrFactory} from "../src/Interfaces.sol";
+import {LineaDATHook} from "../src/LineaDATHook.sol";
+import {ILineaDATFactory} from "../src/Interfaces.sol";
 import {IPoolManager} from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
 
-/// @notice Phase 3.5 — mine a CREATE2 salt for LINEASTRHook on Base Sepolia.
+/// @notice Phase 3.5 — mine a CREATE2 salt for LineaDATHook on Base Sepolia.
 ///
 /// Required hook permission flags = 0x2444
 ///   = BEFORE_INITIALIZE | AFTER_ADD_LIQUIDITY | AFTER_SWAP | AFTER_SWAP_RETURNS_DELTA
@@ -24,7 +24,7 @@ contract MineHookBaseSepolia is Script {
     /// @notice Standard Foundry CREATE2 deployer — verified live on Base Sepolia (cast code returned bytecode)
     address constant CREATE2_DEPLOYER = 0x4e59b44847b379578588920cA78FbF26c0B4956C;
 
-    /// @notice Required hook permission bits (matches LINEASTRHook.getHookPermissions)
+    /// @notice Required hook permission bits (matches LineaDATHook.getHookPermissions)
     uint160 constant REQUIRED_FLAGS = 0x2444;
 
     /// @notice Maximum salts to try before giving up
@@ -32,26 +32,26 @@ contract MineHookBaseSepolia is Script {
 
     // === Live Phase 3 Base Sepolia addresses ===
     address constant POOL_MANAGER = 0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408;
-    address constant LINEASTR_PROXY = 0x6ddbC0bF9e8Bb2f8Bd9Dfd27876197340dDc7EB2;
+    address constant LINEADAT_PROXY = 0x6ddbC0bF9e8Bb2f8Bd9Dfd27876197340dDc7EB2;
     address constant FACTORY = 0xeDCA75CdAbcca93399c22fc1815035C71F5f77A6;
     address constant FEE_ADDRESS = 0xbc6af64859dF1008c8187F94dF89323000dEE668; // deployer/owner
 
     function run() external view returns (address hookAddr, bytes32 salt, bytes memory initCode) {
         bytes memory creationCode = abi.encodePacked(
-            type(LINEASTRHook).creationCode,
+            type(LineaDATHook).creationCode,
             abi.encode(
                 IPoolManager(POOL_MANAGER),
-                LINEASTR_PROXY,
-                ILineastrFactory(FACTORY),
+                LINEADAT_PROXY,
+                ILineaDATFactory(FACTORY),
                 FEE_ADDRESS
             )
         );
         bytes32 codeHash = keccak256(creationCode);
 
-        console.log("=== MINING LINEASTRHook on Base Sepolia ===");
+        console.log("=== MINING LineaDATHook on Base Sepolia ===");
         console.log("CREATE2 deployer:", CREATE2_DEPLOYER);
         console.log("PoolManager:     ", POOL_MANAGER);
-        console.log("LINEASTR proxy:  ", LINEASTR_PROXY);
+        console.log("LineaDAT proxy:  ", LINEADAT_PROXY);
         console.log("Factory:         ", FACTORY);
         console.log("Fee address:     ", FEE_ADDRESS);
         console.log("Required flags:  0x2444 (BEFORE_INIT | AFTER_ADD_LIQ | AFTER_SWAP | AFTER_SWAP_DELTA)");

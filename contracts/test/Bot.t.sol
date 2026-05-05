@@ -2,13 +2,13 @@
 pragma solidity ^0.8.26;
 
 import {BaseTest} from "./Base.t.sol";
-import {LineastrBot, ILineastrStrategyView} from "../src/LineastrBot.sol";
+import {LineaDATBot, ILineaDATStrategyView} from "../src/LineaDATBot.sol";
 
-/// @notice LineastrBot test suite — verifies the keeper-bot's atomic round logic, access control,
+/// @notice LineaDATBot test suite — verifies the keeper-bot's atomic round logic, access control,
 /// and configuration knobs. Bot is funded with tLINEA (mocked $LINEA) + ETH and is registered as a
 /// distributor on the strategy so its underlying-token transfers don't get blocked by `_afterTokenTransfer`.
 contract BotTest is BaseTest {
-    LineastrBot internal bot;
+    LineaDATBot internal bot;
     address internal keeper = address(0xC107); // crontask runner EOA
     address internal botOwner = address(0x90);
 
@@ -16,7 +16,7 @@ contract BotTest is BaseTest {
         super.setUp();
 
         // Deploy bot
-        bot = new LineastrBot(address(strategy), address(linea), keeper, botOwner);
+        bot = new LineaDATBot(address(strategy), address(linea), keeper, botOwner);
 
         // Whitelist bot as a distributor on the strategy (so its sellTokens-receive doesn't get blocked
         // by transient-allowance checks). In production we wouldn't need this, but in unit-test scaffolding
@@ -41,28 +41,28 @@ contract BotTest is BaseTest {
     }
 
     function test_constructor_revertsOnZeroStrategy() public {
-        vm.expectRevert(LineastrBot.ZeroAddress.selector);
-        new LineastrBot(address(0), address(linea), keeper, botOwner);
+        vm.expectRevert(LineaDATBot.ZeroAddress.selector);
+        new LineaDATBot(address(0), address(linea), keeper, botOwner);
     }
 
     function test_constructor_revertsOnZeroUnderlying() public {
-        vm.expectRevert(LineastrBot.ZeroAddress.selector);
-        new LineastrBot(address(strategy), address(0), keeper, botOwner);
+        vm.expectRevert(LineaDATBot.ZeroAddress.selector);
+        new LineaDATBot(address(strategy), address(0), keeper, botOwner);
     }
 
     function test_constructor_revertsOnZeroKeeper() public {
-        vm.expectRevert(LineastrBot.ZeroAddress.selector);
-        new LineastrBot(address(strategy), address(linea), address(0), botOwner);
+        vm.expectRevert(LineaDATBot.ZeroAddress.selector);
+        new LineaDATBot(address(strategy), address(linea), address(0), botOwner);
     }
 
     function test_constructor_revertsOnZeroOwner() public {
-        vm.expectRevert(LineastrBot.ZeroAddress.selector);
-        new LineastrBot(address(strategy), address(linea), keeper, address(0));
+        vm.expectRevert(LineaDATBot.ZeroAddress.selector);
+        new LineaDATBot(address(strategy), address(linea), keeper, address(0));
     }
 
     function test_executeRound_revertsForNonKeeper() public {
         vm.prank(botA);
-        vm.expectRevert(LineastrBot.OnlyKeeper.selector);
+        vm.expectRevert(LineaDATBot.OnlyKeeper.selector);
         bot.executeRound(1);
     }
 
@@ -253,7 +253,7 @@ contract BotTest is BaseTest {
 
         // Old keeper can't run rounds
         vm.prank(keeper);
-        vm.expectRevert(LineastrBot.OnlyKeeper.selector);
+        vm.expectRevert(LineaDATBot.OnlyKeeper.selector);
         bot.executeRound(1);
 
         // New keeper can
@@ -269,7 +269,7 @@ contract BotTest is BaseTest {
 
     function test_setKeeper_revertsOnZero() public {
         vm.prank(botOwner);
-        vm.expectRevert(LineastrBot.ZeroAddress.selector);
+        vm.expectRevert(LineaDATBot.ZeroAddress.selector);
         bot.setKeeper(address(0));
     }
 
@@ -329,7 +329,7 @@ contract BotTest is BaseTest {
 
     function test_withdrawUnderlying_revertsOnZeroTo() public {
         vm.prank(botOwner);
-        vm.expectRevert(LineastrBot.ZeroAddress.selector);
+        vm.expectRevert(LineaDATBot.ZeroAddress.selector);
         bot.withdrawUnderlying(address(0), 1);
     }
 
@@ -358,7 +358,7 @@ contract BotTest is BaseTest {
     function test_executeRound_emitsRoundExecuted() public {
         // We don't pre-stage anything → all 3 actions return false
         vm.expectEmit(true, false, false, true);
-        emit LineastrBot.RoundExecuted(42, false, 0, false);
+        emit LineaDATBot.RoundExecuted(42, false, 0, false);
         vm.prank(keeper);
         bot.executeRound(42);
     }
@@ -368,7 +368,7 @@ contract BotTest is BaseTest {
         vm.roll(block.number + 30);
 
         vm.expectEmit(true, false, false, false);
-        emit LineastrBot.BoughtBag(1, 0, 0); // bagId=1, paid/listPrice not checked
+        emit LineaDATBot.BoughtBag(1, 0, 0); // bagId=1, paid/listPrice not checked
         vm.prank(keeper);
         bot.executeRound(1);
     }
@@ -377,7 +377,7 @@ contract BotTest is BaseTest {
         address newKeeper = address(0xC108);
 
         vm.expectEmit(true, true, false, false);
-        emit LineastrBot.KeeperRotated(keeper, newKeeper);
+        emit LineaDATBot.KeeperRotated(keeper, newKeeper);
 
         vm.prank(botOwner);
         bot.setKeeper(newKeeper);

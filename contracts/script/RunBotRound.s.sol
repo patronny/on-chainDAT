@@ -4,7 +4,7 @@ pragma solidity ^0.8.26;
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
 
-import {LineastrBot} from "../src/LineastrBot.sol";
+import {LineaDATBot} from "../src/LineaDATBot.sol";
 
 /// @notice Phase 3 testnet helper — manually trigger bot.executeRound() from the keeper EOA.
 ///
@@ -21,7 +21,7 @@ contract RunBotRound is Script {
         address botAddr = vm.envAddress("BOT");
         uint256 roundId = vm.envOr("ROUND_ID", uint256(block.timestamp));
 
-        LineastrBot bot = LineastrBot(payable(botAddr));
+        LineaDATBot bot = LineaDATBot(payable(botAddr));
 
         console.log("Bot:     ", botAddr);
         console.log("RoundId: ", roundId);

@@ -4,8 +4,8 @@ pragma solidity ^0.8.26;
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
 
-import {LineastrTestSwapper} from "../src/LineastrTestSwapper.sol";
-import {LINEASTRStrategy} from "../src/LINEASTRStrategy.sol";
+import {LineaDATTestSwapper} from "../src/LineaDATTestSwapper.sol";
+import {LineaDATStrategy} from "../src/LineaDATStrategy.sol";
 import {IPoolManager} from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
 import {IHooks} from "@uniswap/v4-core/src/interfaces/IHooks.sol";
 import {PoolKey} from "@uniswap/v4-core/src/types/PoolKey.sol";
@@ -14,7 +14,7 @@ import {Currency} from "@uniswap/v4-core/src/types/Currency.sol";
 /// @notice Phase 3.5 — One-shot test swap to verify pool + hook are live.
 contract SmokeTestSwap is Script {
     address constant POOL_MANAGER = 0x05E73354cFDd6745C338b50BcFDfA3Aa6fA03408;
-    address constant LINEASTR_PROXY = 0x6ddbC0bF9e8Bb2f8Bd9Dfd27876197340dDc7EB2;
+    address constant LINEADAT_PROXY = 0x6ddbC0bF9e8Bb2f8Bd9Dfd27876197340dDc7EB2;
     address constant HOOK = 0x61116044DC8eB623A618021cEDB14836D6512444;
     int24 constant TICK_SPACING = 60;
     uint24 constant DYNAMIC_FEE_FLAG = 0x800000;
@@ -23,23 +23,23 @@ contract SmokeTestSwap is Script {
         require(block.chainid == 84532, "Must be on Base Sepolia");
         address deployer = msg.sender;
 
-        LINEASTRStrategy proxy = LINEASTRStrategy(payable(LINEASTR_PROXY));
+        LineaDATStrategy proxy = LineaDATStrategy(payable(LINEADAT_PROXY));
         uint256 preFees = proxy.currentFees();
         uint256 preDeployerBal = proxy.balanceOf(deployer);
 
         console.log("=== Pre-swap ===");
         console.log("Strategy.currentFees:", preFees);
-        console.log("Deployer LINEASTR balance:", preDeployerBal);
+        console.log("Deployer LineaDAT balance:", preDeployerBal);
         console.log("");
 
         vm.startBroadcast();
 
-        LineastrTestSwapper swapper = new LineastrTestSwapper(IPoolManager(POOL_MANAGER));
-        console.log("[1] LineastrTestSwapper:", address(swapper));
+        LineaDATTestSwapper swapper = new LineaDATTestSwapper(IPoolManager(POOL_MANAGER));
+        console.log("[1] LineaDATTestSwapper:", address(swapper));
 
         PoolKey memory key = PoolKey({
             currency0: Currency.wrap(address(0)),
-            currency1: Currency.wrap(LINEASTR_PROXY),
+            currency1: Currency.wrap(LINEADAT_PROXY),
             fee: DYNAMIC_FEE_FLAG,
             tickSpacing: TICK_SPACING,
             hooks: IHooks(HOOK)
@@ -51,12 +51,12 @@ contract SmokeTestSwap is Script {
         console.log("[2] setDistributor(deployer, true)");
 
         // Mark swapper as distributor too — outbound transfer (swapper -> poolManager) for the ETH leg
-        // is just NATIVE so no token transfer; but the receive of LINEASTR by swapper before forwarding to deployer
+        // is just NATIVE so no token transfer; but the receive of LineaDAT by swapper before forwarding to deployer
         // could trip the check. take() goes directly to recipient, so we should be ok, but mark anyway as belt-and-suspenders.
         proxy.setDistributor(address(swapper), true);
         console.log("[3] setDistributor(swapper, true)");
 
-        // Execute swap: 0.001 ETH -> LINEASTR, recipient = deployer
+        // Execute swap: 0.001 ETH -> LineaDAT, recipient = deployer
         swapper.buyExactInput{value: 0.001 ether}(key, deployer);
         console.log("[4] Swap executed");
 
@@ -69,7 +69,7 @@ contract SmokeTestSwap is Script {
         console.log("=== Post-swap ===");
         console.log("Strategy.currentFees:", postFees);
         console.log("Delta currentFees (wei):", postFees - preFees);
-        console.log("Deployer LINEASTR balance:", postDeployerBal);
-        console.log("Delta deployer LINEASTR (wei):", postDeployerBal - preDeployerBal);
+        console.log("Deployer LineaDAT balance:", postDeployerBal);
+        console.log("Delta deployer LineaDAT (wei):", postDeployerBal - preDeployerBal);
     }
 }

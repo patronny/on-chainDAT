@@ -14,12 +14,12 @@ import {BalanceDelta} from "@uniswap/v4-core/src/types/BalanceDelta.sol";
 import {SwapParams} from "@uniswap/v4-core/src/types/PoolOperation.sol";
 import {TickMath} from "@uniswap/v4-core/src/libraries/TickMath.sol";
 
-/// @title LINEASTRStrategy - An ERC20 strategy token backed by $LINEA on Linea L2
+/// @title LineaDATStrategy - An ERC20 strategy token backed by $LINEA on Linea L2
 /// @author Based on TokenWorks ERC20Strategy v3 (MIT)
 /// @notice This contract implements an ERC20 token backed by $LINEA.
 ///         Users can trade the token on Uniswap V4, and the contract uses trading fees to buy bags of the underlying token.
 /// @dev Uses ERC1967 proxy pattern with immutable args for gas-efficient upgrades
-contract LINEASTRStrategy is BaseStrategy {
+contract LineaDATStrategy is BaseStrategy {
     /* ™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™                ™™™™™™™™™™™                ™™™™™™™™™™™ */
     /* ™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™               ™™™™™™™™™™™™™              ™™™™™™™™™™  */
     /* ™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™              ™™™™™™™™™™™™™              ™™™™™™™™™™™  */
@@ -150,9 +150,9 @@ contract LINEASTRStrategy is BaseStrategy {
         return 3;
     }
 
-    /// @notice Owner-only escape hatch to drain LINEASTR tokens from the factory address.
+    /// @notice Owner-only escape hatch to drain LineaDAT tokens from the factory address.
     /// @dev Phase 3.5 testnet helper. The factory holds the entire 1B mint after deployStrategy
-    ///      (BaseStrategy.__BaseStrategy_init mints to factory()), but our minimal LINEASTRFactory
+    ///      (BaseStrategy.__BaseStrategy_init mints to factory()), but our minimal LineaDATFactory
     ///      lacks a seedLiquidity orchestration. This function lets the owner pull tokens out so a
     ///      script can run the v4 pool seed flow externally. Phase 4 mainnet must replace this with
     ///      a proper factory.seedLiquidity(...) function (see TODO docs/85-phase-3-5-results.md).
@@ -185,7 +185,7 @@ contract LINEASTRStrategy is BaseStrategy {
         ethToTwap -= burnAmount + reward;
         lastTwapBlock = block.number;
 
-        // Swap ETH -> LINEASTR via PoolManager.unlock; takes LINEASTR straight to dead.
+        // Swap ETH -> LineaDAT via PoolManager.unlock; takes LineaDAT straight to dead.
         poolManager().unlock(abi.encode(burnAmount));
 
         SafeTransferLib.forceSafeTransferETH(msg.sender, reward);
@@ -218,7 +218,7 @@ contract LINEASTRStrategy is BaseStrategy {
         if (amount0 < 0) {
             poolManager().settle{value: uint256(uint128(-amount0))}();
         }
-        // Take LINEASTR straight to dead address — burns supply
+        // Take LineaDAT straight to dead address — burns supply
         if (amount1 > 0) {
             poolManager().take(key.currency1, DEAD_ADDRESS, uint256(uint128(amount1)));
         }

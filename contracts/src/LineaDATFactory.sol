@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
-// LINEASTRFactory — minimal owner-only factory for LINEASTR strategy deployments on Linea L2.
+// LineaDATFactory — minimal owner-only factory for LineaDAT strategy deployments on Linea L2.
 // Inspired by TokenWorks ERC20StrategyFactory pattern (MIT) but trimmed: no permissionless launchpad,
-// no NFT/ERC-1155 deploy paths, no recursive strategies. Owner deploys LINEASTR first, then optionally
-// future tokens that share the same hook + factory + buy-and-burn LINEASTR mechanic.
+// no NFT/ERC-1155 deploy paths, no recursive strategies. Owner deploys LineaDAT first, then optionally
+// future tokens that share the same hook + factory + buy-and-burn LineaDAT mechanic.
 pragma solidity ^0.8.26;
 
 import {LibClone} from "solady/utils/LibClone.sol";
@@ -17,17 +17,17 @@ import {IHooks} from "@uniswap/v4-core/src/interfaces/IHooks.sol";
 import {BalanceDelta} from "@uniswap/v4-core/src/types/BalanceDelta.sol";
 import {IUniswapV4Router04} from "v4-router/interfaces/IUniswapV4Router04.sol";
 
-import {ILineastrStrategy, ILineastrFactory} from "./Interfaces.sol";
+import {ILineaDATStrategy, ILineaDATFactory} from "./Interfaces.sol";
 
-/// @title LINEASTRFactory — deploy + register LINEASTR-family strategy proxies
-/// @notice Owner-only. LINEASTR (the self-launch token) MUST be deployed first; subsequent strategies
-///         use the same hook and pay 10% of trade fees back as buy-and-burn LINEASTR (handled in hook).
-contract LINEASTRFactory is Ownable, ReentrancyGuard {
+/// @title LineaDATFactory — deploy + register LineaDAT-family strategy proxies
+/// @notice Owner-only. LineaDAT (the self-launch token) MUST be deployed first; subsequent strategies
+///         use the same hook and pay 10% of trade fees back as buy-and-burn LineaDAT (handled in hook).
+contract LineaDATFactory is Ownable, ReentrancyGuard {
     /* ™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™ */
     /*                     CONSTANTS                       */
     /* ™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™ */
 
-    /// @notice Dead address used to burn LINEASTR on future-strategy buy-and-burn cycles
+    /// @notice Dead address used to burn LineaDAT on future-strategy buy-and-burn cycles
     address public constant DEAD_ADDRESS = 0x000000000000000000000000000000000000dEaD;
 
     /// @notice Universal Router on Linea (V2_1_1, v4-capable)
@@ -39,15 +39,15 @@ contract LINEASTRFactory is Ownable, ReentrancyGuard {
     /*                   STATE VARIABLES                   */
     /* ™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™ */
 
-    /// @notice Address of the BaseStrategy/LINEASTRStrategy implementation (UUPS proxy target)
+    /// @notice Address of the BaseStrategy/LineaDATStrategy implementation (UUPS proxy target)
     address public strategyImplementation;
 
     /// @notice Default hook address for new strategies (CREATE2-mined)
     address public hookAddress;
 
-    /// @notice Address of the LINEASTR token itself — set on the first call to `deployStrategy`.
+    /// @notice Address of the LineaDAT token itself — set on the first call to `deployStrategy`.
     ///         Used by the hook to detect the self-launch edge case in `_processFees`.
-    address public lineastrAddress;
+    address public lineaDATAddress;
 
     /// @notice Map underlying ERC-20 token => deployed strategy proxy
     mapping(address => address) public tokenToStrategy;
@@ -58,7 +58,7 @@ contract LINEASTRFactory is Ownable, ReentrancyGuard {
     ///         Hook reads this in `_beforeInitialize` and `_afterAddLiquidity` to allow exactly one liquidity add.
     bool public loadingLiquidity;
 
-    /// @notice Whether `deployStrategy` is permitted (can be disabled by owner once LINEASTR ecosystem is mature)
+    /// @notice Whether `deployStrategy` is permitted (can be disabled by owner once LineaDAT ecosystem is mature)
     bool public launchEnabled = true;
 
     /// @notice Whitelist of authorized launcher addresses (optional — only used if owner enables)
@@ -71,10 +71,10 @@ contract LINEASTRFactory is Ownable, ReentrancyGuard {
     event StrategyDeployed(
         address indexed underlying, address indexed strategy, string name, string symbol, uint256 bagSize
     );
-    event LineastrAddressSet(address indexed lineastrAddress);
+    event LineaDATAddressSet(address indexed lineaDATAddress);
     event HookAddressSet(address indexed hookAddress);
     event ImplementationSet(address indexed implementation);
-    event LineastrBoughtAndBurned(uint256 ethSpent, uint256 lineastrBurned);
+    event LineaDATBoughtAndBurned(uint256 ethSpent, uint256 lineaDATBurned);
 
     /* ™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™ */
     /*                    CUSTOM ERRORS                    */
@@ -85,7 +85,7 @@ contract LINEASTRFactory is Ownable, ReentrancyGuard {
     error AlreadyDeployed();
     error InvalidImplementation();
     error InvalidHookAddress();
-    error LineastrNotSet();
+    error LineaDATNotSet();
 
     /* ™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™ */
     /*                    CONSTRUCTOR                      */
@@ -103,7 +103,7 @@ contract LINEASTRFactory is Ownable, ReentrancyGuard {
     /*                  ADMIN FUNCTIONS                    */
     /* ™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™ */
 
-    /// @notice Sets the BaseStrategy/LINEASTRStrategy implementation (UUPS proxy target)
+    /// @notice Sets the BaseStrategy/LineaDATStrategy implementation (UUPS proxy target)
     function setStrategyImplementation(address _impl) external onlyOwner returns (address) {
         if (_impl == address(0) || _impl.code.length == 0) revert InvalidImplementation();
         strategyImplementation = _impl;
@@ -121,7 +121,7 @@ contract LINEASTRFactory is Ownable, ReentrancyGuard {
 
     /// @notice TESTNET-ONLY hook setter that accepts any non-zero address (including EOAs).
     /// @dev Used in Phase 3 (Base Sepolia) where the deployer EOA acts as a stand-in for the real
-    ///      CREATE2-mined LINEASTRHook. The hook contract itself is not needed because we don't
+    ///      CREATE2-mined LineaDATHook. The hook contract itself is not needed because we don't
     ///      run a real Uniswap v4 pool on testnet — strategy P2P mechanics (buyTokens, sellTokens)
     ///      work without a pool. Phase 4 (Linea mainnet) MUST use `updateHookAddress` with a real
     ///      hook deployed via CREATE2.
@@ -147,14 +147,14 @@ contract LINEASTRFactory is Ownable, ReentrancyGuard {
     /* ™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™ */
 
     /// @notice Owner-only: deploy a new strategy proxy backed by `_token`.
-    /// @dev First call sets `lineastrAddress = strategyProxy` (the LINEASTR self-launch).
-    ///      Subsequent calls deploy future LINEASTR-family strategies (e.g. ETH-backed, USDC-backed).
+    /// @dev First call sets `lineaDATAddress = strategyProxy` (the LineaDAT self-launch).
+    ///      Subsequent calls deploy future LineaDAT-family strategies (e.g. ETH-backed, USDC-backed).
     /// @param _token Underlying ERC-20 (e.g. $LINEA `0x1789e0043623282D5DCc7F213d703C6D8BAfBB04`)
-    /// @param _bagSize Size of one bag in underlying token units (18-decimals → 150_000e18 for LINEASTR)
-    /// @param _tokenName Strategy token name (e.g. "LineaStrategy")
-    /// @param _tokenSymbol Strategy token symbol (e.g. "LINEASTR")
+    /// @param _bagSize Size of one bag in underlying token units (18-decimals → 150_000e18 for LineaDAT)
+    /// @param _tokenName Strategy token name (e.g. "LineaDAT")
+    /// @param _tokenSymbol Strategy token symbol (e.g. "LINEADAT")
     /// @param _strategyOwner Owner EOA for the deployed proxy
-    /// @param _buyIncrement Maximum-price-for-buy ramp per block (e.g. 0.02e18 wei = 0.02 ETH for LINEASTR)
+    /// @param _buyIncrement Maximum-price-for-buy ramp per block (e.g. 0.02e18 wei = 0.02 ETH for LineaDAT)
     /// @return strategy The deployed strategy proxy address
     function deployStrategy(
         address _token,
@@ -175,23 +175,23 @@ contract LINEASTRFactory is Ownable, ReentrancyGuard {
         // ERC1967 + immutable args: BaseStrategy.factory()/router()/poolManager() use LibClone.argsOnERC1967
         strategy = LibClone.deployERC1967(strategyImplementation, immutableArgs);
 
-        ILineastrStrategy(strategy).initialize(
+        ILineaDATStrategy(strategy).initialize(
             _token, _bagSize, hookAddress, _tokenName, _tokenSymbol, _buyIncrement, _strategyOwner
         );
 
         tokenToStrategy[_token] = strategy;
         startegyToToken[strategy] = _token;
 
-        // First deploy = LINEASTR self-launch — record lineastrAddress for hook self-launch detection
-        if (lineastrAddress == address(0)) {
-            lineastrAddress = strategy;
-            emit LineastrAddressSet(strategy);
+        // First deploy = LineaDAT self-launch — record lineaDATAddress for hook self-launch detection
+        if (lineaDATAddress == address(0)) {
+            lineaDATAddress = strategy;
+            emit LineaDATAddressSet(strategy);
         }
 
         emit StrategyDeployed(_token, strategy, _tokenName, _tokenSymbol, _bagSize);
     }
 
-    /// @notice Wrapper kept for ABI compat with `ILineastrFactory.ownerLaunchStrategy`
+    /// @notice Wrapper kept for ABI compat with `ILineaDATFactory.ownerLaunchStrategy`
     function ownerLaunchStrategy(
         address _token,
         uint256 _bagSize,
@@ -217,27 +217,27 @@ contract LINEASTRFactory is Ownable, ReentrancyGuard {
     }
 
     /* ™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™ */
-    /*           BUY-AND-BURN LINEASTR (FUTURE)            */
+    /*           BUY-AND-BURN LineaDAT (FUTURE)            */
     /* ™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™ */
 
-    /// @notice Receive ETH from hook `_processFees` (10% LINEASTR-burn share) on future strategies.
-    /// @dev On the LINEASTR self-launch the hook redirects this share to feeAddress instead, so this
+    /// @notice Receive ETH from hook `_processFees` (10% LineaDAT-burn share) on future strategies.
+    /// @dev On the LineaDAT self-launch the hook redirects this share to feeAddress instead, so this
     ///      function is only ever invoked from future strategies' fee processing.
     receive() external payable {
         // Anyone can also send ETH (e.g. donation) — accept silently
     }
 
-    /// @notice Buy LINEASTR with `amountIn` ETH from the LINEASTR/ETH pool and send to dead address.
-    /// @dev Callable by anyone once `lineastrAddress` is set; intended to be triggered periodically by a
+    /// @notice Buy LineaDAT with `amountIn` ETH from the LineaDAT/ETH pool and send to dead address.
+    /// @dev Callable by anyone once `lineaDATAddress` is set; intended to be triggered periodically by a
     ///      keeper (or paid 0.5% reward via a separate mechanism — out of scope for v1).
     /// @param amountIn Amount of ETH from this contract's balance to spend
-    function buyAndBurnLineastr(uint256 amountIn) external nonReentrant returns (uint256 burned) {
-        if (lineastrAddress == address(0)) revert LineastrNotSet();
+    function buyAndBurnLineaDAT(uint256 amountIn) external nonReentrant returns (uint256 burned) {
+        if (lineaDATAddress == address(0)) revert LineaDATNotSet();
         require(amountIn > 0 && amountIn <= address(this).balance, "Bad amount");
 
         PoolKey memory key = PoolKey({
             currency0: Currency.wrap(address(0)),
-            currency1: Currency.wrap(lineastrAddress),
+            currency1: Currency.wrap(lineaDATAddress),
             fee: 0x800000, // DYNAMIC_FEE_FLAG (matches BaseStrategy._buyAndBurnTokens)
             tickSpacing: 60,
             hooks: IHooks(hookAddress)
@@ -246,7 +246,7 @@ contract LINEASTRFactory is Ownable, ReentrancyGuard {
         BalanceDelta delta = IUniswapV4Router04(payable(universalRouter)).swapExactTokensForTokens{value: amountIn}(
             amountIn,
             0, // amountOutMin: 0 (acceptable here because buy-and-burn is non-time-sensitive and we want to burn whatever we get)
-            true, // zeroForOne (ETH → LINEASTR)
+            true, // zeroForOne (ETH → LineaDAT)
             key,
             "",
             DEAD_ADDRESS,
@@ -254,6 +254,6 @@ contract LINEASTRFactory is Ownable, ReentrancyGuard {
         );
 
         burned = uint256(int256(delta.amount1()));
-        emit LineastrBoughtAndBurned(amountIn, burned);
+        emit LineaDATBoughtAndBurned(amountIn, burned);
     }
 }

@@ -23,7 +23,7 @@ interface ITokenLikeWithApprove {
     function transferFrom(address from, address to, uint256 amount) external returns (bool);
 }
 
-contract LineastrTestSwapper is IUnlockCallback {
+contract LineaDATTestSwapper is IUnlockCallback {
     IPoolManager public immutable poolManager;
 
     error NotPoolManager();
@@ -51,7 +51,7 @@ contract LineastrTestSwapper is IUnlockCallback {
         poolManager.unlock(abi.encode(data));
     }
 
-    /// @notice Swap exact LINEASTR (currency1) for ETH (currency0). Caller must `approve` first.
+    /// @notice Swap exact LineaDAT (currency1) for ETH (currency0). Caller must `approve` first.
     /// @dev Pulls `amountIn` from msg.sender via transferFrom; ETH sent to recipient via PoolManager.take.
     function sellExactInput(PoolKey calldata key, uint256 amountIn, address recipient) external {
         require(amountIn > 0, "Zero amount");

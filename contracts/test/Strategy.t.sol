@@ -2,11 +2,11 @@
 pragma solidity ^0.8.26;
 
 import {BaseTest} from "./Base.t.sol";
-import {LINEASTRStrategy} from "../src/LINEASTRStrategy.sol";
+import {LineaDATStrategy} from "../src/LineaDATStrategy.sol";
 import {BaseStrategy} from "../src/BaseStrategy.sol";
 import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
 
-/// @notice Tests the P2P bag-buy/sell mechanic of LINEASTRStrategy.
+/// @notice Tests the P2P bag-buy/sell mechanic of LineaDATStrategy.
 contract StrategyTest is BaseTest {
     /* ™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™ */
     /*                INITIAL STATE INVARIANTS              */
@@ -74,7 +74,7 @@ contract StrategyTest is BaseTest {
         // currentFees = 0 → availableFunds = 0 → revert NoZeroBuys
         _approveLINEA(botA, BAG_SIZE);
         vm.prank(botA);
-        vm.expectRevert(LINEASTRStrategy.NoZeroBuys.selector);
+        vm.expectRevert(LineaDATStrategy.NoZeroBuys.selector);
         strategy.buyTokens();
     }
 
@@ -179,14 +179,14 @@ contract StrategyTest is BaseTest {
 
         uint256 listPrice = strategy.onSale(1);
         vm.prank(buyer);
-        vm.expectRevert(LINEASTRStrategy.PriceTooLow.selector);
+        vm.expectRevert(LineaDATStrategy.PriceTooLow.selector);
         strategy.sellTokens{value: listPrice - 1}(1);
     }
 
     function test_sellTokens_revertsOnNotForSale() public {
         // bagId 99 was never created
         vm.prank(buyer);
-        vm.expectRevert(LINEASTRStrategy.NotForSale.selector);
+        vm.expectRevert(LineaDATStrategy.NotForSale.selector);
         strategy.sellTokens{value: 1 ether}(99);
     }
 
@@ -202,7 +202,7 @@ contract StrategyTest is BaseTest {
 
         // Second buyer tries same bag
         vm.prank(alice);
-        vm.expectRevert(LINEASTRStrategy.NotForSale.selector);
+        vm.expectRevert(LineaDATStrategy.NotForSale.selector);
         strategy.sellTokens{value: lp}(1);
     }
 
@@ -256,7 +256,7 @@ contract StrategyTest is BaseTest {
         vm.prank(botA);
         strategy.buyTokens();
 
-        vm.expectRevert(LINEASTRStrategy.InputsError.selector);
+        vm.expectRevert(LineaDATStrategy.InputsError.selector);
         strategy.list(5, 1);
     }
 
@@ -278,13 +278,13 @@ contract StrategyTest is BaseTest {
         strategy.buyTokens();
 
         vm.prank(owner);
-        vm.expectRevert(LINEASTRStrategy.TokensAlreadyPurchased.selector);
+        vm.expectRevert(LineaDATStrategy.TokensAlreadyPurchased.selector);
         strategy.updateBagSize(200_000 * 1e18);
     }
 
     function test_updateBagSize_revertsOnZero() public {
         vm.prank(owner);
-        vm.expectRevert(LINEASTRStrategy.InputsError.selector);
+        vm.expectRevert(LineaDATStrategy.InputsError.selector);
         strategy.updateBagSize(0);
     }
 

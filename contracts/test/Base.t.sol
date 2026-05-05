@@ -5,9 +5,9 @@ import {Test} from "forge-std/Test.sol";
 import {ERC20} from "solady/tokens/ERC20.sol";
 import {LibClone} from "solady/utils/LibClone.sol";
 
-import {LINEASTRStrategy} from "../src/LINEASTRStrategy.sol";
-import {LINEASTRFactory} from "../src/LINEASTRFactory.sol";
-import {ILineastrStrategy} from "../src/Interfaces.sol";
+import {LineaDATStrategy} from "../src/LineaDATStrategy.sol";
+import {LineaDATFactory} from "../src/LineaDATFactory.sol";
+import {ILineaDATStrategy} from "../src/Interfaces.sol";
 
 import {IPoolManager} from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
 
@@ -46,7 +46,7 @@ contract MockUniversalRouter {
 ///   - Call `increaseTransferAllowance(x)` directly on `strategy`
 ///   - Use `mockHook = address(this)` for any hook-only check
 abstract contract BaseTest is Test {
-    // === Locked LINEASTR params (per docs/50-lineastr-spec.md) ===
+    // === Locked LineaDAT params (per docs/50-lineadat-spec.md) ===
     uint256 internal constant BAG_SIZE = 150_000 * 1e18; // 150 000 LINEA
     uint256 internal constant BUY_INCREMENT = 0.02 ether; // 0.02 ETH/block
     uint256 internal constant TWAP_INCREMENT = 0.05 ether;
@@ -65,9 +65,9 @@ abstract contract BaseTest is Test {
     MockLINEA internal linea;
     MockPoolManager internal poolMgr;
     MockUniversalRouter internal router;
-    LINEASTRStrategy internal impl;
-    LINEASTRFactory internal factory;
-    LINEASTRStrategy internal strategy; // proxy
+    LineaDATStrategy internal impl;
+    LineaDATFactory internal factory;
+    LineaDATStrategy internal strategy; // proxy
 
     function setUp() public virtual {
         // 1. Deploy mocks
@@ -76,20 +76,20 @@ abstract contract BaseTest is Test {
         router = new MockUniversalRouter();
 
         // 2. Deploy factory (owner = this test contract by default)
-        factory = new LINEASTRFactory(IPoolManager(address(poolMgr)), address(router));
+        factory = new LineaDATFactory(IPoolManager(address(poolMgr)), address(router));
 
         // 3. Deploy strategy implementation
-        impl = new LINEASTRStrategy();
+        impl = new LineaDATStrategy();
 
         // 4. Configure factory: set impl + hook (test contract acts as hook to bypass real hook checks)
         factory.setStrategyImplementation(address(impl));
         factory.updateHookAddress(address(this)); // test contract is the "hook"
 
-        // 5. Deploy LINEASTR proxy (the self-launch token)
+        // 5. Deploy LineaDAT proxy (the self-launch token)
         address proxy = factory.deployStrategy(
-            address(linea), BAG_SIZE, "LineaStrategy", "LINEASTR", owner, BUY_INCREMENT
+            address(linea), BAG_SIZE, "LineaDAT", "LINEADAT", owner, BUY_INCREMENT
         );
-        strategy = LINEASTRStrategy(payable(proxy));
+        strategy = LineaDATStrategy(payable(proxy));
 
         // 6. Owner-side setup: tweak twap params (would normally go through hook.adminUpdateFeeAddress + setters)
         vm.startPrank(owner);

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.26;
 
 import {BaseTest} from "./Base.t.sol";
-import {LINEASTRStrategy} from "../src/LINEASTRStrategy.sol";
+import {LineaDATStrategy} from "../src/LineaDATStrategy.sol";
 import {BaseStrategy} from "../src/BaseStrategy.sol";
 
 /// @notice Edge cases: empty pool, zero values, transient allowance, ownership boundaries.
@@ -97,7 +97,7 @@ contract EdgeTest is BaseTest {
         vm.prank(owner);
         strategy.setDistributor(alice, true);
 
-        // factory wants to send LINEASTR to alice — but factory is not a distributor by default,
+        // factory wants to send LineaDAT to alice — but factory is not a distributor by default,
         // so unless globalDistributor is set, transfer from factory → alice would fail.
         // Test: alice transfers to bob freely (alice is whitelisted distributor).
         // First need alice to have tokens: factory transfer to alice through allowance.

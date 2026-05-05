@@ -17,7 +17,7 @@ import {Ownable} from "solady/auth/Ownable.sol";
 import {LibClone} from "solady/utils/LibClone.sol";
 import {IGlobalDistributor} from "./Interfaces.sol";
 
-/// @title BaseStrategy - An ERC20 token (LINEASTR fork of TokenWorks v3)
+/// @title BaseStrategy - An ERC20 token (LineaDAT fork of TokenWorks v3)
 /// @author Based on TokenWorks ERC20Strategy v3 (MIT)
 /// @notice This contract implements an ERC20 token backed by another token.
 ///         Users can trade the token on Uniswap V4, and the contract uses trading fees to buy bags of the underlying token.
@@ -62,7 +62,7 @@ abstract contract BaseStrategy is
     address public constant DEAD_ADDRESS =
         0x000000000000000000000000000000000000dEaD;
     /// @notice Address of the Global Distribution Handler (Ethereum mainnet only — Linea uses storage var)
-    /// @dev Set to address(0) for LINEASTR fork; on Linea the fallback in `_globalDistributor()` reads from storage `globalDistributor`.
+    /// @dev Set to address(0) for LineaDAT fork; on Linea the fallback in `_globalDistributor()` reads from storage `globalDistributor`.
     address public constant GLOBAL_DISTRIBUTION_HANDLER = address(0);
     /// @notice ETH amount increment for maximum buy price calculation
     uint256 public buyIncrement;
@@ -281,7 +281,7 @@ abstract contract BaseStrategy is
 
     /// @notice Sets the TWAP burn increment (max ETH burned per processTokenTwap call)
     /// @param _newIncrement New increment in wei (e.g. 0.05 ether for tight Linea pools, 1 ether after pool grows)
-    /// @dev LINEASTR addition (not in TokenWorks v3): allows owner to scale TWAP size as pool depth changes
+    /// @dev LineaDAT addition (not in TokenWorks v3): allows owner to scale TWAP size as pool depth changes
     ///      without redeploying. Sandwich-MEV resistance: smaller increment = smaller price impact.
     function setTwapIncrement(uint256 _newIncrement) external onlyOwner {
         twapIncrement = _newIncrement;
@@ -289,7 +289,7 @@ abstract contract BaseStrategy is
 
     /// @notice Sets the minimum block delay between TWAP burns
     /// @param _newDelay New delay in blocks (e.g. 4 = ~12s on Linea, equivalent to mainnet 1×12s)
-    /// @dev LINEASTR addition: tunable for L2 block-time differences. Higher = stronger anti-sandwich.
+    /// @dev LineaDAT addition: tunable for L2 block-time differences. Higher = stronger anti-sandwich.
     function setTwapDelayInBlocks(uint256 _newDelay) external onlyOwner {
         twapDelayInBlocks = _newDelay;
     }

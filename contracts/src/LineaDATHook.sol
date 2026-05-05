@@ -21,13 +21,13 @@ import {ModifyLiquidityParams, SwapParams} from "@uniswap/v4-core/src/types/Pool
 import {BeforeSwapDelta, BeforeSwapDeltaLibrary} from "@uniswap/v4-core/src/types/BeforeSwapDelta.sol";
 import "./Interfaces.sol";
 
-/// @title LINEASTRHook - Uniswap V4 Hook for LINEASTR strategy ecosystem
+/// @title LineaDATHook - Uniswap V4 Hook for LineaDAT strategy ecosystem
 /// @author Based on TokenWorks ERC20StrategyHook v3 (MIT)
-/// @notice This hook manages fee collection and distribution for LINEASTR-family pools on Uniswap V4 (Linea L2)
+/// @notice This hook manages fee collection and distribution for LineaDAT-family pools on Uniswap V4 (Linea L2)
 /// @dev Implements dynamic fee structure (99%→10% over 89min) and 80/10/10 fee split.
-///      Edge case: when collection == lineastrAddress (the LINEASTR self-launch), the 10% LINEASTR-burn share
+///      Edge case: when collection == lineaDATAddress (the LineaDAT self-launch), the 10% LineaDAT-burn share
 ///      is redirected to feeAddress (creator) since the strategy can't buy-and-burn its own token recursively.
-contract LINEASTRHook is BaseHook, ReentrancyGuard {
+contract LineaDATHook is BaseHook, ReentrancyGuard {
     /* ™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™                ™™™™™™™™™™™                ™™™™™™™™™™™ */
     /* ™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™               ™™™™™™™™™™™™™              ™™™™™™™™™™  */
     /* ™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™              ™™™™™™™™™™™™™              ™™™™™™™™™™™  */
@@ -74,13 +74,13 @@ contract LINEASTRHook is BaseHook, ReentrancyGuard {
     /// @notice Minimum price limit for swaps
     uint160 private constant MIN_PRICE_LIMIT = TickMath.MIN_SQRT_PRICE + 1;
 
-    /// @notice The LINEASTR token address — used for the self-launch edge case in `_processFees`.
-    /// @dev When `collection == lineastrAddress`, the 10% LINEASTR-burn share is redirected to feeAddress
+    /// @notice The LineaDAT token address — used for the self-launch edge case in `_processFees`.
+    /// @dev When `collection == lineaDATAddress`, the 10% LineaDAT-burn share is redirected to feeAddress
     ///      because the strategy can't recursively buy-and-burn its own token through itself.
-    ///      For all other strategies (future tokens on Linea), the 10% is sent to factory for ETH→LINEASTR swap → 0xdead.
-    address public immutable lineastrAddress;
-    /// @notice The LINEASTR strategy factory contract
-    ILineastrFactory immutable lineastrFactory;
+    ///      For all other strategies (future tokens on Linea), the 10% is sent to factory for ETH→LineaDAT swap → 0xdead.
+    address public immutable lineaDATAddress;
+    /// @notice The LineaDAT strategy factory contract
+    ILineaDATFactory immutable lineaDATFactory;
     /// @notice The Uniswap V4 Pool Manager
     IPoolManager immutable manager;
     /// @notice Default address to receive protocol fees
@@ -125,19 +125,19 @@ contract LINEASTRHook is BaseHook, ReentrancyGuard {
 
     /// @notice Constructor initializes the hook with required dependencies
     /// @param _poolManager The Uniswap V4 Pool Manager interface
-    /// @param _lineastrAddress The LINEASTR token address (sentinel for self-launch edge case)
-    /// @param _lineastrFactory The strategy factory contract (also receives ETH for buy-and-burn LINEASTR on future strategies)
+    /// @param _lineaDATAddress The LineaDAT token address (sentinel for self-launch edge case)
+    /// @param _lineaDATFactory The strategy factory contract (also receives ETH for buy-and-burn LineaDAT on future strategies)
     /// @param _feeAddress Default address to receive protocol fees if `feeAddressClaimedByOwner[collection]` is unset
     /// @dev Sets up immutable references to core contracts
     constructor(
         IPoolManager _poolManager,
-        address _lineastrAddress,
-        ILineastrFactory _lineastrFactory,
+        address _lineaDATAddress,
+        ILineaDATFactory _lineaDATFactory,
         address _feeAddress
     ) BaseHook(_poolManager) {
         manager = _poolManager;
-        lineastrAddress = _lineastrAddress;
-        lineastrFactory = _lineastrFactory;
+        lineaDATAddress = _lineaDATAddress;
+        lineaDATFactory = _lineaDATFactory;
         feeAddress = _feeAddress;
     }
 
@@ -149,7 +149,7 @@ contract LINEASTRHook is BaseHook, ReentrancyGuard {
     /// @param _feeAddress New address to receive fees
     /// @dev Only callable by the strategy factory owner
     function updateFeeAddress(address _feeAddress) external {
-        if (msg.sender != lineastrFactory.owner()) revert NotStrategyFactoryOwner();
+        if (msg.sender != lineaDATFactory.owner()) revert NotStrategyFactoryOwner();
         feeAddress = _feeAddress;
     }
 
@@ -158,7 +158,7 @@ contract LINEASTRHook is BaseHook, ReentrancyGuard {
     /// @param destination New address to receive creator fees for this strategy
     /// @dev Only callable by the underlying token owner (e.g. for community-launched strategies)
     function updateFeeAddressForCollection(address strategy, address destination) external {
-        address collection = lineastrFactory.startegyToToken(strategy);
+        address collection = lineaDATFactory.startegyToToken(strategy);
         if (collection == address(0)) revert InvalidCollection();
         if (IERC20(collection).owner() != msg.sender) revert NotCollectionOwner();
         feeAddressClaimedByOwner[strategy] = destination;
@@ -168,37 +168,37 @@ contract LINEASTRHook is BaseHook, ReentrancyGuard {
     /// @param strategy The strategy contract address
     /// @param destination New address to receive fees for this strategy
     /// @dev Only callable by factory owner or the factory contract itself.
-    ///      Used for the LINEASTR self-launch (where underlying $LINEA is canonical and not owner-controlled).
+    ///      Used for the LineaDAT self-launch (where underlying $LINEA is canonical and not owner-controlled).
     function adminUpdateFeeAddress(address strategy, address destination) external {
-        if (msg.sender != lineastrFactory.owner() && msg.sender != address(lineastrFactory)) {
+        if (msg.sender != lineaDATFactory.owner() && msg.sender != address(lineaDATFactory)) {
             revert NotStrategyFactoryOwner();
         }
         feeAddressClaimedByOwner[strategy] = destination;
     }
 
-    /// @notice Process fees directly - distributes immediately according to LINEASTR fee split
-    /// @param collection The strategy contract address (= LINEASTR proxy or future strategy proxy)
+    /// @notice Process fees directly - distributes immediately according to LineaDAT fee split
+    /// @param collection The strategy contract address (= LineaDAT proxy or future strategy proxy)
     /// @param feeAmount Amount of ETH fees to distribute
-    /// @dev Split: 80% strategy treasury, 10% LINEASTR-burn (or feeAddress on self-launch), 10% creator (or treasury if unset).
-    ///      EDGE CASE: when collection == lineastrAddress (the LINEASTR self-launch), the 10% LINEASTR-burn share is
+    /// @dev Split: 80% strategy treasury, 10% LineaDAT-burn (or feeAddress on self-launch), 10% creator (or treasury if unset).
+    ///      EDGE CASE: when collection == lineaDATAddress (the LineaDAT self-launch), the 10% LineaDAT-burn share is
     ///      redirected to feeAddress (creator) because the strategy can't recursively buy-and-burn its own token.
-    ///      For all other strategies, 10% goes to factory which performs ETH→LINEASTR swap → 0xdead burn.
+    ///      For all other strategies, 10% goes to factory which performs ETH→LineaDAT swap → 0xdead burn.
     function _processFees(address collection, uint256 feeAmount) internal {
         if (feeAmount == 0) return;
 
-        // Calculate 80% strategy treasury, 10% LINEASTR-burn, 10% creator
+        // Calculate 80% strategy treasury, 10% LineaDAT-burn, 10% creator
         uint256 depositAmount = (feeAmount * 80) / 100;
-        uint256 lineastrAmount = (feeAmount * 10) / 100;
-        uint256 ownerAmount = feeAmount - depositAmount - lineastrAmount;
+        uint256 lineaDATAmount = (feeAmount * 10) / 100;
+        uint256 ownerAmount = feeAmount - depositAmount - lineaDATAmount;
 
-        // === LINEASTR self-launch edge case ===
-        // When the collection is the LINEASTR token itself, we can't recursively buy-and-burn,
-        // so the 10% LINEASTR-burn share is redirected to feeAddress (creator).
-        // For all other future strategies, factory receives ETH and performs ETH→LINEASTR swap → 0xdead.
-        if (collection == lineastrAddress) {
-            SafeTransferLib.forceSafeTransferETH(feeAddress, lineastrAmount);
+        // === LineaDAT self-launch edge case ===
+        // When the collection is the LineaDAT token itself, we can't recursively buy-and-burn,
+        // so the 10% LineaDAT-burn share is redirected to feeAddress (creator).
+        // For all other future strategies, factory receives ETH and performs ETH→LineaDAT swap → 0xdead.
+        if (collection == lineaDATAddress) {
+            SafeTransferLib.forceSafeTransferETH(feeAddress, lineaDATAmount);
         } else {
-            SafeTransferLib.forceSafeTransferETH(address(lineastrFactory), lineastrAmount);
+            SafeTransferLib.forceSafeTransferETH(address(lineaDATFactory), lineaDATAmount);
         }
 
         // If feeAddressClaimedByOwner[collection] is unset, add to depositAmount, otherwise send to that address
@@ -262,7 +262,7 @@ contract LINEASTRHook is BaseHook, ReentrancyGuard {
     function _beforeInitialize(address, PoolKey calldata key, uint160) internal override returns (bytes4) {
         require(key.currency0.isAddressZero(), "Only ETH/token pools are supported");
         // Ensure the call is coming from NFTStrategyFactory
-        if (!lineastrFactory.loadingLiquidity()) {
+        if (!lineaDATFactory.loadingLiquidity()) {
             revert NotStrategy();
         }
 
@@ -287,7 +287,7 @@ contract LINEASTRHook is BaseHook, ReentrancyGuard {
         bytes calldata
     ) internal override returns (bytes4, BalanceDelta) {
         // Ensure the call is coming from NFTStrategyFactory
-        if (!lineastrFactory.loadingLiquidity()) {
+        if (!lineaDATFactory.loadingLiquidity()) {
             revert NotStrategy();
         } else {
             // we are loading liquidity so admit a transfer allowance

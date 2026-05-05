@@ -4,9 +4,9 @@ pragma solidity ^0.8.26;
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
 
-import {LINEASTRStrategy} from "../src/LINEASTRStrategy.sol";
-import {LINEASTRFactory} from "../src/LINEASTRFactory.sol";
-import {LineastrBot} from "../src/LineastrBot.sol";
+import {LineaDATStrategy} from "../src/LineaDATStrategy.sol";
+import {LineaDATFactory} from "../src/LineaDATFactory.sol";
+import {LineaDATBot} from "../src/LineaDATBot.sol";
 import {MockTLINEA} from "../src/MockTLINEA.sol";
 
 import {IPoolManager} from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
@@ -14,7 +14,7 @@ import {IPoolManager} from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
 /// @notice Phase 3 testnet deploy script for Base Sepolia (chainId 84532).
 ///
 /// SCOPE NOTE: This deploy uses the deployer EOA as the strategy's hookAddress (instead of mining a real
-/// LINEASTRHook via CREATE2). Rationale:
+/// LineaDATHook via CREATE2). Rationale:
 ///   1. Phase 3 main goal is bot validation under live network conditions, NOT full Uniswap v4 pool integration
 ///   2. Without a real hook, we can't initialize a Uniswap v4 pool (hook permission flags wouldn't validate)
 ///   3. P2P buyTokens / sellTokens don't depend on Uniswap pool — they only depend on currentFees and onSale state
@@ -25,14 +25,14 @@ import {IPoolManager} from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
 ///
 /// SEQUENCE:
 ///   1. Deploy MockTLINEA (testnet stub for $LINEA, with public faucet)
-///   2. Deploy LINEASTRStrategy implementation
-///   3. Deploy LINEASTRFactory
+///   2. Deploy LineaDATStrategy implementation
+///   3. Deploy LineaDATFactory
 ///   4. factory.setStrategyImplementation(impl)
 ///   5. factory.updateHookAddress(DEPLOYER_EOA)  [acts as fake hook for testnet]
 ///   6. factory.deployStrategy(tLINEA, BAG_SIZE, ...) → strategy proxy
 ///   7. proxy.setTwapIncrement(0.05 ether)
 ///   8. proxy.setTwapDelayInBlocks(4)
-///   9. Deploy LineastrBot(proxy, tLINEA, KEEPER, OWNER)
+///   9. Deploy LineaDATBot(proxy, tLINEA, KEEPER, OWNER)
 ///  10. tLINEA.mint(bot, 1_500_000 * 1e18)  [10 bag-quantities]
 ///  11. proxy.setDistributor(bot, true)
 ///  12. Seed initial fees: deployer calls proxy.addFees{value: 0.5 ether}()
@@ -50,7 +50,7 @@ import {IPoolManager} from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
 ///
 /// OUTPUT: deployments/base-sepolia.json with all addresses.
 contract DeployBaseSepolia is Script {
-    // === Locked LINEASTR params (per docs/50-lineastr-spec.md) ===
+    // === Locked LineaDAT params (per docs/50-lineadat-spec.md) ===
     uint256 constant BAG_SIZE = 150_000 * 1e18;
     uint256 constant BUY_INCREMENT = 0.02 ether;
     uint256 constant TWAP_INCREMENT = 0.05 ether;
@@ -69,7 +69,7 @@ contract DeployBaseSepolia is Script {
         address keeperEoa = vm.envOr("KEEPER_EOA", deployer);
         address feeAddr = vm.envOr("FEE_ADDRESS", ownerEoa);
 
-        console.log("=== LINEASTR Base Sepolia Deployment ===");
+        console.log("=== LineaDAT Base Sepolia Deployment ===");
         console.log("Chain ID:        ", block.chainid);
         console.log("Deployer (=hook):", deployer);
         console.log("Owner:           ", ownerEoa);
@@ -85,16 +85,16 @@ contract DeployBaseSepolia is Script {
         MockTLINEA tLinea = new MockTLINEA(ownerEoa);
         console.log("[1] MockTLINEA deployed at:", address(tLinea));
 
-        // Step 2: Deploy LINEASTRStrategy implementation
-        LINEASTRStrategy impl = new LINEASTRStrategy();
-        console.log("[2] LINEASTRStrategy impl: ", address(impl));
+        // Step 2: Deploy LineaDATStrategy implementation
+        LineaDATStrategy impl = new LineaDATStrategy();
+        console.log("[2] LineaDATStrategy impl: ", address(impl));
 
-        // Step 3: Deploy LINEASTRFactory
-        LINEASTRFactory factory = new LINEASTRFactory(
+        // Step 3: Deploy LineaDATFactory
+        LineaDATFactory factory = new LineaDATFactory(
             IPoolManager(POOL_MANAGER_BASE_SEPOLIA),
             UNIVERSAL_ROUTER_BASE_SEPOLIA
         );
-        console.log("[3] LINEASTRFactory:       ", address(factory));
+        console.log("[3] LineaDATFactory:       ", address(factory));
 
         // Step 4: Configure factory implementation
         factory.setStrategyImplementation(address(impl));
@@ -106,12 +106,12 @@ contract DeployBaseSepolia is Script {
         factory.updateHookAddressUnchecked(deployer);
         console.log("[5] Factory.updateHookAddressUnchecked -> deployer EOA");
 
-        // Step 6: Deploy LINEASTR strategy proxy (the self-launch token)
+        // Step 6: Deploy LineaDAT strategy proxy (the self-launch token)
         address proxyAddr = factory.deployStrategy(
-            address(tLinea), BAG_SIZE, "LineaStrategy", "LINEASTR", ownerEoa, BUY_INCREMENT
+            address(tLinea), BAG_SIZE, "LineaDAT", "LINEADAT", ownerEoa, BUY_INCREMENT
         );
-        LINEASTRStrategy proxy = LINEASTRStrategy(payable(proxyAddr));
-        console.log("[6] LINEASTRStrategy proxy:", proxyAddr);
+        LineaDATStrategy proxy = LineaDATStrategy(payable(proxyAddr));
+        console.log("[6] LineaDATStrategy proxy:", proxyAddr);
 
         // Step 7-8: Owner-side TWAP setup. NOTE: deployer == owner only if OWNER_EOA defaulted; otherwise
         // the owner needs to run setTwapIncrement / setTwapDelayInBlocks separately. We attempt it here
@@ -124,9 +124,9 @@ contract DeployBaseSepolia is Script {
             console.log("[7-8] SKIP: deployer != owner. Run setTwapIncrement + setTwapDelayInBlocks from OWNER_EOA");
         }
 
-        // Step 9: Deploy LineastrBot
-        LineastrBot bot = new LineastrBot(proxyAddr, address(tLinea), keeperEoa, ownerEoa);
-        console.log("[9] LineastrBot:           ", address(bot));
+        // Step 9: Deploy LineaDATBot
+        LineaDATBot bot = new LineaDATBot(proxyAddr, address(tLinea), keeperEoa, ownerEoa);
+        console.log("[9] LineaDATBot:           ", address(bot));
 
         // Step 10: Seed bot with tLINEA (owner-only on tLINEA)
         if (deployer == ownerEoa) {
@@ -159,10 +159,10 @@ contract DeployBaseSepolia is Script {
         console.log("================================================");
         console.log("ChainId:               84532 (Base Sepolia)");
         console.log("MockTLINEA:           ", address(tLinea));
-        console.log("LINEASTRStrategy impl:", address(impl));
-        console.log("LINEASTRFactory:      ", address(factory));
-        console.log("LINEASTR proxy:       ", proxyAddr);
-        console.log("LineastrBot:          ", address(bot));
+        console.log("LineaDATStrategy impl:", address(impl));
+        console.log("LineaDATFactory:      ", address(factory));
+        console.log("LineaDAT proxy:       ", proxyAddr);
+        console.log("LineaDATBot:          ", address(bot));
         console.log("Deployer (hook):      ", deployer);
         console.log("Owner:                ", ownerEoa);
         console.log("Keeper:               ", keeperEoa);

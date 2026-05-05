@@ -4,7 +4,7 @@ pragma solidity ^0.8.26;
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
 
-import {LINEASTRStrategy} from "../src/LINEASTRStrategy.sol";
+import {LineaDATStrategy} from "../src/LineaDATStrategy.sol";
 
 /// @notice Phase 3 testnet helper — feed currentFees on the strategy from the deployer EOA (acting as hook).
 ///
@@ -21,7 +21,7 @@ contract SeedFees is Script {
         address strategyAddr = vm.envAddress("STRATEGY");
         uint256 amount = vm.envOr("SEED_AMOUNT", uint256(0.05 ether));
 
-        LINEASTRStrategy strategy = LINEASTRStrategy(payable(strategyAddr));
+        LineaDATStrategy strategy = LineaDATStrategy(payable(strategyAddr));
 
         console.log("Strategy:        ", strategyAddr);
         console.log("Seeding amount:  ", amount, "wei");

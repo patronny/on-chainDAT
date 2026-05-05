@@ -27,12 +27,12 @@ interface IUnlockCallback {
 ///   5. Factory owner calls factory.setLoadingLiquidity(false)
 ///
 /// Phase 4 mainnet must replace this with a proper factory.seedLiquidity() function.
-interface ILineastrTokenLike {
+interface ILineaDATTokenLike {
     function transfer(address to, uint256 amount) external returns (bool);
     function balanceOf(address) external view returns (uint256);
 }
 
-contract LineastrSeeder is IUnlockCallback {
+contract LineaDATSeeder is IUnlockCallback {
     IPoolManager public immutable poolManager;
 
     error NotPoolManager();
@@ -58,7 +58,7 @@ contract LineastrSeeder is IUnlockCallback {
     }
 
     /// @notice Initializes the pool, then unlocks PoolManager to add single-sided liquidity.
-    /// @param key The PoolKey (currency0=ETH, currency1=LINEASTR, hooks=real hook)
+    /// @param key The PoolKey (currency0=ETH, currency1=LineaDAT, hooks=real hook)
     /// @param sqrtPriceX96 Initial pool price (Q64.96 fixed-point)
     /// @param tickLower Lower tick of the LP range (must be on tickSpacing boundary)
     /// @param tickUpper Upper tick of the LP range (must be on tickSpacing boundary)
@@ -110,19 +110,19 @@ contract LineastrSeeder is IUnlockCallback {
                 poolManager.settle{value: owed0}();
             } else {
                 poolManager.sync(data.key.currency0);
-                ILineastrTokenLike(Currency.unwrap(data.key.currency0)).transfer(address(poolManager), owed0);
+                ILineaDATTokenLike(Currency.unwrap(data.key.currency0)).transfer(address(poolManager), owed0);
                 poolManager.settle();
             }
         }
 
-        // Settle currency1 (LINEASTR — ERC20 transfer from this contract)
+        // Settle currency1 (LineaDAT — ERC20 transfer from this contract)
         if (amount1 < 0) {
             uint256 owed1 = uint256(uint128(-amount1));
-            if (ILineastrTokenLike(Currency.unwrap(data.key.currency1)).balanceOf(address(this)) < owed1) {
+            if (ILineaDATTokenLike(Currency.unwrap(data.key.currency1)).balanceOf(address(this)) < owed1) {
                 revert InsufficientBalance();
             }
             poolManager.sync(data.key.currency1);
-            ILineastrTokenLike(Currency.unwrap(data.key.currency1)).transfer(address(poolManager), owed1);
+            ILineaDATTokenLike(Currency.unwrap(data.key.currency1)).transfer(address(poolManager), owed1);
             poolManager.settle();
         }
 

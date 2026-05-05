@@ -4,13 +4,13 @@ pragma solidity ^0.8.26;
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
 
-import {LINEASTRStrategy} from "../src/LINEASTRStrategy.sol";
-import {LINEASTRFactory} from "../src/LINEASTRFactory.sol";
-import {LINEASTRHook} from "../src/LINEASTRHook.sol";
-import {ILineastrFactory} from "../src/Interfaces.sol";
+import {LineaDATStrategy} from "../src/LineaDATStrategy.sol";
+import {LineaDATFactory} from "../src/LineaDATFactory.sol";
+import {LineaDATHook} from "../src/LineaDATHook.sol";
+import {ILineaDATFactory} from "../src/Interfaces.sol";
 import {IPoolManager} from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
 
-/// @notice LINEASTR full deployment script.
+/// @notice LineaDAT full deployment script.
 ///
 /// PRE-FLIGHT (must be done off-chain before running this script):
 ///   1. Run `MineHook.s.sol` to find a valid hook salt + predicted address
@@ -18,15 +18,15 @@ import {IPoolManager} from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
 ///   3. Fund the deployer EOA with ~0.05 ETH on Linea for gas
 ///
 /// SEQUENCE:
-///   1. Deploy LINEASTRStrategy implementation
-///   2. Deploy LINEASTRFactory (immutable args: poolManager, universalRouter)
+///   1. Deploy LineaDATStrategy implementation
+///   2. Deploy LineaDATFactory (immutable args: poolManager, universalRouter)
 ///   3. factory.setStrategyImplementation(impl)
-///   4. Deploy LINEASTRHook via CREATE2 with mined salt — passes lineastrAddress=address(0) initially.
-///      Note: We will use a CREATE2 deployer factory; hook constructor needs lineastrAddress.
+///   4. Deploy LineaDATHook via CREATE2 with mined salt — passes lineaDATAddress=address(0) initially.
+///      Note: We will use a CREATE2 deployer factory; hook constructor needs lineaDATAddress.
 ///      Solution: deploy hook AFTER strategy proxy by computing strategy proxy address via
 ///      LibClone.predictDeterministicAddress. For Phase 1 we use a 2-step approach (see comments below).
 ///   5. factory.updateHookAddress(hookAddr)
-///   6. factory.deployStrategy(LINEA, BAG_SIZE, "LineaStrategy", "LINEASTR", OWNER, BUY_INCREMENT)
+///   6. factory.deployStrategy(LINEA, BAG_SIZE, "LineaDAT", "LINEADAT", OWNER, BUY_INCREMENT)
 ///   7. Post-init: hook.adminUpdateFeeAddress(strategy, FEE_ADDRESS)
 ///   8. proxy.setTwapIncrement(0.05 ether) (via OWNER)
 ///   9. proxy.setTwapDelayInBlocks(4) (via OWNER)
@@ -38,7 +38,7 @@ import {IPoolManager} from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
 ///   forge script script/Deploy.s.sol:Deploy --rpc-url http://localhost:8545 --broadcast \
 ///     --private-key $DEPLOYER_PK
 contract Deploy is Script {
-    // === Locked LINEASTR params ===
+    // === Locked LineaDAT params ===
     address constant LINEA = 0x1789e0043623282D5DCc7F213d703C6D8BAfBB04;
     uint256 constant BAG_SIZE = 150_000 * 1e18;
     uint256 constant BUY_INCREMENT = 0.02 ether;
@@ -59,21 +59,21 @@ contract Deploy is Script {
         vm.startBroadcast();
 
         // Step 1: Deploy implementation
-        LINEASTRStrategy impl = new LINEASTRStrategy();
-        console.log("LINEASTRStrategy implementation:", address(impl));
+        LineaDATStrategy impl = new LineaDATStrategy();
+        console.log("LineaDATStrategy implementation:", address(impl));
 
         // Step 2: Deploy factory
-        LINEASTRFactory factory = new LINEASTRFactory(IPoolManager(POOL_MANAGER_LINEA), UNIVERSAL_ROUTER_V2_1_1);
-        console.log("LINEASTRFactory:", address(factory));
+        LineaDATFactory factory = new LineaDATFactory(IPoolManager(POOL_MANAGER_LINEA), UNIVERSAL_ROUTER_V2_1_1);
+        console.log("LineaDATFactory:", address(factory));
 
         // Step 3: Set implementation
         factory.setStrategyImplementation(address(impl));
 
-        // Step 4: Deploy hook (CREATE2 with mined salt). For Phase 1 dry-run we deploy with lineastrAddress=0;
+        // Step 4: Deploy hook (CREATE2 with mined salt). For Phase 1 dry-run we deploy with lineaDATAddress=0;
         // for production deploy you must FIRST predict the strategy proxy address (deterministic via factory clone)
         // and pass that into the hook constructor BEFORE deploying the proxy.
         //
-        // Phase 1 simplified: deploy hook with lineastrAddress=0, then patch via separate flow. NOT for production.
+        // Phase 1 simplified: deploy hook with lineaDATAddress=0, then patch via separate flow. NOT for production.
         // Phase 2/3/4: full sequence with deterministic prediction (see docs/60-deployment-runbook.md).
         if (HOOK_SALT != bytes32(0)) {
             // Production path: salt was pre-mined

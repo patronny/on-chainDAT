@@ -2,15 +2,15 @@
 pragma solidity ^0.8.26;
 
 import {BaseTest, MockLINEA, MockPoolManager, MockUniversalRouter} from "./Base.t.sol";
-import {LINEASTRStrategy} from "../src/LINEASTRStrategy.sol";
-import {LINEASTRFactory} from "../src/LINEASTRFactory.sol";
+import {LineaDATStrategy} from "../src/LineaDATStrategy.sol";
+import {LineaDATFactory} from "../src/LineaDATFactory.sol";
 import {IPoolManager} from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
 
 /// @notice Tests the full deployment flow: factory ↔ implementation ↔ proxy clone.
 contract InitializeTest is BaseTest {
-    function test_factory_setsLineastrAddressOnFirstDeploy() public view {
-        // BaseTest.setUp deployed the LINEASTR strategy as the first one
-        assertEq(factory.lineastrAddress(), address(strategy));
+    function test_factory_setsLineaDATAddressOnFirstDeploy() public view {
+        // BaseTest.setUp deployed the LineaDAT strategy as the first one
+        assertEq(factory.lineaDATAddress(), address(strategy));
     }
 
     function test_factory_mapsTokenToStrategy() public view {
@@ -19,7 +19,7 @@ contract InitializeTest is BaseTest {
     }
 
     function test_factory_revertsOnDuplicateDeploy() public {
-        vm.expectRevert(LINEASTRFactory.AlreadyDeployed.selector);
+        vm.expectRevert(LineaDATFactory.AlreadyDeployed.selector);
         factory.deployStrategy(address(linea), BAG_SIZE, "DupName", "DUP", owner, BUY_INCREMENT);
     }
 
@@ -39,8 +39,8 @@ contract InitializeTest is BaseTest {
         );
 
         assertTrue(strategy2 != address(strategy), "second strategy is a separate clone");
-        // First strategy (LINEASTR) was the lineastrAddress sentinel — second deploy doesn't change it
-        assertEq(factory.lineastrAddress(), address(strategy));
+        // First strategy (LineaDAT) was the lineaDATAddress sentinel — second deploy doesn't change it
+        assertEq(factory.lineaDATAddress(), address(strategy));
         assertEq(factory.tokenToStrategy(address(token2)), strategy2);
     }
 
@@ -48,26 +48,26 @@ contract InitializeTest is BaseTest {
         factory.disableLaunchUpgradeable();
 
         MockLINEA token2 = new MockLINEA();
-        vm.expectRevert(LINEASTRFactory.LaunchDisabled.selector);
+        vm.expectRevert(LineaDATFactory.LaunchDisabled.selector);
         factory.deployStrategy(address(token2), BAG_SIZE, "X", "X", owner, BUY_INCREMENT);
     }
 
     function test_factory_revertsWithoutImpl() public {
         // Fresh factory with no impl set
-        LINEASTRFactory f = new LINEASTRFactory(IPoolManager(address(poolMgr)), address(router));
+        LineaDATFactory f = new LineaDATFactory(IPoolManager(address(poolMgr)), address(router));
         f.updateHookAddress(address(this));
 
         MockLINEA token2 = new MockLINEA();
-        vm.expectRevert(LINEASTRFactory.InvalidImplementation.selector);
+        vm.expectRevert(LineaDATFactory.InvalidImplementation.selector);
         f.deployStrategy(address(token2), BAG_SIZE, "X", "X", owner, BUY_INCREMENT);
     }
 
     function test_factory_revertsWithoutHook() public {
-        LINEASTRFactory f = new LINEASTRFactory(IPoolManager(address(poolMgr)), address(router));
+        LineaDATFactory f = new LineaDATFactory(IPoolManager(address(poolMgr)), address(router));
         f.setStrategyImplementation(address(impl));
 
         MockLINEA token2 = new MockLINEA();
-        vm.expectRevert(LINEASTRFactory.InvalidHookAddress.selector);
+        vm.expectRevert(LineaDATFactory.InvalidHookAddress.selector);
         f.deployStrategy(address(token2), BAG_SIZE, "X", "X", owner, BUY_INCREMENT);
     }
 
@@ -88,8 +88,8 @@ contract InitializeTest is BaseTest {
     }
 
     function test_proxy_nameAndSymbolStored() public view {
-        assertEq(strategy.name(), "LineaStrategy");
-        assertEq(strategy.symbol(), "LINEASTR");
+        assertEq(strategy.name(), "LineaDAT");
+        assertEq(strategy.symbol(), "LINEADAT");
     }
 
     function test_proxy_decimalsAreEighteen() public view {
@@ -105,18 +105,18 @@ contract InitializeTest is BaseTest {
     }
 
     function test_factory_revertsOnInvalidImpl() public {
-        vm.expectRevert(LINEASTRFactory.InvalidImplementation.selector);
+        vm.expectRevert(LineaDATFactory.InvalidImplementation.selector);
         factory.setStrategyImplementation(address(0));
 
-        vm.expectRevert(LINEASTRFactory.InvalidImplementation.selector);
+        vm.expectRevert(LineaDATFactory.InvalidImplementation.selector);
         factory.setStrategyImplementation(address(0xCAFE)); // EOA with no code
     }
 
     function test_factory_revertsOnInvalidHook() public {
-        vm.expectRevert(LINEASTRFactory.InvalidHookAddress.selector);
+        vm.expectRevert(LineaDATFactory.InvalidHookAddress.selector);
         factory.updateHookAddress(address(0));
 
-        vm.expectRevert(LINEASTRFactory.InvalidHookAddress.selector);
+        vm.expectRevert(LineaDATFactory.InvalidHookAddress.selector);
         factory.updateHookAddress(address(0xCAFE));
     }
 }

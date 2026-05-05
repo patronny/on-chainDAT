@@ -4,8 +4,8 @@ pragma solidity ^0.8.26;
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
 
-import {LINEASTRHook} from "../src/LINEASTRHook.sol";
-import {ILineastrFactory} from "../src/Interfaces.sol";
+import {LineaDATHook} from "../src/LineaDATHook.sol";
+import {ILineaDATFactory} from "../src/Interfaces.sol";
 import {IPoolManager} from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
 
 /// @notice Mine a CREATE2 salt that yields a hook address with the right Uniswap v4 permission flags.
@@ -17,25 +17,25 @@ import {IPoolManager} from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
 ///
 /// Run:
 ///   forge script script/MineHook.s.sol:MineHook --rpc-url $RPC --sig "run(address,address,address,address)" \
-///      $POOL_MANAGER $LINEASTR_PLACEHOLDER $FACTORY $FEE_ADDRESS
+///      $POOL_MANAGER $LINEADAT_PLACEHOLDER $FACTORY $FEE_ADDRESS
 contract MineHook is Script {
     /// @notice Canonical CREATE2 deployer on Linea (verified via eth_getCode in research/raw-rpc-data)
     address constant CREATE2_DEPLOYER = 0x0000000000FFe8B47B3e2130213B802212439497;
 
-    /// @notice Required hook permission bits (matches LINEASTRHook.getHookPermissions)
+    /// @notice Required hook permission bits (matches LineaDATHook.getHookPermissions)
     uint160 constant REQUIRED_FLAGS = 0x2444;
 
     /// @notice Maximum salts to try before giving up (10M is ~few minutes on M1/M2)
     uint256 constant MAX_SALT = 10_000_000;
 
-    function run(address poolManager, address lineastrAddress, address factoryAddr, address feeAddress)
+    function run(address poolManager, address lineaDATAddress, address factoryAddr, address feeAddress)
         external
         view
         returns (address hookAddr, bytes32 salt)
     {
         bytes memory creationCode = abi.encodePacked(
-            type(LINEASTRHook).creationCode,
-            abi.encode(IPoolManager(poolManager), lineastrAddress, ILineastrFactory(factoryAddr), feeAddress)
+            type(LineaDATHook).creationCode,
+            abi.encode(IPoolManager(poolManager), lineaDATAddress, ILineaDATFactory(factoryAddr), feeAddress)
         );
         bytes32 codeHash = keccak256(creationCode);
 

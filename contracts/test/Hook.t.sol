@@ -3,10 +3,10 @@ pragma solidity ^0.8.26;
 
 import {Test} from "forge-std/Test.sol";
 
-import {LINEASTRHook} from "../src/LINEASTRHook.sol";
-import {LINEASTRFactory} from "../src/LINEASTRFactory.sol";
-import {LINEASTRStrategy} from "../src/LINEASTRStrategy.sol";
-import {ILineastrFactory, ILineastrStrategy} from "../src/Interfaces.sol";
+import {LineaDATHook} from "../src/LineaDATHook.sol";
+import {LineaDATFactory} from "../src/LineaDATFactory.sol";
+import {LineaDATStrategy} from "../src/LineaDATStrategy.sol";
+import {ILineaDATFactory, ILineaDATStrategy} from "../src/Interfaces.sol";
 import {IPoolManager} from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
 import {Hooks} from "@uniswap/v4-core/src/libraries/Hooks.sol";
 
@@ -16,10 +16,10 @@ import {MockPoolManager, MockLINEA, MockUniversalRouter} from "./Base.t.sol";
 /// afterSwap | afterSwapReturnDelta). To deploy a hook with a "valid" address in tests, we vm.etch the hook
 /// bytecode at a precomputed address with the right low bits.
 contract HookTest is Test {
-    LINEASTRHook internal hook;
-    LINEASTRFactory internal factory;
-    LINEASTRStrategy internal impl;
-    LINEASTRStrategy internal strategy;
+    LineaDATHook internal hook;
+    LineaDATFactory internal factory;
+    LineaDATStrategy internal impl;
+    LineaDATStrategy internal strategy;
     MockPoolManager internal poolMgr;
     MockUniversalRouter internal router;
     MockLINEA internal linea;
@@ -32,8 +32,8 @@ contract HookTest is Test {
         router = new MockUniversalRouter();
         linea = new MockLINEA();
 
-        factory = new LINEASTRFactory(IPoolManager(address(poolMgr)), address(router));
-        impl = new LINEASTRStrategy();
+        factory = new LineaDATFactory(IPoolManager(address(poolMgr)), address(router));
+        impl = new LineaDATStrategy();
         factory.setStrategyImplementation(address(impl));
 
         // Deploy hook at a permission-valid address. The constructor asserts hook permissions match the address bits.
@@ -41,22 +41,22 @@ contract HookTest is Test {
         // Hook permissions: beforeInitialize | afterAddLiquidity | afterSwap | afterSwapReturnDelta = 0x2444
         // We use a salt-mined address. For unit tests we can compute via CREATE2 with a small mining loop.
         address hookAddr = _mineHookAddress();
-        hook = LINEASTRHook(payable(hookAddr));
+        hook = LineaDATHook(payable(hookAddr));
 
         // Now register the hook with factory
         factory.updateHookAddress(address(hook));
 
-        // Deploy LINEASTR strategy
-        strategy = LINEASTRStrategy(payable(factory.deployStrategy(
-            address(linea), 150_000e18, "LineaStrategy", "LINEASTR", owner, 0.02 ether
+        // Deploy LineaDAT strategy
+        strategy = LineaDATStrategy(payable(factory.deployStrategy(
+            address(linea), 150_000e18, "LineaDAT", "LINEADAT", owner, 0.02 ether
         )));
     }
 
     /// @notice Deploys hook via simple CREATE2 search until address has low 14 bits = 0x2444
     function _mineHookAddress() internal returns (address) {
         bytes memory creationCode = abi.encodePacked(
-            type(LINEASTRHook).creationCode,
-            abi.encode(IPoolManager(address(poolMgr)), address(0), ILineastrFactory(address(factory)), feeAddr)
+            type(LineaDATHook).creationCode,
+            abi.encode(IPoolManager(address(poolMgr)), address(0), ILineaDATFactory(address(factory)), feeAddr)
         );
         bytes32 codeHash = keccak256(creationCode);
 
@@ -113,12 +113,12 @@ contract HookTest is Test {
         assertEq(sellFee, 1000, "sell fee always 10%");
     }
 
-    function test_hook_lineastrAddress_isUnsetUntilFactoryDeploys() public view {
-        // When the hook was deployed, lineastrAddress was passed as address(0) (we hadn't deployed strategy yet).
-        // But factory.lineastrAddress was set after first deploy. The hook uses its own immutable, so it stays 0.
+    function test_hook_lineaDATAddress_isUnsetUntilFactoryDeploys() public view {
+        // When the hook was deployed, lineaDATAddress was passed as address(0) (we hadn't deployed strategy yet).
+        // But factory.lineaDATAddress was set after first deploy. The hook uses its own immutable, so it stays 0.
         // For a real deployment, hook constructor would receive the strategy address (computed CREATE2).
         // Here we verify that the immutable is 0 in this test setup.
-        assertEq(hook.lineastrAddress(), address(0));
+        assertEq(hook.lineaDATAddress(), address(0));
     }
 
     function test_hook_feeAddress_isInitiallyConfigured() public view {
@@ -133,7 +133,7 @@ contract HookTest is Test {
 
     function test_hook_updateFeeAddress_revertsForNonOwner() public {
         vm.prank(address(0xBAD));
-        vm.expectRevert(LINEASTRHook.NotStrategyFactoryOwner.selector);
+        vm.expectRevert(LineaDATHook.NotStrategyFactoryOwner.selector);
         hook.updateFeeAddress(address(0x1234));
     }
 
@@ -151,7 +151,7 @@ contract HookTest is Test {
 
     function test_hook_adminUpdateFeeAddress_revertsForOther() public {
         vm.prank(address(0xBAD));
-        vm.expectRevert(LINEASTRHook.NotStrategyFactoryOwner.selector);
+        vm.expectRevert(LineaDATHook.NotStrategyFactoryOwner.selector);
         hook.adminUpdateFeeAddress(address(strategy), address(0x1234));
     }
 }

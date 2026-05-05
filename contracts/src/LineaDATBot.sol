@@ -7,9 +7,9 @@ import {SafeTransferLib} from "solady/utils/SafeTransferLib.sol";
 
 import {IERC20} from "./Interfaces.sol";
 
-/// @notice External strategy interface — only the parts LineastrBot calls.
+/// @notice External strategy interface — only the parts LineaDATBot calls.
 /// We define this locally (not in Interfaces.sol) so the bot has a tight ABI and doesn't pull in unrelated functions.
-interface ILineastrStrategyView {
+interface ILineaDATStrategyView {
     function availableFunds() external view returns (uint256);
     function bagSize() external view returns (uint256);
     function lastBagId() external view returns (uint256);
@@ -24,7 +24,7 @@ interface ILineastrStrategyView {
     function processTokenTwap() external;
 }
 
-/// @notice LINEASTR atomic keeper bot.
+/// @notice LineaDAT atomic keeper bot.
 /// @dev Runs `executeRound()` from a trusted keeper EOA. Each round attempts up to 3 atomic actions:
 ///        1. buyTokens() — if availableFunds >= buyThreshold AND bot has enough underlying
 ///        2. sellTokens(bagId) — if onSale[bagId] is affordable AND bot has enough ETH
@@ -36,7 +36,7 @@ interface ILineastrStrategyView {
 ///      but didn't buy.
 ///
 ///      Bot architecture chosen: option (a) Multicall-bot, NOT MEV-bundle bot. Justification:
-///        - LINEASTR's slow-rug protection (getMaxPriceForBuy ramp) makes frontrunning economically pointless
+///        - LineaDAT's slow-rug protection (getMaxPriceForBuy ramp) makes frontrunning economically pointless
 ///          — every bot pays the same `availableFunds()` regardless of timing
 ///        - L2 (Linea, Base) gas is cheap → atomic batched calls are cheaper than separate txs
 ///        - No off-chain runner needed → smaller attack surface, no leaked private keys on fly.io
@@ -48,13 +48,13 @@ interface ILineastrStrategyView {
 ///      In practice on testnet, sellTokens isn't a profitable action for the bot directly — the 1.2× markup is
 ///      a profit FOR the protocol, not for the bag-buyer-back. But we include it for completeness so bags don't
 ///      sit unsold forever during testnet validation. On mainnet (Phase 4) we'd disable sellTokens in the bot.
-contract LineastrBot is Ownable, ReentrancyGuard {
+contract LineaDATBot is Ownable, ReentrancyGuard {
     /* ™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™ */
     /*                  IMMUTABLE STATE                    */
     /* ™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™ */
 
-    /// @notice The LINEASTR strategy contract this bot interacts with.
-    ILineastrStrategyView public immutable strategy;
+    /// @notice The LineaDAT strategy contract this bot interacts with.
+    ILineaDATStrategyView public immutable strategy;
 
     /// @notice The underlying ERC20 (LINEA on mainnet, tLINEA on testnet).
     IERC20 public immutable underlying;
@@ -104,7 +104,7 @@ contract LineastrBot is Ownable, ReentrancyGuard {
     /*                     CONSTRUCTOR                     */
     /* ™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™ */
 
-    /// @param _strategy LINEASTR strategy proxy address
+    /// @param _strategy LineaDAT strategy proxy address
     /// @param _underlying The ERC-20 token to feed into buyTokens (tLINEA on testnet, $LINEA on mainnet)
     /// @param _keeper Initial keeper EOA address (cron-job runner)
     /// @param _owner Owner — can rotate keeper, withdraw funds, change config
@@ -112,7 +112,7 @@ contract LineastrBot is Ownable, ReentrancyGuard {
         if (_strategy == address(0) || _underlying == address(0) || _keeper == address(0) || _owner == address(0)) {
             revert ZeroAddress();
         }
-        strategy = ILineastrStrategyView(_strategy);
+        strategy = ILineaDATStrategyView(_strategy);
         underlying = IERC20(_underlying);
         keeper = _keeper;
 
@@ -197,8 +197,11 @@ contract LineastrBot is Ownable, ReentrancyGuard {
 
     function _tryTwap() internal returns (bool) {
         uint256 ethToTwap = strategy.ethToTwap();
-        uint256 twapInc = strategy.twapIncrement();
-        if (ethToTwap < twapInc) return false;
+        // Mirror strategy.processTokenTwap's own guard: only revert on ethToTwap == 0.
+        // The strategy gracefully handles dust (ethToTwap < twapIncrement → burn whatever's there),
+        // so the bot doesn't impose a second threshold. This also avoids a deadlock where fee
+        // accumulation stalls just below twapIncrement and the burn pipeline never drains.
+        if (ethToTwap == 0) return false;
 
         uint256 lastTwap = strategy.lastTwapBlock();
         uint256 delay = strategy.twapDelayInBlocks();
@@ -206,8 +209,7 @@ contract LineastrBot is Ownable, ReentrancyGuard {
 
         try strategy.processTokenTwap() {
             uint256 ethAfter = strategy.ethToTwap();
-            uint256 reward = ethToTwap > ethAfter ? 0 : 0; // reward arrives via receive() — reported separately
-            emit ProcessedTwap(ethToTwap, ethAfter, reward);
+            emit ProcessedTwap(ethToTwap, ethAfter, 0);
             return true;
         } catch {
             return false;

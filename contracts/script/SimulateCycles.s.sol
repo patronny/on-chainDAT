@@ -17,7 +17,7 @@ import {console} from "forge-std/console.sol";
 ///   cd contracts/
 ///   forge test --match-contract StressTest --fork-url https://rpc.linea.build -vv
 ///
-/// The test forks Linea mainnet, deploys LINEASTR infrastructure, uses the canonical $LINEA token
+/// The test forks Linea mainnet, deploys LineaDAT infrastructure, uses the canonical $LINEA token
 /// (0x1789e0043623282D5DCc7F213d703C6D8BAfBB04) as underlying, runs 1000 randomized buy/sell/addFees
 /// cycles with mock pool manager and router (real Uniswap v4 swap simulation is Phase 4 scope), and
 /// asserts core invariants every cycle.

@@ -5,16 +5,16 @@ import {Test} from "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
 import {LibClone} from "solady/utils/LibClone.sol";
 
-import {LINEASTRStrategy} from "../src/LINEASTRStrategy.sol";
-import {LINEASTRFactory} from "../src/LINEASTRFactory.sol";
-import {ILineastrStrategy, IERC20} from "../src/Interfaces.sol";
+import {LineaDATStrategy} from "../src/LineaDATStrategy.sol";
+import {LineaDATFactory} from "../src/LineaDATFactory.sol";
+import {ILineaDATStrategy, IERC20} from "../src/Interfaces.sol";
 import {MockPoolManager, MockUniversalRouter} from "./Base.t.sol";
 
 import {IPoolManager} from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
 
 /// @notice Phase 2 stress test — 1000 randomized buy/sell/addFees cycles against a Linea mainnet fork.
 ///
-/// Forks Linea mainnet at the latest block, deploys LINEASTRStrategy infrastructure, uses the canonical
+/// Forks Linea mainnet at the latest block, deploys LineaDATStrategy infrastructure, uses the canonical
 /// `$LINEA` token (`0x1789...BB04`) as the underlying. Test contract is registered as the hook
 /// (bypassing real Uniswap v4 hook flag checks — those are exercised in Initialize.t.sol).
 ///
@@ -35,7 +35,7 @@ import {IPoolManager} from "@uniswap/v4-core/src/interfaces/IPoolManager.sol";
 /// Run:
 ///   forge test --match-contract StressTest --fork-url https://rpc.linea.build -vv
 contract StressTest is Test {
-    // === Locked LINEASTR params (from docs/50-lineastr-spec.md) ===
+    // === Locked LineaDAT params (from docs/50-lineadat-spec.md) ===
     address internal constant LINEA_MAINNET = 0x1789e0043623282D5DCc7F213d703C6D8BAfBB04;
     address internal constant DEAD = 0x000000000000000000000000000000000000dEaD;
 
@@ -56,9 +56,9 @@ contract StressTest is Test {
 
     // === Deployed contracts ===
     IERC20 internal linea;
-    LINEASTRFactory internal factory;
-    LINEASTRStrategy internal impl;
-    LINEASTRStrategy internal strategy;
+    LineaDATFactory internal factory;
+    LineaDATStrategy internal impl;
+    LineaDATStrategy internal strategy;
     MockPoolManager internal poolMgr;
     MockUniversalRouter internal router;
 
@@ -94,16 +94,16 @@ contract StressTest is Test {
         router = new MockUniversalRouter();
 
         // Deploy factory + impl, configure
-        factory = new LINEASTRFactory(IPoolManager(address(poolMgr)), address(router));
-        impl = new LINEASTRStrategy();
+        factory = new LineaDATFactory(IPoolManager(address(poolMgr)), address(router));
+        impl = new LineaDATStrategy();
         factory.setStrategyImplementation(address(impl));
         factory.updateHookAddress(address(this)); // test contract is the "hook"
 
-        // Deploy LINEASTR proxy with REAL $LINEA as underlying
+        // Deploy LineaDAT proxy with REAL $LINEA as underlying
         address proxy = factory.deployStrategy(
-            LINEA_MAINNET, BAG_SIZE, "LineaStrategy", "LINEASTR", owner, BUY_INCREMENT
+            LINEA_MAINNET, BAG_SIZE, "LineaDAT", "LINEADAT", owner, BUY_INCREMENT
         );
-        strategy = LINEASTRStrategy(payable(proxy));
+        strategy = LineaDATStrategy(payable(proxy));
 
         // Owner-only TWAP setup
         vm.startPrank(owner);
@@ -241,9 +241,9 @@ contract StressTest is Test {
     }
 
     function _doProcessTwap(uint256 /*seed*/) internal {
-        // SCOPE NOTE: processTokenTwap calls UniversalRouter.swapExactTokensForTokens to buy LINEASTR with
+        // SCOPE NOTE: processTokenTwap calls UniversalRouter.swapExactTokensForTokens to buy LineaDAT with
         // ethToTwap-funded ETH. Our stress test uses MockUniversalRouter which doesn't actually swap, so
-        // calling processTokenTwap here would behave incorrectly (no LINEASTR returned to burn).
+        // calling processTokenTwap here would behave incorrectly (no LineaDAT returned to burn).
         //
         // processTokenTwap is exercised in Sandwich.t.sol with a controlled mock router. Here we leave it
         // as a no-op so ethToTwap accumulates monotonically across 1000 cycles, exercising the strategy
@@ -279,7 +279,7 @@ contract StressTest is Test {
 
     function _logFinalMetrics() internal view {
         console.log("================================================");
-        console.log("=== LINEASTR PHASE 2 STRESS TEST RESULTS     ===");
+        console.log("=== LineaDAT PHASE 2 STRESS TEST RESULTS     ===");
         console.log("================================================");
         console.log("Cycles executed:                     ", CYCLES);
         console.log("addFees actions:                     ", totalAddFees);
@@ -305,7 +305,7 @@ contract StressTest is Test {
             console.log("Avg time-to-sell (blocks):           ", totalTimeToSellBlocks / totalSellSuccesses);
         }
         console.log("------------------------------------------------");
-        console.log("Final totalSupply (LINEASTR/1e18):   ", strategy.totalSupply() / 1e18);
+        console.log("Final totalSupply (LineaDAT/1e18):   ", strategy.totalSupply() / 1e18);
         console.log("Final currentFees (wei):             ", strategy.currentFees());
         console.log("Final ethToTwap (wei):               ", strategy.ethToTwap());
         console.log("Final treasury LINEA balance:        ", linea.balanceOf(address(strategy)) / 1e18);

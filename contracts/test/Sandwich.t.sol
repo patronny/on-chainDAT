@@ -4,7 +4,7 @@ pragma solidity ^0.8.26;
 import {BaseTest} from "./Base.t.sol";
 import {BaseStrategy} from "../src/BaseStrategy.sol";
 
-/// @notice Tests for processTokenTwap (buy-and-burn LINEASTR via TWAP) — but since our pool isn't initialized
+/// @notice Tests for processTokenTwap (buy-and-burn LineaDAT via TWAP) — but since our pool isn't initialized
 /// in unit tests, we only test guards, not the actual swap. Real swap tested in SimulateCycles on Anvil fork.
 contract SandwichTest is BaseTest {
     /// @notice Helper: pre-load ethToTwap by simulating a sellTokens cycle
