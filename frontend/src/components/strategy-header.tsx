@@ -5,7 +5,7 @@ import { usePublicClient } from "wagmi";
 import { useSwaps } from "@/hooks/useIndexer";
 import { Check, Copy, ExternalLink } from "lucide-react";
 import { Card } from "./ui/card";
-import { LineastrIcon, LineaIcon } from "./icons/token-icons";
+import { LineaDatSquareIcon, LineaIcon } from "./icons/token-icons";
 import { useStrategyStats } from "@/hooks/useStrategyStats";
 import { useEthPrice } from "@/hooks/useEthPrice";
 import { usePriceChange24h } from "@/hooks/usePriceChange24h";
@@ -121,7 +121,7 @@ export function StrategyHeader() {
       <div className="p-4 sm:p-6 flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-8">
         {/* Logo + name */}
         <div className="flex items-center gap-4 flex-shrink-0">
-          <LineastrIcon className="w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0" />
+          <LineaDatSquareIcon className="w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0" />
           <div>
             <h1 className="text-2xl sm:text-3xl font-display font-bold leading-tight">
               LineaDAT

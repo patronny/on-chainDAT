@@ -1,8 +1,8 @@
 import { ImageResponse } from "next/og";
 
-// Browser tab icon for the LineaDAT site.
-// Spec: rounded black square with bold magenta-neon "DAT" text.
-// Magenta = hsl(320 100% 60%) = #ff33cc, the project's --primary token.
+// Browser tab icon for the on-chainDAT site.
+// Spec: rounded black square with bold "DAT" in the brand magenta -> cyan gradient
+// (#ff33cc -> #00ffff), matching the $LINEADAT "L" mark and the site logo.
 export const size = { width: 32, height: 32 };
 export const contentType = "image/png";
 
@@ -24,20 +24,26 @@ export default function Icon() {
           borderLeft: "2px dashed #888",
           borderRight: "2px solid #888",
           borderBottom: "2px solid #888",
-          color: "#ff33cc",
-          fontFamily:
-            "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-          fontWeight: 900,
-          fontSize: 15,
-          letterSpacing: -1,
-          // Same-color sharp shadows act as a "stroke" outline -> reads as much
-          // heavier glyphs than fontWeight alone can deliver in satori. Blurry
-          // outer shadow keeps the magenta glow.
-          textShadow:
-            "1px 0 0 #ff33cc, -1px 0 0 #ff33cc, 0 1px 0 #ff33cc, 0 -1px 0 #ff33cc, 0 0 6px rgba(255,51,204,0.65)",
         }}
       >
-        DAT
+        <div
+          style={{
+            display: "flex",
+            fontFamily:
+              "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+            fontWeight: 900,
+            fontSize: 16,
+            letterSpacing: -1.5,
+            // Gradient text via background-clip (satori-supported). The black
+            // square bg lives on the parent so it isn't clipped to the glyphs.
+            backgroundImage: "linear-gradient(135deg, #ff33cc 0%, #00ffff 100%)",
+            backgroundClip: "text",
+            WebkitBackgroundClip: "text",
+            color: "transparent",
+          }}
+        >
+          DAT
+        </div>
       </div>
     ),
     { ...size },

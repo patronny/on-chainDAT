@@ -9,7 +9,7 @@ import { useStrategyStats } from "@/hooks/useStrategyStats";
 import { useEthPrice } from "@/hooks/useEthPrice";
 import { usePriceChange24h } from "@/hooks/usePriceChange24h";
 import { useAvgCostBasis } from "@/hooks/useAvgCostBasis";
-import { LineastrIcon } from "./icons/token-icons";
+import { LineaDatSquareIcon } from "./icons/token-icons";
 import { SignedDelta } from "./signed-delta";
 import { SortHeader, useTableSort } from "./ui/sort-header";
 
@@ -188,7 +188,7 @@ function HoldingRow({ row }: { row: Row }) {
           href={`/dats/${row.dat.address}` as never}
           className="inline-flex items-center gap-2 group"
         >
-          <LineastrIcon className="w-6 h-6 shrink-0" />
+          <LineaDatSquareIcon className="w-6 h-6 shrink-0" />
           <span className="flex flex-col leading-tight">
             <span className="font-semibold text-foreground group-hover:text-primary transition-colors">
               {row.dat.name}

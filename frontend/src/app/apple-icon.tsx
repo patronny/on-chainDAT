@@ -2,9 +2,8 @@ import { ImageResponse } from "next/og";
 
 // iOS Safari touch icon (also used by Safari "Add to Home Screen", iPadOS
 // search-suggestion grid, and the favicon iOS shows in tab switcher).
-// Without this file iOS auto-generates a flat pink "O" from the first letter
-// of the domain - we ship the same DAT mark used in the browser tab favicon
-// at the 180×180 size Apple recommends.
+// Ships the same gradient "DAT" mark used in the browser tab favicon at the
+// 180×180 size Apple recommends.
 export const size = { width: 180, height: 180 };
 export const contentType = "image/png";
 
@@ -27,17 +26,24 @@ export default function AppleIcon() {
           borderLeft: "10px dashed #888",
           borderRight: "10px solid #888",
           borderBottom: "10px solid #888",
-          color: "#ff33cc",
-          fontFamily:
-            "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-          fontWeight: 900,
-          fontSize: 78,
-          letterSpacing: -4,
-          textShadow:
-            "4px 0 0 #ff33cc, -4px 0 0 #ff33cc, 0 4px 0 #ff33cc, 0 -4px 0 #ff33cc, 0 0 28px rgba(255,51,204,0.65)",
         }}
       >
-        DAT
+        <div
+          style={{
+            display: "flex",
+            fontFamily:
+              "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+            fontWeight: 900,
+            fontSize: 84,
+            letterSpacing: -4,
+            backgroundImage: "linear-gradient(135deg, #ff33cc 0%, #00ffff 100%)",
+            backgroundClip: "text",
+            WebkitBackgroundClip: "text",
+            color: "transparent",
+          }}
+        >
+          DAT
+        </div>
       </div>
     ),
     { ...size },

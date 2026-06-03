@@ -16,7 +16,7 @@ import { ADDR, POOL_KEY } from "@/lib/wagmi";
 import { formatEth, formatTokens, sqrtPriceX96ToRatio } from "@/lib/utils";
 import { useStrategyStats } from "@/hooks/useStrategyStats";
 import { ArrowDown } from "lucide-react";
-import { EthIcon, LineastrIcon } from "./icons/token-icons";
+import { EthIcon, LineaDatSquareIcon } from "./icons/token-icons";
 import { SwapProgressModal, SwapStep } from "./swap-progress-modal";
 
 /**
@@ -35,7 +35,7 @@ function cleanAmount(v: number): string {
 }
 
 function TokenBadge({ symbol }: { symbol: string }) {
-  const Icon = symbol === "ETH" ? EthIcon : LineastrIcon;
+  const Icon = symbol === "ETH" ? EthIcon : LineaDatSquareIcon;
   return (
     <span className="flex-shrink-0 inline-flex items-center gap-1.5 font-semibold text-sm font-mono">
       <Icon className="w-5 h-5" />

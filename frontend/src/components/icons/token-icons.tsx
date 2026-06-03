@@ -43,6 +43,87 @@ export function LineastrIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+/**
+ *   <LineaDatSquareIcon /> - LineaDAT app/token mark: the "orbit-L" logo - a
+ *                       gradient "L" (magenta -> cyan) with a tilted orbital
+ *                       ring + glowing dot, on a dark radial disc inside a
+ *                       rounded square with a thin gradient rim. Canonical
+ *                       $LINEADAT brand mark (matches brand/linea-hub/
+ *                       icon-l-orbit-square.svg). Used for the strategy header
+ *                       logo, the token badge in the swap card, portfolio rows,
+ *                       etc. Gradient/filter ids are fixed but the defs are
+ *                       identical across every instance, so duplicate-id reuse
+ *                       renders correctly.
+ */
+export function LineaDatSquareIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <defs>
+        <linearGradient id="lo-sq-g" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#ff33cc" />
+          <stop offset="1" stopColor="#00ffff" />
+        </linearGradient>
+        <radialGradient id="lo-sq-disc" cx="0.38" cy="0.32" r="0.85">
+          <stop offset="0" stopColor="#1a0b2e" />
+          <stop offset="0.55" stopColor="#0a0a0f" />
+          <stop offset="1" stopColor="#050509" />
+        </radialGradient>
+        <linearGradient id="lo-sq-rim" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#ff33cc" />
+          <stop offset="0.5" stopColor="#7a4bd6" />
+          <stop offset="1" stopColor="#00ffff" />
+        </linearGradient>
+        <radialGradient id="lo-sq-sheen" cx="0.5" cy="0.18" r="0.7">
+          <stop offset="0" stopColor="#ffffff" stopOpacity="0.1" />
+          <stop offset="0.5" stopColor="#ffffff" stopOpacity="0" />
+        </radialGradient>
+        <filter id="lo-sq-glow" x="-60%" y="-60%" width="220%" height="220%">
+          <feGaussianBlur stdDeviation="7" result="b" />
+          <feMerge>
+            <feMergeNode in="b" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+        <filter id="lo-sq-dotglow" x="-200%" y="-200%" width="500%" height="500%">
+          <feGaussianBlur stdDeviation="5" result="b" />
+          <feMerge>
+            <feMergeNode in="b" />
+            <feMergeNode in="b" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+        <clipPath id="lo-sq-clip">
+          <rect x="4" y="4" width="504" height="504" rx="108" ry="108" />
+        </clipPath>
+      </defs>
+      <rect x="4" y="4" width="504" height="504" rx="108" ry="108" fill="url(#lo-sq-disc)" />
+      <g clipPath="url(#lo-sq-clip)">
+        <g fill="#ff33cc" opacity="0.05">
+          <circle cx="150" cy="150" r="2" /><circle cx="200" cy="150" r="2" /><circle cx="250" cy="150" r="2" /><circle cx="300" cy="150" r="2" /><circle cx="350" cy="150" r="2" />
+          <circle cx="150" cy="200" r="2" /><circle cx="350" cy="200" r="2" />
+          <circle cx="150" cy="300" r="2" /><circle cx="350" cy="300" r="2" />
+          <circle cx="150" cy="360" r="2" /><circle cx="200" cy="360" r="2" /><circle cx="250" cy="360" r="2" /><circle cx="300" cy="360" r="2" /><circle cx="350" cy="360" r="2" />
+        </g>
+        <rect x="4" y="4" width="504" height="504" fill="url(#lo-sq-sheen)" />
+        {/* Orbit ring + dot are deliberately THICKER than brand/linea-hub/
+            icon-l-orbit-square.svg (stroke 2.5): this component renders at
+            20-64px, where a 2.5px stroke on a 512 viewBox shrinks to ~0.3px
+            and vanishes. Thicker keeps the orbit legible small; the Hub PNG
+            (always shown large) keeps the thin elegant ring. */}
+        <g transform="rotate(-24 256 256)">
+          <ellipse cx="256" cy="256" rx="196" ry="92" fill="none" stroke="#00ffff" strokeWidth="12" opacity="0.7" />
+          <circle cx="452" cy="256" r="16" fill="url(#lo-sq-g)" filter="url(#lo-sq-dotglow)" />
+        </g>
+        <g filter="url(#lo-sq-glow)" transform="translate(256 256) scale(3.45) translate(-40 -39)">
+          <path d="M27 20 L27 58 L54 58" fill="none" stroke="url(#lo-sq-g)" strokeWidth="9" strokeLinecap="square" />
+          <circle cx="51" cy="22" r="4.2" fill="url(#lo-sq-g)" />
+        </g>
+      </g>
+      <rect x="5.5" y="5.5" width="501" height="501" rx="106.5" ry="106.5" fill="none" stroke="url(#lo-sq-rim)" strokeWidth="3" opacity="0.9" />
+    </svg>
+  );
+}
+
 export function LineaIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" {...props}>
