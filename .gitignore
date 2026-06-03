@@ -60,3 +60,7 @@ CLAUDE.md
 .ui-test-shots/
 # root-level scratch screenshots (UI/design captures); real assets live under frontend/public/
 /*.png
+
+# Brand design assets / candidates (logos, banners, preview HTML) - local only; the
+# chosen marks are inlined in frontend code and Hub images are uploaded manually.
+brand/
