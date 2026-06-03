@@ -1,20 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useReadContract } from "wagmi";
-import { ADDR } from "@/lib/wagmi";
+import { useSnapshot } from "@/hooks/useSnapshot";
 import { PriceChart } from "./price-chart";
 import { LaunchCountdown } from "./launch-countdown";
-
-const hookAbi = [
-  {
-    type: "function",
-    name: "deploymentTime",
-    stateMutability: "view",
-    inputs: [{ type: "address" }],
-    outputs: [{ type: "uint256" }],
-  },
-] as const;
 
 /**
  * Resolve launch state from hook.deploymentTime[strategy] vs current time.
@@ -22,15 +11,8 @@ const hookAbi = [
  * `false` before trading opens, `true` once it has.
  */
 function useLaunched(): boolean | null {
-  const { data } = useReadContract({
-    address: ADDR.hook,
-    abi: hookAbi,
-    functionName: "deploymentTime",
-    args: [ADDR.strategy],
-    query: { refetchInterval: 30_000 },
-  });
-
-  const launchTs = data ? Number(data) : 0;
+  const { data: snap } = useSnapshot();
+  const launchTs = snap ? Number(snap.deploymentTime) : 0;
   const [now, setNow] = useState<number>(() => Math.floor(Date.now() / 1000));
   useEffect(() => {
     const id = setInterval(() => setNow(Math.floor(Date.now() / 1000)), 1000);

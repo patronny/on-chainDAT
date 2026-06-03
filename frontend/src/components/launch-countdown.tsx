@@ -1,25 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useReadContract } from "wagmi";
-import { ADDR } from "@/lib/wagmi";
-
-const hookAbi = [
-  {
-    type: "function",
-    name: "scheduledLaunchTime",
-    stateMutability: "view",
-    inputs: [],
-    outputs: [{ type: "uint256" }],
-  },
-  {
-    type: "function",
-    name: "deploymentTime",
-    stateMutability: "view",
-    inputs: [{ type: "address" }],
-    outputs: [{ type: "uint256" }],
-  },
-] as const;
+import { useSnapshot } from "@/hooks/useSnapshot";
 
 function formatPair(n: number): string {
   return n.toString().padStart(2, "0");
@@ -36,15 +18,8 @@ function formatPair(n: number): string {
  * Dexscreener chart (or a manual user toggle).
  */
 export function LaunchCountdown() {
-  const { data: deploymentTimeRaw } = useReadContract({
-    address: ADDR.hook,
-    abi: hookAbi,
-    functionName: "deploymentTime",
-    args: [ADDR.strategy],
-    query: { refetchInterval: 30_000 },
-  });
-
-  const launchTs = deploymentTimeRaw ? Number(deploymentTimeRaw) : 0;
+  const { data: snap } = useSnapshot();
+  const launchTs = snap ? Number(snap.deploymentTime) : 0;
 
   const [now, setNow] = useState<number>(() => Math.floor(Date.now() / 1000));
   useEffect(() => {
