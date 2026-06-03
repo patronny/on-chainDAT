@@ -8,8 +8,8 @@ export function Footer() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8">
           <div className="col-span-2 sm:col-span-1">
             <h3 className="text-lg font-display font-bold mb-2">
-              <Link href="/" aria-label="LineaDAT home" className="hover:opacity-90 focus-visible:ring-2 focus-visible:ring-primary rounded-sm">
-                Linea<span className="text-primary">DAT</span>
+              <Link href="/" aria-label="on-chainDAT home" className="hover:opacity-90 focus-visible:ring-2 focus-visible:ring-primary rounded-sm">
+                on-chain<span className="text-primary">DAT</span>
               </Link>
             </h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
@@ -86,7 +86,7 @@ export function Footer() {
           </div>
         </div>
         <div className="mt-8 pt-6 border-t border-border text-xs text-muted-foreground text-center space-y-2">
-          <div>© 2026 LineaDAT. Forked from TokenWorks ERC20Strategy v3 (MIT). Open source.</div>
+          <div>© 2026 on-chainDAT. Forked from TokenWorks ERC20Strategy v3 (MIT). Open source.</div>
           <div>LINEADAT is a community project and is not affiliated with, endorsed by, or sponsored by Linea or ConsenSys.</div>
         </div>
       </div>
