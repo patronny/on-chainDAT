@@ -13,14 +13,14 @@ import { ADDR } from "@/lib/wagmi";
  * Server-side snapshot of the shared, every-visitor on-chain state.
  *
  * Why this exists: previously every open browser ran the `useStrategyStats`
- * multicall (+ countdown reads) directly against the origin-locked frontend
- * Infura key every 12-30s, so RPC cost scaled LINEARLY with visitor count and
- * a launch spike would 429-storm the throughput cap. This route reads the same
- * data ONCE on the server (non-origin-locked ops key) and is CDN-cached, so all
- * users are served from the edge and Infura is hit ~once per `s-maxage` window
- * GLOBALLY, regardless of traffic. Per-wallet reads (balances/allowance) stay
- * client-side - they only fire for connected wallets and don't scale with
- * anonymous visitors.
+ * multicall (12s) + countdown / fee / bag-price reads (12-30s) directly against
+ * the origin-locked frontend Infura key, so RPC cost scaled LINEARLY with
+ * visitor count and a launch spike would 429-storm the throughput cap. This
+ * route reads the same data ONCE on the server (non-origin-locked ops key) and
+ * is CDN-cached, so all users are served from the edge and Infura is hit ~once
+ * per `s-maxage` window GLOBALLY, regardless of traffic. Per-wallet reads
+ * (balances/allowance) stay client-side - they only fire for connected wallets
+ * and don't scale with anonymous visitors.
  *
  * The frontend key 403s server-side (no Origin), so this MUST use a key without
  * an Origin allowlist. `LINEA_RPC_URL_SERVER` = the idle ops Infura key; falls
@@ -36,7 +36,50 @@ const hookAbi = [
     inputs: [{ type: "address" }],
     outputs: [{ type: "uint256" }],
   },
+  {
+    type: "function",
+    name: "calculateFee",
+    stateMutability: "view",
+    inputs: [
+      { name: "collection", type: "address" },
+      { name: "isBuying", type: "bool" },
+    ],
+    outputs: [{ name: "", type: "uint128" }],
+  },
 ] as const;
+
+// Etherex CL QuoterV2: WETH needed to acquire `bagSize` LINEA = the denominator
+// for the "% to next bag" bar (what the keeper pays to source a bag). Declared
+// view so it resolves via eth_call. Mirrors src/hooks/useBagMarketPriceEth.ts.
+const quoterAbi = [
+  {
+    type: "function",
+    name: "quoteExactOutputSingle",
+    stateMutability: "view",
+    inputs: [
+      {
+        type: "tuple",
+        components: [
+          { name: "tokenIn", type: "address" },
+          { name: "tokenOut", type: "address" },
+          { name: "amount", type: "uint256" },
+          { name: "tickSpacing", type: "int24" },
+          { name: "sqrtPriceLimitX96", type: "uint160" },
+        ],
+      },
+    ],
+    outputs: [
+      { name: "amountIn", type: "uint256" },
+      { name: "sqrtPriceX96After", type: "uint160" },
+      { name: "initializedTicksCrossed", type: "uint32" },
+      { name: "gasEstimate", type: "uint256" },
+    ],
+  },
+] as const;
+const ETHEREX_QUOTER = "0xE660C95E17884b6C81B01445EFC24556f8ABa037" as const;
+const LINEA_WETH = "0xe5D7C2a44FfDDf6b295A15c148167daaAf5Cf34f" as const;
+const CANONICAL_LINEA = "0x1789e0043623282D5DCc7F213d703C6D8BAfBB04" as const;
+const ETHEREX_TICK_SPACING = 50;
 
 const RPC_URL =
   process.env.LINEA_RPC_URL_SERVER ||
@@ -71,6 +114,8 @@ export async function GET() {
         { address: STRATEGY, abi: strategyAbi, functionName: "balanceOf", args: [DEAD] },
         { address: POOL_MANAGER_ADDR, abi: poolManagerAbi, functionName: "extsload", args: [POOL_SLOT0] },
         { address: ADDR.hook, abi: hookAbi, functionName: "deploymentTime", args: [STRATEGY] },
+        { address: ADDR.hook, abi: hookAbi, functionName: "calculateFee", args: [STRATEGY, true] },
+        { address: ADDR.hook, abi: hookAbi, functionName: "calculateFee", args: [STRATEGY, false] },
       ],
     });
 
@@ -82,6 +127,33 @@ export async function GET() {
       r[17]?.status === "success" ? (r[17].result as `0x${string}`) : "0x0";
     const sqrtPriceX96 =
       slot0 !== "0x0" ? (BigInt(slot0) & ((1n << 160n) - 1n)).toString() : "0";
+
+    const bagSize = r[3]?.status === "success" ? (r[3].result as bigint) : 0n;
+
+    // blockNumber (cosmetic TWAP-cooldown counter) + bag market price (Etherex
+    // quoter, needs the live bagSize) - fetched after the multicall, in parallel.
+    const [blockNumber, bagMarketPriceWei] = await Promise.all([
+      client.getBlockNumber().catch(() => 0n),
+      bagSize > 0n
+        ? client
+            .readContract({
+              address: ETHEREX_QUOTER,
+              abi: quoterAbi,
+              functionName: "quoteExactOutputSingle",
+              args: [
+                {
+                  tokenIn: LINEA_WETH,
+                  tokenOut: CANONICAL_LINEA,
+                  amount: bagSize,
+                  tickSpacing: ETHEREX_TICK_SPACING,
+                  sqrtPriceLimitX96: 0n,
+                },
+              ],
+            })
+            .then((res) => (Array.isArray(res) ? (res[0] as bigint) : 0n))
+            .catch(() => 0n)
+        : Promise.resolve(0n),
+    ]);
 
     const body = {
       name: str(0),
@@ -104,6 +176,10 @@ export async function GET() {
       slot0,
       sqrtPriceX96,
       deploymentTime: big(18),
+      feeBuy: big(19),
+      feeSell: big(20),
+      blockNumber: blockNumber.toString(),
+      bagMarketPriceWei: bagMarketPriceWei.toString(),
     };
 
     return new Response(JSON.stringify(body), {

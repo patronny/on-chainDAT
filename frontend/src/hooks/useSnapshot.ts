@@ -29,6 +29,10 @@ export type Snapshot = {
   slot0: `0x${string}`;
   sqrtPriceX96: bigint;
   deploymentTime: bigint;
+  feeBuy: bigint;
+  feeSell: bigint;
+  blockNumber: bigint;
+  bagMarketPriceWei: bigint;
 };
 
 async function fetchSnapshot(): Promise<Snapshot> {
@@ -63,6 +67,10 @@ async function fetchSnapshot(): Promise<Snapshot> {
     slot0: (j.slot0 as `0x${string}`) ?? "0x0",
     sqrtPriceX96: b("sqrtPriceX96"),
     deploymentTime: b("deploymentTime"),
+    feeBuy: b("feeBuy"),
+    feeSell: b("feeSell"),
+    blockNumber: b("blockNumber"),
+    bagMarketPriceWei: b("bagMarketPriceWei"),
   };
 }
 

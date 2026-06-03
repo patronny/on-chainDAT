@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import {
   useAccount,
-  useBlockNumber,
   useReadContract,
   useWaitForTransactionReceipt,
   useWriteContract,
@@ -42,10 +41,9 @@ export function ActionsCard() {
   const { address, isConnected } = useAccount();
   const { writeContract, data: txHash, isPending } = useWriteContract();
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({ hash: txHash });
-  // Poll the block height on the same 12s cadence as the rest of the dashboard instead
-  // of wagmi's ~4s watch:true (the only auto-block-watcher in the app, firing ~15
-  // eth_blockNumber/min per tab just to drive this cosmetic TWAP-cooldown counter).
-  const { data: blockNumber } = useBlockNumber({ query: { refetchInterval: 12_000 } });
+  // Block height for the cosmetic TWAP-cooldown counter, from the shared snapshot
+  // (was a per-browser eth_blockNumber poll). ~15s granularity is fine here.
+  const blockNumber = stats?.blockNumber;
 
   const { data: tlineaBal, refetch: refetchTBal } = useReadContract({
     address: ADDR.tLINEA,

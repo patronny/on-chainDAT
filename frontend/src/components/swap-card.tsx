@@ -11,7 +11,7 @@ import {
 } from "wagmi";
 import { Button } from "./ui/button";
 import { erc20Abi } from "@/lib/abis/erc20";
-import { swapperAbi, hookAbi } from "@/lib/abis/swapper";
+import { swapperAbi } from "@/lib/abis/swapper";
 import { ADDR, POOL_KEY } from "@/lib/wagmi";
 import { formatEth, formatTokens, sqrtPriceX96ToRatio } from "@/lib/utils";
 import { useStrategyStats } from "@/hooks/useStrategyStats";
@@ -97,17 +97,12 @@ export function SwapCard() {
     args: address ? [address, ADDR.swapper] : undefined,
     query: { enabled: !!address, refetchInterval: 12_000 },
   });
-  const { data: feeBpsRaw } = useReadContract({
-    address: ADDR.hook,
-    abi: hookAbi,
-    functionName: "calculateFee",
-    args: [ADDR.strategy, side === "buy"],
-    query: { refetchInterval: 30_000 },
-  });
-  const feeBps = feeBpsRaw ?? (side === "buy" ? 9900n : 1000n);
-  const feePercent = Number(feeBps) / 100;
-
   const { data: stats } = useStrategyStats();
+  // Current decaying protocol fee, from the shared snapshot (was a per-browser
+  // calculateFee read). Fall back to the launch defaults until it resolves.
+  const feeRaw = stats ? (side === "buy" ? stats.feeBuy : stats.feeSell) : 0n;
+  const feeBps = feeRaw > 0n ? feeRaw : side === "buy" ? 9900n : 1000n;
+  const feePercent = Number(feeBps) / 100;
   const poolRatio = stats?.sqrtPriceX96 ? sqrtPriceX96ToRatio(stats.sqrtPriceX96) : 0;
 
   const userEth = ethBalance?.value ?? 0n;
