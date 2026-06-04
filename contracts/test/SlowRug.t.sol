@@ -8,22 +8,22 @@ import {BaseTest} from "./Base.t.sol";
 ///         exceeds rational arbitrage thresholds. We verify here that:
 ///         (a) availableFunds is bounded by `min(currentFees, getMaxPriceForBuy)` - never exceeds either
 ///         (b) lastBuyBlock resets on every buyTokens, preventing the ceiling from staying high
-///         (c) buyIncrement = 0.02 ETH/block on Linea makes catch-up to bagSize=0.236 ETH happen in ~12 blocks (~36s)
+///         (c) buyIncrement = 0.005 ETH/block on Linea makes catch-up to bagSize=0.236 ETH happen in ~47 blocks
 contract SlowRugTest is BaseTest {
     function test_getMaxPriceForBuy_isLinearInBlocks() public {
         uint256 base = strategy.lastBuyBlock();
 
-        // 0 blocks elapsed → (0+1)*0.02 = 0.02 ETH
-        assertEq(strategy.getMaxPriceForBuy(), 0.02 ether);
+        // 0 blocks elapsed → (0+1)*0.005 = 0.005 ETH
+        assertEq(strategy.getMaxPriceForBuy(), 0.005 ether);
 
         vm.roll(base + 1);
-        assertEq(strategy.getMaxPriceForBuy(), 0.04 ether);
+        assertEq(strategy.getMaxPriceForBuy(), 0.01 ether); // 2 * 0.005
 
         vm.roll(base + 5);
-        assertEq(strategy.getMaxPriceForBuy(), 0.12 ether); // 6 * 0.02
+        assertEq(strategy.getMaxPriceForBuy(), 0.03 ether); // 6 * 0.005
 
         vm.roll(base + 50);
-        assertEq(strategy.getMaxPriceForBuy(), 1.02 ether); // 51 * 0.02
+        assertEq(strategy.getMaxPriceForBuy(), 0.255 ether); // 51 * 0.005
     }
 
     function test_availableFunds_capsAtCurrentFees() public {
@@ -36,22 +36,26 @@ contract SlowRugTest is BaseTest {
 
     function test_availableFunds_capsAtMaxPrice() public {
         _addFees(10 ether);
-        // Only 1 block elapsed → maxPrice = 0.04 ETH (much less than currentFees)
+        // Only 1 block elapsed → maxPrice = (1+1)*0.005 = 0.01 ETH (much less than currentFees)
         vm.roll(block.number + 1);
-        assertEq(strategy.availableFunds(), 0.04 ether, "capped at getMaxPriceForBuy, not currentFees");
+        assertEq(strategy.availableFunds(), 0.01 ether, "capped at getMaxPriceForBuy, not currentFees");
     }
 
     function test_lastBuyBlockResetsCeilingToOneIncrement() public {
         _addFees(1 ether);
         _approveLINEA(botA, 5 * BAG_SIZE);
-        vm.roll(block.number + 50);
+        // Roll far enough that the ceiling (201*0.005 = 1.005 ETH) exceeds the 1 ETH pot, so the
+        // single buy drains currentFees fully and we can observe the post-buy ceiling reset.
+        // (At the slowed 0.005 increment, ~50 blocks would only reach a 0.255 ETH ceiling and the
+        // pot would not fully drain - that slower ramp is the intended slow-rug behavior.)
+        vm.roll(block.number + 200);
 
         uint256 firstFunds = strategy.availableFunds();
         vm.prank(botA);
         strategy.buyTokens();
 
-        // Right after - getMaxPriceForBuy = 1 * 0.02 = 0.02 ETH (ceiling reset)
-        assertEq(strategy.getMaxPriceForBuy(), 0.02 ether);
+        // Right after - getMaxPriceForBuy = 1 * 0.005 = 0.005 ETH (ceiling reset)
+        assertEq(strategy.getMaxPriceForBuy(), 0.005 ether);
         // availableFunds = min(currentFees, getMaxPriceForBuy). After full draw, currentFees = 0,
         // so availableFunds = 0 (the harder bound).
         assertEq(strategy.availableFunds(), 0, "currentFees fully drained, availableFunds = 0");
@@ -83,10 +87,10 @@ contract SlowRugTest is BaseTest {
         _addFees(10 ether);
 
         // Goal: at what block count does getMaxPriceForBuy reach ~0.236 ETH (the bagSize ETH-equivalent)?
-        // (N+1) * 0.02 = 0.236  →  N = 10.8 → ~12 blocks at Linea ~3s = 36 seconds
-        vm.roll(block.number + 12);
+        // (N+1) * 0.005 = 0.236  →  N = 46.2 → ~47 blocks
+        vm.roll(block.number + 47);
         uint256 ceiling = strategy.getMaxPriceForBuy();
-        assertGe(ceiling, 0.24 ether, "12 blocks => ceiling crosses bagSize ETH-equivalent");
-        assertLt(ceiling, 0.28 ether, "12 blocks => ceiling not yet drastically over");
+        assertGe(ceiling, 0.24 ether, "47 blocks => ceiling crosses bagSize ETH-equivalent");
+        assertLt(ceiling, 0.28 ether, "47 blocks => ceiling not yet drastically over");
     }
 }

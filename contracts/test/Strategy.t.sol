@@ -29,8 +29,8 @@ contract StrategyTest is BaseTest {
         assertEq(strategy.bagSize(), 150_000 * 1e18);
     }
 
-    function test_initialState_buyIncrementIs02ETH() public view {
-        assertEq(strategy.buyIncrement(), 0.02 ether);
+    function test_initialState_buyIncrementIs005ETH() public view {
+        assertEq(strategy.buyIncrement(), 0.005 ether);
     }
 
     function test_initialState_priceMultiplierIs1200() public view {
@@ -143,8 +143,8 @@ contract StrategyTest is BaseTest {
 
         assertEq(strategy.lastBuyBlock(), block.number, "lastBuyBlock = current block");
 
-        // Right after buy, getMaxPriceForBuy = (0+1)*0.02 = 0.02 ETH (very low, prevents same-block re-buy at high price)
-        assertEq(strategy.getMaxPriceForBuy(), 0.02 ether);
+        // Right after buy, getMaxPriceForBuy = (0+1)*0.005 = 0.005 ETH (very low, prevents same-block re-buy at high price)
+        assertEq(strategy.getMaxPriceForBuy(), 0.005 ether);
     }
 
     /* ™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™ */

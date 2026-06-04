@@ -40,7 +40,7 @@ contract StressTest is Test {
     address internal constant DEAD = 0x000000000000000000000000000000000000dEaD;
 
     uint256 internal constant BAG_SIZE = 150_000 * 1e18;
-    uint256 internal constant BUY_INCREMENT = 0.02 ether;
+    uint256 internal constant BUY_INCREMENT = 0.005 ether;
     uint256 internal constant TWAP_INCREMENT = 0.05 ether;
     uint256 internal constant TWAP_DELAY = 4;
 

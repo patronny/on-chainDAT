@@ -48,7 +48,7 @@ contract HookTest is Test {
 
         // Deploy LineaDAT strategy
         strategy = LineaDATStrategy(payable(factory.deployStrategy(
-            address(linea), 150_000e18, "LineaDAT", "LINEADAT", owner, 0.02 ether
+            address(linea), 150_000e18, "LineaDAT", "LINEADAT", owner, 0.005 ether
         )));
     }
 

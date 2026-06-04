@@ -48,7 +48,7 @@ contract MockUniversalRouter {
 abstract contract BaseTest is Test {
     // === Locked LineaDAT params (per docs/50-lineadat-spec.md) ===
     uint256 internal constant BAG_SIZE = 150_000 * 1e18; // 150 000 LINEA
-    uint256 internal constant BUY_INCREMENT = 0.02 ether; // 0.02 ETH/block
+    uint256 internal constant BUY_INCREMENT = 0.005 ether; // 0.005 ETH/block (immutable on-chain value; slowed from 0.02 to stretch the slow-rug ramp)
     uint256 internal constant TWAP_INCREMENT = 0.05 ether;
     uint256 internal constant TWAP_DELAY = 4;
 

@@ -25,13 +25,13 @@ contract EdgeTest is BaseTest {
         // getMaxPriceForBuy < currentFees (after deposit), lastBuyBlock backsets so max is bounded.
         // Check current logic at lines 302-308.
         uint256 initBlock = block.number;
-        vm.roll(initBlock + 100); // ceiling = 101 * 0.02 = 2.02 ETH
+        vm.roll(initBlock + 100); // ceiling = 101 * 0.005 = 0.505 ETH
 
         _addFees(5 ether); // greater than buyIncrement, large enough to trigger backset
 
         // The backset reduces lastBuyBlock so getMaxPriceForBuy() ~ currentFees (bounded)
         // After backset: lastBuyBlock = block.number - (currentFees / buyIncrement)
-        //              = (initBlock + 100) - (5 ether / 0.02 ether) = (initBlock + 100) - 250 (negative if initBlock < 150)
+        //              = (initBlock + 100) - (5 ether / 0.005 ether) = (initBlock + 100) - 1000 (clamps to 0 when it would underflow)
         // The actual semantic is: getMaxPriceForBuy will not be drastically larger than currentFees.
 
         uint256 ceiling = strategy.getMaxPriceForBuy();
