@@ -38,11 +38,21 @@ const RPC_LIST = RPC_RAW.split(",")
   .filter(Boolean);
 const RPC = RPC_LIST.length > 1 ? RPC_LIST : RPC_LIST[0];
 
+// Realtime head-poll interval (ms). Ponder's default is 1000ms = one eth_getBlockByNumber
+// per second (~86k/day), which alone was ~80% of the daily Infura credit bill. Linea blocks
+// are ~2-3s, so polling every 2s roughly halves head-poll volume with no meaningful lag for
+// the trades/history table. Override via PONDER_POLLING_INTERVAL_MS (raise it further to save
+// more; the chart no longer depends on this indexer - it reads from GeckoTerminal).
+const POLLING_INTERVAL_MS = process.env.PONDER_POLLING_INTERVAL_MS
+  ? Number(process.env.PONDER_POLLING_INTERVAL_MS)
+  : 2000;
+
 export default createConfig({
   chains: {
     [CHAIN_NAME]: {
       id: CHAIN_ID,
       rpc: RPC,
+      pollingInterval: POLLING_INTERVAL_MS,
     },
   },
   contracts: {
