@@ -32,6 +32,22 @@ const team: ContactRow = {
   external: true,
 };
 
+const telegramChannel: ContactRow = {
+  label: "Telegram channel",
+  href: "https://t.me/onchainDAT",
+  display: "@onchainDAT on Telegram",
+  description: "Official announcements: launches, burns, and protocol updates.",
+  external: true,
+};
+
+const telegramChat: ContactRow = {
+  label: "Telegram community chat",
+  href: "https://t.me/onchainDAT_chat",
+  display: "@onchainDAT_chat on Telegram",
+  description: "Community discussion: questions, trading talk, and feedback.",
+  external: true,
+};
+
 const emails: ContactRow[] = [
   {
     label: "General support",
@@ -78,6 +94,8 @@ export default function ContactsPage() {
           <h2 className="text-xl font-display font-semibold mb-2">Public channels</h2>
           <ContactCard row={founder} />
           <ContactCard row={team} />
+          <ContactCard row={telegramChannel} />
+          <ContactCard row={telegramChat} />
         </section>
 
         <section className="space-y-3 mb-10">

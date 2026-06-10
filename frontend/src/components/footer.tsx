@@ -63,6 +63,7 @@ export function Footer() {
               <li><a href="https://docs.on-chaindat.com" target="_blank" rel="noopener noreferrer" className="hover:text-foreground">Docs</a></li>
               <li><Link href="/status" className="hover:text-foreground">Status</Link></li>
               <li><a href="https://github.com/patronny/LineaDAT" target="_blank" rel="noopener noreferrer" className="hover:text-foreground">GitHub</a></li>
+              <li><a href="https://t.me/onchainDAT" target="_blank" rel="noopener noreferrer" className="hover:text-foreground">Telegram</a></li>
               <li><Link href="/contacts" className="hover:text-foreground">Contacts</Link></li>
               <li><Link href="/terms" className="hover:text-foreground">Terms of Service</Link></li>
             </ul>
