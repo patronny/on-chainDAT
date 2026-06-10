@@ -98,8 +98,10 @@ export function lineastrPriceInEth(sqrt: bigint | undefined): number {
 /** Date formatter matching the reference layout: M/D/YYYY - HH:MM AM/PM */
 export function formatTradeDate(unixSec: number): string {
   if (!unixSec) return "-";
+  // UTC, not viewer-local: table headers are labeled "Date (UTC)" and the
+  // Telegram trades feed uses UTC - one timezone everywhere, no ambiguity.
   const d = new Date(unixSec * 1000);
-  const date = d.toLocaleDateString("en-US", { year: "numeric", month: "numeric", day: "numeric" });
-  const time = d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+  const date = d.toLocaleDateString("en-US", { year: "numeric", month: "numeric", day: "numeric", timeZone: "UTC" });
+  const time = d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true, timeZone: "UTC" });
   return `${date} - ${time}`;
 }

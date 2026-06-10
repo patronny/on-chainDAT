@@ -86,7 +86,7 @@ export function PaginatedSwapsTable() {
         <table className="w-full text-sm">
           <thead className="text-xs text-muted-foreground border-b border-border">
             <tr>
-              <SortHeader field="date" active={sortKey} dir={sortDir} onClick={toggle}>Date</SortHeader>
+              <SortHeader field="date" active={sortKey} dir={sortDir} onClick={toggle}>Date (UTC)</SortHeader>
               <SortHeader field="side" active={sortKey} dir={sortDir} onClick={toggle}>Side</SortHeader>
               <SortHeader field="eth" active={sortKey} dir={sortDir} onClick={toggle} align="right">ETH</SortHeader>
               <SortHeader field="token" active={sortKey} dir={sortDir} onClick={toggle} align="right">LINEADAT</SortHeader>

@@ -123,7 +123,7 @@ export function SalesTable() {
         <table className="w-full text-sm">
           <thead className="text-xs text-muted-foreground border-b border-border">
             <tr>
-              <SortHeader field="date" active={sortKey} dir={sortDir} onClick={toggle}>Date</SortHeader>
+              <SortHeader field="date" active={sortKey} dir={sortDir} onClick={toggle}>Date (UTC)</SortHeader>
               <th className="text-left py-3 px-4 font-medium uppercase tracking-wider">{UNDERLYING_SYMBOL}</th>
               <SortHeader field="paid" active={sortKey} dir={sortDir} onClick={toggle}>Paid</SortHeader>
               <SortHeader field="sold" active={sortKey} dir={sortDir} onClick={toggle}>Sold For</SortHeader>
