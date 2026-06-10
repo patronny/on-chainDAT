@@ -4,8 +4,10 @@
 Routing:
   - platform checks (site, /api/snapshot)        -> @onchainDAT_Status_bot  (TG_TOKEN_STATUS)
   - per-DAT checks (keeper, indexer, bag/burn)   -> that DAT's own bot      (e.g. TG_TOKEN_LINEADAT)
+  - ALL user swaps, every DAT, silent digests    -> @DATs_TXS_bot           (TG_TOKEN_TRADES)
 
-Adding a future DAT = one entry in DATS + one TG_TOKEN_* repo secret.
+Adding a future DAT = one entry in DATS + one TG_TOKEN_* repo secret (the
+trades feed bot is shared - messages are prefixed with the DAT name).
 
 State (previous lastBagId, alert timestamps) persists between runs via
 actions/cache on state/monitor-state.json. Alerts re-fire at most every
@@ -30,9 +32,12 @@ SNAPSHOT_URL = "https://www.on-chaindat.com/api/snapshot"
 DATS = [
     {
         "name": "LineaDAT",
+        "symbol": "LINEADAT",
         "token_env": "TG_TOKEN_LINEADAT",
         "keeper": "https://lineadat-keeper.fly.dev/status",
         "indexer_healthz": "https://lineadat-indexer.fly.dev/healthz",
+        "indexer_graphql": "https://lineadat-indexer.fly.dev/graphql",
+        "explorer_tx": "https://lineascan.build/tx/",
         # CDN-cached server route with this DAT's on-chain state (burned etc.)
         "snapshot": SNAPSHOT_URL,
     },
@@ -54,17 +59,74 @@ def fetch(url, timeout=20):
         return 0, None
 
 
-def send(token, text):
-    data = json.dumps({"chat_id": CHAT_ID, "text": text}).encode()
+def send(token, text, silent=False, html=False):
+    payload = {"chat_id": CHAT_ID, "text": text, "disable_notification": silent}
+    if html:
+        payload["parse_mode"] = "HTML"
+        payload["disable_web_page_preview"] = True
     req = urllib.request.Request(
         f"https://api.telegram.org/bot{token}/sendMessage",
-        data=data,
+        data=json.dumps(payload).encode(),
         headers={"content-type": "application/json"},
     )
     try:
         urllib.request.urlopen(req, timeout=20)
     except Exception as e:
         print(f"telegram send failed: {e}")
+
+
+def gql(url, query, variables=None):
+    """POST a GraphQL query; returns `data` dict or None."""
+    body = json.dumps({"query": query, "variables": variables or {}}).encode()
+    req = urllib.request.Request(url, data=body, headers={"content-type": "application/json"})
+    try:
+        with urllib.request.urlopen(req, timeout=20) as r:
+            return json.loads(r.read()).get("data")
+    except Exception:
+        return None
+
+
+def trades_feed(dat, dstate, trades_token):
+    """Silent digest of NEW user swaps since the last run -> the shared trades bot.
+
+    First ever run initializes the high-water mark without spamming history.
+    Ponder indexes block-atomically and Linea blocks have distinct timestamps,
+    so `timestamp_gt` cannot split a block's swaps across runs.
+    """
+    url = dat.get("indexer_graphql")
+    if not url or not trades_token:
+        return
+    last = dstate.get("tradesTs")
+    if last is None:
+        d = gql(url, '{ swaps(orderBy: "timestamp", orderDirection: "desc", limit: 1) { items { timestamp } } }')
+        items = (d or {}).get("swaps", {}).get("items", [])
+        dstate["tradesTs"] = items[0]["timestamp"] if items else 0
+        return
+    d = gql(
+        url,
+        """query($since: Int!) { swaps(where: {timestamp_gt: $since}, orderBy: "timestamp",
+             orderDirection: "asc", limit: 100) {
+             items { timestamp txHash trader side ethAmount tokenAmount } } }""",
+        {"since": int(last)},
+    )
+    items = (d or {}).get("swaps", {}).get("items", [])
+    if not items:
+        return
+    sym = dat.get("symbol", dat["name"])
+    lines = []
+    for s in items[:25]:
+        emoji = "\U0001f7e2" if s["side"] == "buy" else "\U0001f534"  # green/red circle
+        eth = int(s["ethAmount"]) / 1e18
+        tok = int(s["tokenAmount"]) / 1e18
+        hhmm = time.strftime("%H:%M", time.gmtime(s["timestamp"]))
+        who = s["trader"][:6] + "…" + s["trader"][-4:]
+        link = f'<a href="{dat.get("explorer_tx","")}{s["txHash"]}">tx</a>'
+        lines.append(
+            f"{emoji} {s['side'].upper()} {eth:.4f} ETH ↔ {tok:,.0f} {sym} · {who} · {hhmm} UTC · {link}"
+        )
+    extra = f"\n… и ещё {len(items) - 25}" if len(items) > 25 else ""
+    send(trades_token, f"<b>{dat['name']}</b>\n" + "\n".join(lines) + extra, silent=True, html=True)
+    dstate["tradesTs"] = max(int(s["timestamp"]) for s in items)
 
 
 def load_state():
@@ -104,6 +166,7 @@ def main():
     state = load_state()
     al = Alerter(state)
     status_token = os.environ["TG_TOKEN_STATUS"]
+    trades_token = os.environ.get("TG_TOKEN_TRADES", "")
 
     # --- platform -> status bot ---
     site_code, _ = fetch(SITE_URL)
@@ -178,6 +241,8 @@ def main():
 
         i_code, _ = fetch(dat["indexer_healthz"])
         al.check(token, f"{name}: indexer", i_code != 200, f"{name}: индексер healthz {i_code or 'timeout'} (таблицы на сайте перестанут обновляться)")
+
+        trades_feed(dat, dstate, trades_token)
 
         if ping:
             send(token, f"🧪 монитор задеплоен и работает (канал {name}). Слежу за кипером, индексером, бэгами и burn'ами каждые ~5 минут.")

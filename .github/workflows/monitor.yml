@@ -40,5 +40,6 @@ jobs:
           TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
           TG_TOKEN_STATUS: ${{ secrets.TG_TOKEN_STATUS }}
           TG_TOKEN_LINEADAT: ${{ secrets.TG_TOKEN_LINEADAT }}
+          TG_TOKEN_TRADES: ${{ secrets.TG_TOKEN_TRADES }}
           PING: ${{ inputs.ping && 'true' || 'false' }}
         run: python3 .github/scripts/monitor.py
