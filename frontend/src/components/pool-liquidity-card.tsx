@@ -73,7 +73,13 @@ export function PoolLiquidityCard() {
           title="Actual ETH sitting in the pool, in USD. The token side is the supply itself - its value is realizable only against this ETH."
         >
           <span className="text-muted-foreground">Real liquidity</span>
-          <span className="font-mono tabular font-semibold">
+          <span
+            className="font-mono tabular font-semibold"
+            style={{
+              color: "rgb(74, 222, 128)",
+              textShadow: "0 0 6px rgba(74,222,128,0.85), 0 0 14px rgba(74,222,128,0.5)",
+            }}
+          >
             {!loading && realUsd > 0 ? fmtUsd(realUsd) : "-"}
           </span>
         </div>
