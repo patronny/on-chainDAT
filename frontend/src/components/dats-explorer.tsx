@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { ADDR, UNDERLYING_SYMBOL } from "@/lib/wagmi";
+import { shortAddress } from "@/lib/utils";
 import { LineaDatSquareIcon } from "./icons/token-icons";
 
 type Network = "all" | "linea" | "base" | "hyperevm";
@@ -72,10 +72,48 @@ function FilterSelect<T extends string>({
   );
 }
 
+/** Type pill with a hover tooltip explaining the DAT mechanic. */
+function TypeBadge({ type }: { type: Exclude<DatType, "all"> }) {
+  const classic = type === "classic";
+  return (
+    <span
+      className={`inline-block px-2 py-0.5 rounded text-xs font-semibold uppercase cursor-help ${
+        classic ? "bg-cyan-500/15 text-cyan-400" : "bg-amber-500/15 text-amber-400"
+      }`}
+      title={
+        classic
+          ? "Classic DAT: the treasury buys bags of the underlying and relists them at a 1.2x markup; the profit buys back and burns the token."
+          : "Yield DAT: the treasury never sells - it earns yield on its holdings and once a week uses the income to buy back and burn its token."
+      }
+    >
+      {classic ? "Classic" : "Yield"}
+    </span>
+  );
+}
+
+/** Scope pill: flagship (main) vs side DATs that feed the $LINEADAT burn. */
+function ScopeBadge({ scope }: { scope: Exclude<Scope, "all"> }) {
+  const main = scope === "main";
+  return (
+    <span
+      className={`inline-block px-2 py-0.5 rounded text-xs font-semibold uppercase cursor-help ${
+        main ? "bg-pink-500/15 text-pink-400" : "bg-purple-500/15 text-purple-400"
+      }`}
+      title={
+        main
+          ? "Main DAT: the flagship of the platform - side DATs buy back and burn its token."
+          : "Side DAT: pays 1% of its entire trading volume to buy back and burn $LINEADAT on every trade."
+      }
+    >
+      {main ? "Main" : "Side"}
+    </span>
+  );
+}
+
 /**
  * /dats content: full-bleed filter bar (network / type / scope / sort) right
- * under the site header, then the DAT card grid. Filters work today; sorting
- * becomes meaningful once a second DAT ships (see DatEntry.metrics).
+ * under the site header, then the borderless DAT table. Filters work today;
+ * sorting becomes meaningful once a second DAT ships (see DatEntry.metrics).
  */
 export function DatsExplorer() {
   const [network, setNetwork] = useState<Network>("all");
@@ -156,23 +194,71 @@ export function DatsExplorer() {
                 : "No DATs match these filters."}
           </p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {visible.map((s) => (
-              <Card key={s.address} className="p-6 sm:p-8">
-                <div className="flex items-center gap-3">
-                  <LineaDatSquareIcon className="w-12 h-12 flex-shrink-0" />
-                  <h3 className="text-2xl font-display font-bold">
-                    {s.name}
-                  </h3>
-                </div>
-                <p className="text-sm text-muted-foreground mt-1">Backed by {s.underlying} · {s.bagSize} per bag</p>
-                <p className="text-xs font-mono text-muted-foreground mt-3 break-all">{s.address}</p>
-                <Button asChild className="mt-4 w-full">
-                  <Link href={`/dats/${s.address}` as never}>View DAT</Link>
-                </Button>
-              </Card>
-            ))}
-          </div>
+          <>
+            {/* Desktop / tablet: borderless table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="text-xs text-muted-foreground border-b border-border">
+                  <tr>
+                    <th className="text-left py-3 pr-4 font-medium uppercase tracking-wider">DAT</th>
+                    <th className="text-left py-3 px-4 font-medium uppercase tracking-wider">Type</th>
+                    <th className="text-left py-3 px-4 font-medium uppercase tracking-wider">Scope</th>
+                    <th className="text-left py-3 px-4 font-medium uppercase tracking-wider">Backed by</th>
+                    <th className="text-right py-3 px-4 font-medium uppercase tracking-wider">Bag size</th>
+                    <th className="text-left py-3 px-4 font-medium uppercase tracking-wider">Contract</th>
+                    <th className="text-right py-3 pl-4 font-medium"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {visible.map((s) => (
+                    <tr key={s.address}>
+                      <td className="py-4 pr-4">
+                        <div className="flex items-center gap-3">
+                          <LineaDatSquareIcon className="w-9 h-9 flex-shrink-0" />
+                          <span className="font-display font-bold text-base">{s.name}</span>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4"><TypeBadge type={s.type} /></td>
+                      <td className="py-4 px-4"><ScopeBadge scope={s.scope} /></td>
+                      <td className="py-4 px-4 font-mono">{s.underlying}</td>
+                      <td className="py-4 px-4 text-right font-mono tabular">{s.bagSize}</td>
+                      <td className="py-4 px-4 font-mono text-xs text-muted-foreground" title={s.address}>
+                        {shortAddress(s.address)}
+                      </td>
+                      <td className="py-4 pl-4 text-right">
+                        <Button asChild size="sm">
+                          <Link href={`/dats/${s.address}` as never}>View DAT</Link>
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile: borderless stacked rows */}
+            <ul className="md:hidden divide-y divide-border">
+              {visible.map((s) => (
+                <li key={s.address} className="py-4 space-y-2">
+                  <div className="flex items-center gap-3">
+                    <LineaDatSquareIcon className="w-9 h-9 flex-shrink-0" />
+                    <span className="font-display font-bold text-base">{s.name}</span>
+                    <span className="ml-auto flex items-center gap-1.5">
+                      <TypeBadge type={s.type} />
+                      <ScopeBadge scope={s.scope} />
+                    </span>
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Backed by {s.underlying} · {s.bagSize} per bag
+                  </div>
+                  <div className="text-xs font-mono text-muted-foreground break-all">{s.address}</div>
+                  <Button asChild size="sm" className="w-full">
+                    <Link href={`/dats/${s.address}` as never}>View DAT</Link>
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </>
         )}
       </main>
     </>
