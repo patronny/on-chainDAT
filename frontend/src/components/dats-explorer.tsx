@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { Check, Copy, ExternalLink } from "lucide-react";
 import { Button } from "./ui/button";
-import { ADDR, UNDERLYING_SYMBOL } from "@/lib/wagmi";
+import { ADDR, UNDERLYING_SYMBOL, addressUrl } from "@/lib/wagmi";
 import { shortAddress } from "@/lib/utils";
 import { LineaDatSquareIcon } from "./icons/token-icons";
 
@@ -69,6 +70,45 @@ function FilterSelect<T extends string>({
         ))}
       </select>
     </label>
+  );
+}
+
+/** Explorer-link + copy buttons next to the contract address - same idiom as the DAT page header. */
+function ContractActions({ address }: { address: string }) {
+  const [copied, setCopied] = useState(false);
+  async function copyAddress() {
+    try {
+      await navigator.clipboard.writeText(address);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* clipboard blocked - silently no-op */
+    }
+  }
+  const btnCls =
+    "inline-flex items-center justify-center w-7 h-7 rounded-md border border-border bg-secondary/15 text-muted-foreground hover:text-foreground hover:border-secondary/60 focus-visible:ring-2 focus-visible:ring-primary";
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <a
+        href={addressUrl(address)}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={btnCls}
+        aria-label="Open contract on block explorer"
+        title="Open on explorer"
+      >
+        <ExternalLink className="w-3.5 h-3.5" />
+      </a>
+      <button
+        type="button"
+        onClick={copyAddress}
+        className={btnCls}
+        aria-label="Copy contract address"
+        title={copied ? "Copied" : "Copy contract"}
+      >
+        {copied ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
+      </button>
+    </span>
   );
 }
 
@@ -222,8 +262,11 @@ export function DatsExplorer() {
                       <td className="py-4 px-4"><ScopeBadge scope={s.scope} /></td>
                       <td className="py-4 px-4 font-mono">{s.underlying}</td>
                       <td className="py-4 px-4 text-right font-mono tabular">{s.bagSize}</td>
-                      <td className="py-4 px-4 font-mono text-xs text-muted-foreground" title={s.address}>
-                        {shortAddress(s.address)}
+                      <td className="py-4 px-4">
+                        <span className="flex items-center gap-2 font-mono text-xs text-muted-foreground">
+                          <span title={s.address}>{shortAddress(s.address)}</span>
+                          <ContractActions address={s.address} />
+                        </span>
                       </td>
                       <td className="py-4 pl-4 text-right">
                         <Button asChild size="sm">
@@ -251,7 +294,10 @@ export function DatsExplorer() {
                   <div className="text-sm text-muted-foreground">
                     Backed by {s.underlying} · {s.bagSize} per bag
                   </div>
-                  <div className="text-xs font-mono text-muted-foreground break-all">{s.address}</div>
+                  <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground">
+                    <span title={s.address}>{shortAddress(s.address, 8)}</span>
+                    <ContractActions address={s.address} />
+                  </div>
                   <Button asChild size="sm" className="w-full">
                     <Link href={`/dats/${s.address}` as never}>View DAT</Link>
                   </Button>
