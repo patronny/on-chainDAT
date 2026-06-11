@@ -28,6 +28,15 @@ function fmtUsd(v: number, digits = 0): string {
   return `$${v.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: digits })}`;
 }
 
+/** ETH side of the v4 pool (float, ether units) - the "real money" leg. */
+export function usePoolEthSide(): number {
+  const { data } = useStrategyStats();
+  const sqrtP = Number(data?.sqrtPriceX96 ?? 0n);
+  return sqrtP > 0 && sqrtP < SQRT_PB
+    ? (L * (SQRT_PB - sqrtP) * Q96) / (sqrtP * SQRT_PB) / 1e18
+    : 0;
+}
+
 export function PoolLiquidityCard() {
   const { data } = useStrategyStats();
   const ethUsd = useEthPrice();
@@ -35,10 +44,7 @@ export function PoolLiquidityCard() {
   const poolTokens = data?.poolLineadat ?? 0n;
   const sqrtP = Number(data?.sqrtPriceX96 ?? 0n);
 
-  const ethInPool =
-    sqrtP > 0 && sqrtP < SQRT_PB
-      ? (L * (SQRT_PB - sqrtP) * Q96) / (sqrtP * SQRT_PB) / 1e18
-      : 0;
+  const ethInPool = usePoolEthSide();
   // Real money in the pool = the ETH side only. The token side is the supply
   // itself - its market-price USD value is realizable only against this ETH,
   // so counting it (the GeckoTerminal/CoinGecko "liquidity" convention) would

@@ -5,6 +5,10 @@ import { useRouter } from "next/navigation";
 import { Check, Copy, ExternalLink } from "lucide-react";
 import { ADDR, UNDERLYING_SYMBOL, addressUrl } from "@/lib/wagmi";
 import { shortAddress } from "@/lib/utils";
+import { useStrategyStats } from "@/hooks/useStrategyStats";
+import { useBagMarketPriceEth } from "@/hooks/useBagMarketPriceEth";
+import { useEthPrice } from "@/hooks/useEthPrice";
+import { usePoolEthSide } from "./pool-liquidity-card";
 import { LineaDatSquareIcon } from "./icons/token-icons";
 import { TypeBadge, ScopeBadge } from "./dat-badges";
 
@@ -130,6 +134,18 @@ export function DatsExplorer() {
   const [scope, setScope] = useState<Scope>("all");
   const [sort, setSort] = useState<SortKey>("fdv");
 
+  // Live USD metrics for the LINEADAT row (the only live DAT today): bag
+  // value = Etherex bag quote x ETH/USD; LP size = the pool's ETH side x
+  // ETH/USD - the same "real money" figure as the DAT page's Real liquidity.
+  const { data: stats } = useStrategyStats();
+  const bagMarketPriceEth = useBagMarketPriceEth(stats?.bagSize ?? 0n);
+  const ethUsd = useEthPrice();
+  const poolEth = usePoolEthSide();
+  const bagUsd = ethUsd > 0 ? (Number(bagMarketPriceEth) / 1e18) * ethUsd : 0;
+  const lpUsd = poolEth * ethUsd;
+  const fmtUsd = (v: number) =>
+    v > 0 ? `$${v.toLocaleString("en-US", { maximumFractionDigits: 0 })}` : "-";
+
   const visible = DATS.filter(
     (d) =>
       (network === "all" || d.network === network) &&
@@ -209,6 +225,8 @@ export function DatsExplorer() {
                     <th className="text-left py-3 px-4 font-medium uppercase tracking-wider">Chain</th>
                     <th className="text-left py-3 px-4 font-medium uppercase tracking-wider">Base asset</th>
                     <th className="text-right py-3 px-4 font-medium uppercase tracking-wider">Bag size</th>
+                    <th className="text-right py-3 px-4 font-medium uppercase tracking-wider">Bag size($)</th>
+                    <th className="text-right py-3 px-4 font-medium uppercase tracking-wider">LP size($)</th>
                     <th className="text-left py-3 px-4 font-medium uppercase tracking-wider">Contract</th>
                   </tr>
                 </thead>
@@ -236,6 +254,12 @@ export function DatsExplorer() {
                       <td className="py-4 px-4">{NETWORK_LABELS[s.network]}</td>
                       <td className="py-4 px-4 font-mono">${s.underlying}</td>
                       <td className="py-4 px-4 text-right font-mono tabular">{s.bagSize}</td>
+                      <td className="py-4 px-4 text-right font-mono tabular">
+                        {s.address === ADDR.strategy ? fmtUsd(bagUsd) : "-"}
+                      </td>
+                      <td className="py-4 px-4 text-right font-mono tabular">
+                        {s.address === ADDR.strategy ? fmtUsd(lpUsd) : "-"}
+                      </td>
                       <td className="py-4 px-4">
                         {/* stopPropagation: copying the address / opening the explorer
                             must not also trigger the row's navigation */}
@@ -280,6 +304,12 @@ export function DatsExplorer() {
                     {NETWORK_LABELS[s.network]} · {s.bagSize}{" "}
                     <span className="font-mono">${s.underlying}</span> per bag
                   </div>
+                  {s.address === ADDR.strategy ? (
+                    <div className="text-sm text-muted-foreground">
+                      Bag <span className="font-mono">{fmtUsd(bagUsd)}</span> · LP{" "}
+                      <span className="font-mono">{fmtUsd(lpUsd)}</span>
+                    </div>
+                  ) : null}
                   {/* stopPropagation: copy / explorer taps must not navigate the row */}
                   <div
                     className="flex items-center gap-2 text-xs font-mono text-muted-foreground"
