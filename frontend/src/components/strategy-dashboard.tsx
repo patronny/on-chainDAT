@@ -10,9 +10,7 @@ import { FundingsCard, FundingsTitle, BotIntentCard, BotIntentTitle, ProgressCar
 import { PoolLiquidityCard } from "./pool-liquidity-card";
 import { BurnedCard } from "./burned-card";
 import { ActionsCard } from "./actions-card";
-import { formatEth, formatTokens, bagArbStyle, ethToUsd, usdApprox, NEON_GREEN_STYLE } from "@/lib/utils";
-import { useEthPrice } from "@/hooks/useEthPrice";
-import { useBagMarketPriceEth } from "@/hooks/useBagMarketPriceEth";
+import { formatEth, formatTokens, NEON_GREEN_STYLE } from "@/lib/utils";
 import { UNDERLYING_SYMBOL } from "@/lib/wagmi";
 
 /**
@@ -23,15 +21,9 @@ import { UNDERLYING_SYMBOL } from "@/lib/wagmi";
  */
 function HoldingsSubtitle() {
   const { count, totalTokens, totalPaid, totalListed } = useHoldingsTotals();
-  const ethUsd = useEthPrice();
-  const bagMarketEth = useBagMarketPriceEth(0n); // mainnet ignores the arg, reads the snapshot
   if (count === 0) {
     return <span>Bags currently listed for sale. Buy at the listed price.</span>;
   }
-  // Arb colour vs the live market value of ALL held bags (same source as the
-  // "Trying to buy" card): green when listed below market, pink when above.
-  const marketTotalEth = bagMarketEth * BigInt(count);
-  const listedUsd = ethUsd > 0 ? ethToUsd(totalListed, ethUsd) : 0;
   return (
     <span>
       LineaDAT is holding{" "}
@@ -41,11 +33,6 @@ function HoldingsSubtitle() {
       <span className="font-semibold" style={NEON_GREEN_STYLE}>
         {formatEth(totalListed)} ETH
       </span>
-      {listedUsd > 0 ? (
-        <span className="font-semibold" style={bagArbStyle(totalListed, marketTotalEth)}>
-          {" "}({usdApprox(listedUsd)})
-        </span>
-      ) : null}
     </span>
   );
 }
