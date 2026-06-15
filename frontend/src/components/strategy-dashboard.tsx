@@ -10,7 +10,7 @@ import { FundingsCard, FundingsTitle, BotIntentCard, BotIntentTitle, ProgressCar
 import { PoolLiquidityCard } from "./pool-liquidity-card";
 import { BurnedCard } from "./burned-card";
 import { ActionsCard } from "./actions-card";
-import { formatEth, formatTokens, bagArbStyle, ethToUsd, usdApprox } from "@/lib/utils";
+import { formatEth, formatTokens, bagArbStyle, ethToUsd, usdApprox, NEON_GREEN_STYLE } from "@/lib/utils";
 import { useEthPrice } from "@/hooks/useEthPrice";
 import { useBagMarketPriceEth } from "@/hooks/useBagMarketPriceEth";
 import { UNDERLYING_SYMBOL } from "@/lib/wagmi";
@@ -38,9 +38,14 @@ function HoldingsSubtitle() {
       <span className="text-foreground font-semibold">{formatTokens(totalTokens)} {UNDERLYING_SYMBOL}</span>{" "}
       bought for{" "}
       <span className="text-foreground font-semibold">{formatEth(totalPaid)} ETH</span>, listed for{" "}
-      <span className="font-semibold" style={bagArbStyle(totalListed, marketTotalEth)}>
-        {formatEth(totalListed)} ETH{listedUsd > 0 ? ` (${usdApprox(listedUsd)})` : ""}
+      <span className="font-semibold" style={NEON_GREEN_STYLE}>
+        {formatEth(totalListed)} ETH
       </span>
+      {listedUsd > 0 ? (
+        <span className="font-semibold" style={bagArbStyle(totalListed, marketTotalEth)}>
+          {" "}({usdApprox(listedUsd)})
+        </span>
+      ) : null}
     </span>
   );
 }

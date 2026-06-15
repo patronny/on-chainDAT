@@ -193,10 +193,12 @@ export function HoldingsTable() {
                 <td className="py-3 px-4 font-mono tabular">{formatTokens(bagSize)}</td>
                 <td className="py-3 px-4 font-mono tabular">{formatEth(r.paid)} ETH</td>
                 <td className="py-3 px-4 font-mono tabular">
-                  <span style={bagArbStyle(r.listPrice, bagMarketEth)}>
-                    {formatEth(r.listPrice)} ETH
-                    {ethUsd > 0 ? ` (${usdApprox(ethToUsd(r.listPrice, ethUsd))})` : ""}
-                  </span>
+                  {formatEth(r.listPrice)} ETH
+                  {ethUsd > 0 ? (
+                    <span style={bagArbStyle(r.listPrice, bagMarketEth)}>
+                      {" "}({usdApprox(ethToUsd(r.listPrice, ethUsd))})
+                    </span>
+                  ) : null}
                 </td>
                 <td className="py-3 px-4 text-right">
                   <Button
@@ -225,8 +227,13 @@ export function HoldingsTable() {
               {formatTokens(bagSize)} {UNDERLYING_SYMBOL} - paid {formatEth(r.paid)} ETH
             </div>
             <div className="flex items-center justify-between gap-3">
-              <span className="text-sm font-semibold tabular" style={bagArbStyle(r.listPrice, bagMarketEth)}>
-                {formatEth(r.listPrice)} ETH{ethUsd > 0 ? ` (${usdApprox(ethToUsd(r.listPrice, ethUsd))})` : ""}
+              <span className="text-sm font-semibold tabular">
+                {formatEth(r.listPrice)} ETH
+                {ethUsd > 0 ? (
+                  <span style={bagArbStyle(r.listPrice, bagMarketEth)}>
+                    {" "}({usdApprox(ethToUsd(r.listPrice, ethUsd))})
+                  </span>
+                ) : null}
               </span>
               <Button size="sm" onClick={() => buy(r.bagId, r.listPrice)} disabled={!isConnected || txBusy}>
                 Buy
