@@ -5,8 +5,10 @@ import { useReadContracts, useWaitForTransactionReceipt, useWriteContract, useAc
 import { strategyAbi } from "@/lib/abis/strategy";
 import { useStrategyStats } from "@/hooks/useStrategyStats";
 import { useBags } from "@/hooks/useIndexer";
+import { useBagMarketPriceEth } from "@/hooks/useBagMarketPriceEth";
+import { useEthPrice } from "@/hooks/useEthPrice";
 import { ADDR, UNDERLYING_SYMBOL } from "@/lib/wagmi";
-import { formatEth, formatTokens, formatTradeDate } from "@/lib/utils";
+import { formatEth, formatTokens, formatTradeDate, bagArbStyle, ethToUsd, usdApprox } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { PaginationFooter, usePagedSlice } from "./pagination-footer";
 import { SortHeader, useTableSort } from "./ui/sort-header";
@@ -105,6 +107,10 @@ export function HoldingsTable() {
   const { isLoading: isConfirming } = useWaitForTransactionReceipt({ hash: txHash });
   const txBusy = isPending || isConfirming;
   const { rows, isLoading, unavailable } = useHoldingsRows();
+  // Live USD + arb colour for the relist price - same sources as the
+  // "Trying to buy" card (Etherex bag quote x DefiLlama ETH/USD).
+  const ethUsd = useEthPrice();
+  const bagMarketEth = useBagMarketPriceEth(stats?.bagSize ?? 0n);
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
 
@@ -186,7 +192,12 @@ export function HoldingsTable() {
                 <td className="py-3 px-4 font-mono text-xs">{formatTradeDate(r.ts)}</td>
                 <td className="py-3 px-4 font-mono tabular">{formatTokens(bagSize)}</td>
                 <td className="py-3 px-4 font-mono tabular">{formatEth(r.paid)} ETH</td>
-                <td className="py-3 px-4 font-mono tabular">{formatEth(r.listPrice)} ETH</td>
+                <td className="py-3 px-4 font-mono tabular">
+                  <span style={bagArbStyle(r.listPrice, bagMarketEth)}>
+                    {formatEth(r.listPrice)} ETH
+                    {ethUsd > 0 ? ` (${usdApprox(ethToUsd(r.listPrice, ethUsd))})` : ""}
+                  </span>
+                </td>
                 <td className="py-3 px-4 text-right">
                   <Button
                     size="sm"
@@ -214,7 +225,9 @@ export function HoldingsTable() {
               {formatTokens(bagSize)} {UNDERLYING_SYMBOL} - paid {formatEth(r.paid)} ETH
             </div>
             <div className="flex items-center justify-between gap-3">
-              <span className="text-sm font-semibold tabular">{formatEth(r.listPrice)} ETH</span>
+              <span className="text-sm font-semibold tabular" style={bagArbStyle(r.listPrice, bagMarketEth)}>
+                {formatEth(r.listPrice)} ETH{ethUsd > 0 ? ` (${usdApprox(ethToUsd(r.listPrice, ethUsd))})` : ""}
+              </span>
               <Button size="sm" onClick={() => buy(r.bagId, r.listPrice)} disabled={!isConnected || txBusy}>
                 Buy
               </Button>

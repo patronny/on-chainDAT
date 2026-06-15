@@ -58,6 +58,38 @@ export function formatTokens(wei: bigint | undefined, decimals = 0): string {
   });
 }
 
+/** USD value of a wei ETH amount at the given ETH/USD price. */
+export function ethToUsd(wei: bigint, ethUsd: number): number {
+  return (Number(wei) / 1e18) * ethUsd;
+}
+
+/** Compact "~$402" / "~$12.34" label (0 decimals at >= $100, else 2). */
+export function usdApprox(usd: number): string {
+  return `~$${usd.toLocaleString("en-US", { maximumFractionDigits: usd >= 100 ? 0 : 2 })}`;
+}
+
+/** Shared neon styles for the Holdings relist price (see bagArbStyle). */
+export const NEON_GREEN_STYLE = {
+  color: "rgb(74, 222, 128)",
+  textShadow: "0 0 6px rgba(74,222,128,0.85), 0 0 14px rgba(74,222,128,0.5)",
+};
+export const NEON_PINK_STYLE = {
+  color: "hsl(320 100% 60%)",
+  textShadow: "0 0 6px hsla(320,100%,60%,0.85), 0 0 14px hsla(320,100%,60%,0.5)",
+};
+
+/**
+ * Neon arbitrage signal for a bag relisted at 1.2x. GREEN when the bag's list
+ * price is BELOW its live market value (the LINEA inside is worth more than the
+ * ask - buying it from the DAT is an arbitrage); PINK when listed at/above
+ * market (overpriced). Returns undefined until market data loads, so callers
+ * render the price plainly instead of flashing a misleading colour.
+ */
+export function bagArbStyle(listedWei: bigint, marketWei: bigint) {
+  if (listedWei <= 0n || marketWei <= 0n) return undefined;
+  return marketWei > listedWei ? NEON_GREEN_STYLE : NEON_PINK_STYLE;
+}
+
 /**
  * Convert a block number to an estimated time delta.
  * Base Sepolia ~2s/block; Linea ~3s/block.

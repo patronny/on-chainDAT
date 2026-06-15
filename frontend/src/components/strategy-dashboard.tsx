@@ -10,7 +10,9 @@ import { FundingsCard, FundingsTitle, BotIntentCard, BotIntentTitle, ProgressCar
 import { PoolLiquidityCard } from "./pool-liquidity-card";
 import { BurnedCard } from "./burned-card";
 import { ActionsCard } from "./actions-card";
-import { formatEth, formatTokens } from "@/lib/utils";
+import { formatEth, formatTokens, bagArbStyle, ethToUsd, usdApprox } from "@/lib/utils";
+import { useEthPrice } from "@/hooks/useEthPrice";
+import { useBagMarketPriceEth } from "@/hooks/useBagMarketPriceEth";
 import { UNDERLYING_SYMBOL } from "@/lib/wagmi";
 
 /**
@@ -21,19 +23,23 @@ import { UNDERLYING_SYMBOL } from "@/lib/wagmi";
  */
 function HoldingsSubtitle() {
   const { count, totalTokens, totalPaid, totalListed } = useHoldingsTotals();
+  const ethUsd = useEthPrice();
+  const bagMarketEth = useBagMarketPriceEth(0n); // mainnet ignores the arg, reads the snapshot
   if (count === 0) {
     return <span>Bags currently listed for sale. Buy at the listed price.</span>;
   }
-  const neonGreen = "rgb(74, 222, 128)";
-  const neonGreenGlow = "0 0 6px rgba(74,222,128,0.85), 0 0 14px rgba(74,222,128,0.5)";
+  // Arb colour vs the live market value of ALL held bags (same source as the
+  // "Trying to buy" card): green when listed below market, pink when above.
+  const marketTotalEth = bagMarketEth * BigInt(count);
+  const listedUsd = ethUsd > 0 ? ethToUsd(totalListed, ethUsd) : 0;
   return (
     <span>
       LineaDAT is holding{" "}
       <span className="text-foreground font-semibold">{formatTokens(totalTokens)} {UNDERLYING_SYMBOL}</span>{" "}
       bought for{" "}
       <span className="text-foreground font-semibold">{formatEth(totalPaid)} ETH</span>, listed for{" "}
-      <span className="font-semibold" style={{ color: neonGreen, textShadow: neonGreenGlow }}>
-        {formatEth(totalListed)} ETH
+      <span className="font-semibold" style={bagArbStyle(totalListed, marketTotalEth)}>
+        {formatEth(totalListed)} ETH{listedUsd > 0 ? ` (${usdApprox(listedUsd)})` : ""}
       </span>
     </span>
   );
