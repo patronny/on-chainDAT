@@ -142,6 +142,12 @@ export function BotIntentCard() {
           {lineaUsd > 0 ? `$${lineaUsd.toLocaleString("en-US", { maximumFractionDigits: 5 })}` : "-"}
         </span>
       </div>
+      <div className="flex items-center justify-between text-sm">
+        <span className="text-muted-foreground">$ETH price</span>
+        <span className="font-mono tabular">
+          {ethUsd > 0 ? `$${ethUsd.toLocaleString("en-US", { maximumFractionDigits: 2 })}` : "-"}
+        </span>
+      </div>
       <div className="border-t border-border pt-3 flex items-center justify-between text-sm">
         <span className="text-muted-foreground">Current bid</span>
         <span className="font-mono tabular">
