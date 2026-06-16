@@ -7,7 +7,7 @@
 # Deploy from repo root:
 #   fly deploy . --config automation/monitor/fly.toml
 # Secrets (set once, never in git):
-#   fly secrets set TG_CHAT_ID=... TG_TOKEN_STATUS=... TG_TOKEN_LINEADAT=... \
+#   fly secrets set TG_CHAT_ID=... TG_TOKEN_STATUS=... TG_TOKEN_LDAT=... \
 #     TG_TOKEN_TRADES=... -a lineadat-monitor
 app = "lineadat-monitor"
 primary_region = "fra"

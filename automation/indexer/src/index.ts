@@ -61,8 +61,8 @@ ponder.on("LineaDATStrategy:ERC20SoldByProtocol", async ({ event, context }) => 
 /**
  * Hook emits Trade(strategy, sqrtPriceX96, delta.amount0(), delta.amount1())
  * where delta is the BalanceDelta from the swapper's perspective in v4:
- *   - amount0 (ETH) negative  → swapper paid ETH → BUY LineaDAT
- *   - amount0 (ETH) positive  → swapper received ETH → SELL LineaDAT
+ *   - amount0 (ETH) negative  → swapper paid ETH → BUY LDAT
+ *   - amount0 (ETH) positive  → swapper received ETH → SELL LDAT
  */
 ponder.on("LineaDATHook:Trade", async ({ event, context }) => {
   const eth = event.args.ethAmount as bigint;

@@ -9,7 +9,7 @@
 
 ## Summary
 
-Phase 2 стресс-тест запускается на форке Linea mainnet (chainId 59144), деплоит полную LineaDAT-инфраструктуру (factory + impl + proxy + mock pool manager + mock universal router), использует **настоящий $LINEA токен** (`0x1789e0043623282D5DCc7F213d703C6D8BAfBB04`) как underlying, балансы выдаются через forge-std `deal()` cheatcode (write-to-storage bypass).
+Phase 2 стресс-тест запускается на форке Linea mainnet (chainId 59144), деплоит полную LDAT-инфраструктуру (factory + impl + proxy + mock pool manager + mock universal router), использует **настоящий $LINEA токен** (`0x1789e0043623282D5DCc7F213d703C6D8BAfBB04`) как underlying, балансы выдаются через forge-std `deal()` cheatcode (write-to-storage bypass).
 
 Прогоняем 1000 рандомных циклов: каждый цикл - `vm.roll(+1..10 blocks)` плюс одна из 4 случайных операций (`addFees` / `buyTokens` / `sellTokens` / `processTokenTwap`-stub). После каждого цикла проверяются инварианты.
 
@@ -35,7 +35,7 @@ forge test --match-contract StressTest --fork-url https://rpc.linea.build -vv
 | **Total bot gross profit (paid out по buyTokens)** | **65.27 ETH** |
 | **Avg paid per successful buy** | **0.362 ETH** |
 | **Avg time-to-sell (blocks)** | **768** (~38 минут на Linea при 3s/block) |
-| Final totalSupply (LineaDAT) | 1 000 000 000 (без изменений - processTokenTwap stub) |
+| Final totalSupply (LDAT) | 1 000 000 000 (без изменений - processTokenTwap stub) |
 | Final currentFees | 0.977 ETH (residual ниже buyIncrement-ramp ceiling) |
 | Final ethToTwap | 44.18 ETH (накоплен с sellTokens, не сожжён в stub) |
 | Final treasury LINEA balance | 12.3M LINEA (82 unsold bags × 150k) |
@@ -98,7 +98,7 @@ maxBuy = (block.number - lastBuyBlock + 1) * buyIncrement = N * 0.02 ETH
 
 **Out of Phase 2 scope (отложено):**
 - ❌ Реальные swap'ы через настоящий PoolManager - нужен calibrated sqrtPriceX96 init + LP-NFT seed + хук с правильными flag bits. Это Phase 4 mainnet deploy task.
-- ❌ `processTokenTwap` execution - наш `MockUniversalRouter` не возвращает LineaDAT при swap, поэтому `_buyAndBurnTokens` корректно не отработает. Это тестируется отдельно в `Sandwich.t.sol` с controlled mock router.
+- ❌ `processTokenTwap` execution - наш `MockUniversalRouter` не возвращает LDAT при swap, поэтому `_buyAndBurnTokens` корректно не отработает. Это тестируется отдельно в `Sandwich.t.sol` с controlled mock router.
 - ❌ Multi-block sandwich attack scenarios - Phase 3 testnet validation (Base Sepolia с реальным Uniswap v4).
 
 ---
@@ -118,7 +118,7 @@ maxBuy = (block.number - lastBuyBlock + 1) * buyIncrement = N * 0.02 ETH
 ## Что дальше: Phase 3
 
 Phase 3 (Base Sepolia public testnet, ~7 дней):
-1. Deploy полной LineaDAT-инфраструктуры на Base Sepolia
+1. Deploy полной LDAT-инфраструктуры на Base Sepolia
 2. CREATE2 hook mining с правильными permission flags
 3. Pool initialization + LP-NFT seed
 4. **Smart-contract бот** (atomic, не EOA) для buyTokens/sellTokens automation

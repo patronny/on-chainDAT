@@ -11,7 +11,7 @@ const CHAIN_ID = process.env.CHAIN_ID ? Number(process.env.CHAIN_ID) : 84532;
 const CHAIN_NAME =
   process.env.PONDER_CHAIN_NAME ?? (CHAIN_ID === 59144 ? "linea" : "baseSepolia");
 
-// Defaults reflect the canonical Phase 3.5 LineaDAT atomic-launch deployment
+// Defaults reflect the canonical Phase 3.5 LDAT atomic-launch deployment
 // (Base Sepolia, 2026-05-05). Override on Fly via fly secrets after any redeploy / for mainnet.
 const STRATEGY = (process.env.STRATEGY_ADDRESS ??
   "0x615937AE1eB71248DA407F39AcFea9288CF1784F") as `0x${string}`;
@@ -19,7 +19,7 @@ const HOOK = (process.env.HOOK_ADDRESS ??
   "0x512dd6871eb3a28aD07885A9B75a2e26eDa2a444") as `0x${string}`;
 
 // Block at or before strategy proxy deployment. Indexer scans from here forward.
-// Override via START_BLOCK env on Fly. Default: LineaDAT Phase 3.5 launch block (Base Sepolia).
+// Override via START_BLOCK env on Fly. Default: LDAT Phase 3.5 launch block (Base Sepolia).
 const START_BLOCK = process.env.START_BLOCK
   ? Number(process.env.START_BLOCK)
   : 41112701;

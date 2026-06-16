@@ -1,4 +1,4 @@
-# 60. Deployment Runbook - пошаговый план запуска LineaDAT
+# 60. Deployment Runbook - пошаговый план запуска LDAT
 
 Полный план: написание контрактов → Anvil fork → Base Sepolia → Linea mainnet.
 
@@ -38,7 +38,7 @@ forge install Vectorized/solady
 contracts/src/
   LineaDATStrategy.sol      ← from ERC20Strategy.sol v3 + MIT-header
   BaseStrategy.sol          ← from BaseStrategy.sol v3 + MIT-header + setTwapIncrement
-  LineaDATHook.sol          ← from ERC20StrategyHook.sol v3 + MIT-header + LineaDAT-burn rename + edge-case
+  LineaDATHook.sol          ← from ERC20StrategyHook.sol v3 + MIT-header + LDAT-burn rename + edge-case
   LineaDATFactory.sol       ← новый (минимальный, не клонируем TokenWorks factory)
   Interfaces.sol            ← from src_Interfaces.sol с переименованиями
 ```
@@ -77,7 +77,7 @@ anvil --fork-url https://rpc.linea.build --port 8545
 export RPC=http://localhost:8545
 ```
 
-### 2.2 Deploy LineaDAT
+### 2.2 Deploy LDAT
 
 ```bash
 forge script contracts/script/Deploy.s.sol \
@@ -108,7 +108,7 @@ forge script contracts/script/SimulateCycles.s.sol \
 Все cycles в `out/anvil-simulation.json`. Анализ:
 - Avg profit бота за цикл: должен быть **> 0.03 ETH**
 - Slow-rug attempts (bot ждёт > 50 блоков и пытается забрать всё): должны fail / yield ограниченную премию
-- Burn-rate LineaDAT: 0.5-2% supply в неделю при $10k/день volume
+- Burn-rate LDAT: 0.5-2% supply в неделю при $10k/день volume
 
 ## Phase 3 - Base Sepolia (публичный testnet, 7 дней)
 
@@ -121,7 +121,7 @@ Live testnet addresses (Base Sepolia, chainId 84532):
 | MockTLINEA | `0x88a8D5ED5D1be44098F226EDf11C3160Fd76421F` |
 | LineaDATStrategy impl | `0x739f49b48DA56D5C164722ad49A81B527c7b5542` |
 | LineaDATFactory | `0xeDCA75CdAbcca93399c22fc1815035C71F5f77A6` |
-| LineaDAT proxy | `0x6ddbC0bF9e8Bb2f8Bd9Dfd27876197340dDc7EB2` |
+| LDAT proxy | `0x6ddbC0bF9e8Bb2f8Bd9Dfd27876197340dDc7EB2` |
 | LineaDATBot | `0x5CAbfF553d8D7B9564CceE758A22b58c850d23Fc` |
 | Deployer / Owner / Keeper EOA | `0xbc6af64859dF1008c8187F94dF89323000dEE668` |
 | Deploy block | 41022811 |
@@ -208,13 +208,13 @@ CORS-friendly RPC.
 
 - [ ] Production deploy script переписан: `Deploy.s.sol` сейчас reverts при HOOK_SALT,
   а ссылки в §4.3 на `DeployImplementations.s.sol` / `DeployFactory.s.sol` /
-  `DeployLineaDAT.s.sol` пока не существуют
+  `DeployLDAT.s.sol` пока не существуют
 - [ ] Hook deploy с корректным immutable `lineaDATAddress` (предсказание адреса
   proxy через CREATE2 + mineHook salt в одном скрипте)
 - [ ] `LineaDATStrategy.factoryEscape` и `LineaDATFactory.updateHookAddressUnchecked` -
   testnet escape hatches, удалить или огородить chain-id guard'ом до mainnet
 - [ ] `LineaDATBot.sellEnabled = false` по умолчанию для mainnet (testnet оставлен `true`)
-- [ ] `LineaDATFactory.buyAndBurnLineaDAT` сейчас зовёт `swapExactTokensForTokens`,
+- [ ] `LineaDATFactory.buyAndBurnLDAT` сейчас зовёт `swapExactTokensForTokens`,
   но deployed UniversalRouter exposes `execute(...)` - переписать под v4 command flow
   (или unify через PoolManager unlock)
 - [ ] Integration tests на real v4 hook fee processing + processTokenTwap +
@@ -259,18 +259,18 @@ forge script script/DeployFactory.s.sol \
   --broadcast \
   --verify
 
-# 3. Deploy LineaDAT proxy via Factory
-forge script script/DeployLineaDAT.s.sol \
+# 3. Deploy LDAT proxy via Factory
+forge script script/DeployLDAT.s.sol \
   --rpc-url https://rpc.linea.build \
   --broadcast \
   --verify
 # this script:
-#   - calls factory.deployStrategy(LINEA, 150_000e18, hookAddress, "LineaDAT", "LINEADAT", 0.02e18, ownerKeycard)
-#   - sets feeAddressClaimedByOwner[LineaDAT_PROXY] = 0x6e0d01089976093680c881CcDcB79e0D046e2433
+#   - calls factory.deployStrategy(LINEA, 150_000e18, hookAddress, "LDAT", "LDAT", 0.02e18, ownerKeycard)
+#   - sets feeAddressClaimedByOwner[LDAT_PROXY] = 0x6e0d01089976093680c881CcDcB79e0D046e2433
 #   - sets twapIncrement = 0.05e18
 #   - sets twapDelayInBlocks = 4
 #   - initializes Uniswap v4 pool with calibrated sqrtPriceX96
-#   - seeds liquidity (1B LineaDAT single-sided)
+#   - seeds liquidity (1B LDAT single-sided)
 #   - sends LP-NFT to 0xdead
 
 # 4. Bot up
@@ -286,7 +286,7 @@ vercel --prod
 ### 4.4 Post-launch monitoring (первые 24 часа)
 
 - [ ] Discord webhook live, на каждый cycle / processTokenTwap / alert
-- [ ] Etherscan/Lineascan watcher на `LineaDAT_PROXY` events
+- [ ] Etherscan/Lineascan watcher на `LDAT_PROXY` events
 - [ ] Каждый час check `currentFees`, `ethToTwap`, `lastBuyBlock` через RPC
 - [ ] Bot A/B health через fly.io dashboard
 - [ ] Если что-то не так в первые 24 часа - у тебя есть owner privileges, fixes возможны через `updateHookAddress` или UUPS upgrade
@@ -300,10 +300,10 @@ vercel --prod
 
 ## Phase 5 - Расширение (опционально, после Phase 4 success)
 
-После того, как $LINEADAT работает стабильно ≥ 30 дней:
+После того, как $LDAT работает стабильно ≥ 30 дней:
 - Запуск второго токена `$XYZSTR` где underlying = $XYZ (другой токен на Linea), используя ту же factory
-- На втором токене fee split = 80% / 10% LineaDAT-burn / 10% creator (нормальный режим)
-- Каждый новый токен → новые покупки $LINEADAT через `buy-and-burn` block → больше дефляции LineaDAT
+- На втором токене fee split = 80% / 10% LDAT-burn / 10% creator (нормальный режим)
+- Каждый новый токен → новые покупки $LDAT через `buy-and-burn` block → больше дефляции LDAT
 - Это и есть «база для следующих токенов на Linea» из твоего изначального запроса
 
 ## Rollback / emergency procedures

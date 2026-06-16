@@ -9,7 +9,7 @@
 
 ## Что делает Phase 3
 
-Phase 3 - это live валидация LineaDAT + бота на публичном тестнете (Base Sepolia, ~7 дней). Цель:
+Phase 3 - это live валидация LDAT + бота на публичном тестнете (Base Sepolia, ~7 дней). Цель:
 
 1. Подтвердить, что LineaDATStrategy корректно работает в реальной L2-среде (block timing, gas, sequencer ordering)
 2. Подтвердить, что LineaDATBot успешно крутит buyTokens / sellTokens циклы под live keeper trigger'ом (cron-job.org / GitHub Actions)
@@ -122,7 +122,7 @@ forge verify-contract \
 Создать `.github/workflows/keeper.yml`:
 
 ```yaml
-name: LineaDAT Keeper
+name: LDAT Keeper
 on:
   schedule:
     - cron: '*/10 * * * *'  # каждые 10 минут
@@ -182,7 +182,7 @@ STRATEGY=0x... SEED_AMOUNT=0.05ether \
 После успешного Phase 3 → Phase 4 (Linea mainnet production):
 1. CREATE2 hook mining + full hook deploy через `Deploy.s.sol`
 2. Uniswap v4 pool initialization с calibrated `sqrtPriceX96`
-3. LP-NFT seed с single-sided liquidity (1B LineaDAT, [-887220, +175020])
+3. LP-NFT seed с single-sided liquidity (1B LDAT, [-887220, +175020])
 4. Transfer LP-NFT → `0x000…dEaD`
 5. Lineascan verification всех контрактов
 6. Покупка домена `on-chaindat.com` (already secured 2026-05-05), deploy frontend на Vercel

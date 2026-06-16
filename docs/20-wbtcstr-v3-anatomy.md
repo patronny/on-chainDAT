@@ -1,6 +1,6 @@
 # 20. WBTCSTR - Анатомия ERC20Strategy v3 (наш основной прототип)
 
-Глубокий разбор `wBTCStrategy` на Ethereum mainnet. Это **прямой прототип LineaDAT** - мы форкаем v3-сурсы с MIT-атрибуцией, переcalibrated под Linea. Все факты ниже подтверждены RPC-вызовами через `https://eth.drpc.org` и сырыми receipt'ами / call-trace'ами в [`research/raw-rpc-data/`](../research/raw-rpc-data/) (2026-05-01).
+Глубокий разбор `wBTCStrategy` на Ethereum mainnet. Это **прямой прототип LDAT** - мы форкаем v3-сурсы с MIT-атрибуцией, переcalibrated под Linea. Все факты ниже подтверждены RPC-вызовами через `https://eth.drpc.org` и сырыми receipt'ами / call-trace'ами в [`research/raw-rpc-data/`](../research/raw-rpc-data/) (2026-05-01).
 
 ## 1. Адреса контрактов
 
@@ -163,7 +163,7 @@ INFTStrategy(collection).addFees{value: depositAmount}();
 
 PNKSTR-burn механизм: factory получает ETH через `forceSafeTransferETH`, на её стороне есть свой роутинг ETH→PNKSTR через V4 → `0xdead`.
 
-**Для LineaDAT этот блок переименовываем** в LineaDAT-burn, с edge-case: пока `collection == LineaDAT_ADDRESS` - `lineaDATBurnAmount` redirected в `feeAddress` ⇒ эффективно **80/20** на самом $LINEADAT. Для будущих strategies - нормальный 80/10/10 split (см. [`50-lineadat-spec.md`](50-lineadat-spec.md)).
+**Для LDAT этот блок переименовываем** в LDAT-burn, с edge-case: пока `collection == LDAT_ADDRESS` - `lineaDATBurnAmount` redirected в `feeAddress` ⇒ эффективно **80/20** на самом $LDAT. Для будущих strategies - нормальный 80/10/10 split (см. [`50-lineadat-spec.md`](50-lineadat-spec.md)).
 
 ## 9. Конструктор хука v3
 
@@ -176,7 +176,7 @@ constructor(
 )
 ```
 
-В LineaDAT заменим параметр `_punkStrategy` на `_lineaDATAddress` - но смысл тот же (адрес токена, чьи проценты идут в buy-and-burn).
+В LDAT заменим параметр `_punkStrategy` на `_lineaDATAddress` - но смысл тот же (адрес токена, чьи проценты идут в buy-and-burn).
 
 ## 10. Flywheel: что реально происходит
 
@@ -317,7 +317,7 @@ TotalSupplyOverflow, TwapDelayNotMet, Unauthorized, UnauthorizedCallContext,
 UpgradeFailed
 ```
 
-В LineaDAT оставляем `ExactOutputNotAllowed`, `NotPoolManager`, `Reentrancy`, переименовываем NFT-related в `NotStrategy` / `NotStrategyFactoryOwner`.
+В LDAT оставляем `ExactOutputNotAllowed`, `NotPoolManager`, `Reentrancy`, переименовываем NFT-related в `NotStrategy` / `NotStrategyFactoryOwner`.
 
 ## 13. Verified исходники
 

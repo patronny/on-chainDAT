@@ -1,6 +1,6 @@
 # 30. Инциденты TokenWorks и кривые фиксы
 
-Полный реестр публично известных багов, эксплоитов и архитектурных дизайн-flaw'ов в экосистеме TokenStrategy. Все эти случаи учитываем **в исходном коде LineaDAT до деплоя**, а не как wrapper-ы поверх (как у TokenWorks).
+Полный реестр публично известных багов, эксплоитов и архитектурных дизайн-flaw'ов в экосистеме TokenStrategy. Все эти случаи учитываем **в исходном коде LDAT до деплоя**, а не как wrapper-ы поверх (как у TokenWorks).
 
 ## Дисклеймер по охвату
 
@@ -42,7 +42,7 @@ Community-аудитор `@0xQuit` (Yuga Labs VP of Blockchain) обнаружи
 - Старый контракт остался в торговле как сам ERC-20, но критичные функции в нём фактически больше не используются
 - Это и объясняет ремарку из docs.tokenstrategy.com: **«Trades are NOT enforced through the hook»** для PNKSTR
 
-### Урок для LineaDAT
+### Урок для LDAT
 
 🔴 **НЕ renounce ownership сразу.** Стартуем с non-renounced (ты выбрал этот вариант), сохраняем возможность патчить implementation через UUPS upgrade.
 
@@ -95,7 +95,7 @@ profit = availableFunds - marketPrice(bagSize) - gas
 
 **Сравнение режимов:**
 
-| Параметр | NFTStrategy gen-2 (slow-rug 20.09.2025) | WBTCSTR gen-3 | LineaDAT (наши параметры) |
+| Параметр | NFTStrategy gen-2 (slow-rug 20.09.2025) | WBTCSTR gen-3 | LDAT (наши параметры) |
 |---|---|---|---|
 | `buyIncrement` | низкий (~0.001-0.01 ETH/блок) | **0.1 ETH/блок** | **0.02 ETH/блок** |
 | Block time | 12 секунд (mainnet) | 12 секунд | **3 секунды (Linea)** |
@@ -108,9 +108,9 @@ profit = availableFunds - marketPrice(bagSize) - gas
 
 **WBTCSTR-фикс** - подняли `buyIncrement` до 0.1 ETH/блок. На рынке 0.0125 wBTC = 0.3 ETH ⇒ потолок догоняет рынок за 3 блока ≈ 36 секунд.
 
-**LineaDAT подход:** `buyIncrement = 0.02 ETH/блок` × Linea 3-сек блоки = **6.67 ETH/мин потенциального роста потолка**. На bagSize 0.236 ETH catch-up = **12 блоков ≈ 36 сек** (тот же эквивалент, что и WBTCSTR на mainnet).
+**LDAT подход:** `buyIncrement = 0.02 ETH/блок` × Linea 3-сек блоки = **6.67 ETH/мин потенциального роста потолка**. На bagSize 0.236 ETH catch-up = **12 блоков ≈ 36 сек** (тот же эквивалент, что и WBTCSTR на mainnet).
 
-### Уроки для LineaDAT
+### Уроки для LDAT
 
 🔴 **Bot для buy-target - обязательно с launch.** 2 бота (active + standby), capital 3 ETH суммарно (см. [`50-lineadat-spec.md`](50-lineadat-spec.md)).
 
@@ -141,9 +141,9 @@ profit = availableFunds - marketPrice(bagSize) - gas
 - Пауза остальных NFTStrategy токенов на «аудит»
 - В контракт-фикс не пошли (SquiggleStrategy renounced); strategy фактически списан как dead
 
-### Уроки для LineaDAT
+### Уроки для LDAT
 
-🟢 **Для LineaDAT этот баг неприменим напрямую** - underlying у нас ERC-20 (`$LINEA`), там нет projectId-внутри-contract проблемы.
+🟢 **Для LDAT этот баг неприменим напрямую** - underlying у нас ERC-20 (`$LINEA`), там нет projectId-внутри-contract проблемы.
 
 🔴 **Но принцип шире:** валидация underlying должна быть строгой. Проверяем `address(underlying) == LINEA_ADDRESS` immutable-константой при initialize и при каждой fee-обработке.
 
@@ -166,7 +166,7 @@ profit = availableFunds - marketPrice(bagSize) - gas
 
 Это **не привычный anti-snipe**: за 89 минут fee → 10%, и весь этот период любая покупка платит огромный fee, который мгновенно идёт в treasury. Это и привело к Инциденту 2.
 
-### Урок для LineaDAT
+### Урок для LDAT
 
 🟡 **Ты выбрал копию 99% → 10% за 89 минут** для траста. Это допустимо при условиях:
 - `buyIncrement = 0.02 ETH/блок` высокий ⇒ потолок быстро догоняет
@@ -190,15 +190,15 @@ PNKSTR деплоился до того, как TokenWorks ввели Uniswap v4
 
 С v2 (REKTSTR) и v3 (WBTCSTR) - все trade fees enforced через Uniswap v4 hook. Любой swap в их pool платит fee (через `_afterSwap`).
 
-### Урок для LineaDAT
+### Урок для LDAT
 
 🟢 **Уже встроено в v3 ⇒ копируем как есть.** Hook permissions = `beforeInitialize | afterAddLiquidity | afterSwap | afterSwapReturnDelta`.
 
-⚠️ **Но это работает только в нашем pool.** Если кто-то создаст shadow-pool LineaDAT/USDC на каком-то DEX - там fee не работает. Мы не можем этого предотвратить (open ERC-20), но можем не давать ликвидность таким shadow pools.
+⚠️ **Но это работает только в нашем pool.** Если кто-то создаст shadow-pool LDAT/USDC на каком-то DEX - там fee не работает. Мы не можем этого предотвратить (open ERC-20), но можем не давать ликвидность таким shadow pools.
 
 ## Сводная таблица
 
-| Инцидент | Дата | Токен | Класс | Импакт | Реальный фикс | Что делаем в LineaDAT |
+| Инцидент | Дата | Токен | Класс | Импакт | Реальный фикс | Что делаем в LDAT |
 |---|---|---|---|---|---|---|
 | 1 | 6-9 сент 2025 | PNKSTR | auth check / withdraw | $0 (whitehat) | Wrapper контракт поверх | Non-renounced owner + UUPS proxy → можем патчить |
 | 2 | 20 сент 2025 | 5 NFTStrategy | slow-rug дизайн | **$813K** в одного | Frontend + private bot | 2 наших бота с launch + высокий `buyIncrement` 0.02 ETH/блок |

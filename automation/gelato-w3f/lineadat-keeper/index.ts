@@ -1,5 +1,5 @@
 /**
- * LineaDAT Keeper - Gelato Web3 Function (W3F)
+ * LDAT Keeper - Gelato Web3 Function (W3F)
  *
  * Replaces the GitHub Actions keeper.yml cron with Gelato's reliable
  * decentralized keeper network. Gelato runs this function on schedule (we'll
@@ -29,7 +29,7 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
   const { multiChainProvider, userArgs, storage } = context;
 
   // Read userArgs (set on the Gelato dashboard when creating the task).
-  // Fallbacks point at the canonical Phase 3.5 LineaDAT atomic-launch deployment on Base Sepolia.
+  // Fallbacks point at the canonical Phase 3.5 LDAT atomic-launch deployment on Base Sepolia.
   const strategyAddr = (userArgs.strategy as string) ||
     "0x615937AE1eB71248DA407F39AcFea9288CF1784F";
   const botAddr = (userArgs.bot as string) ||

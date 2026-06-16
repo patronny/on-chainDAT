@@ -1,6 +1,6 @@
-# Ponder indexer for the LineaDAT contracts. Lives next to the keeper as a
+# Ponder indexer for the LDAT contracts. Lives next to the keeper as a
 # separate Fly app (independent scaling + restart cycles + memory).
-# NOTE: Fly app id `lineastr-indexer` kept across the LINEASTR -> LineaDAT brand
+# NOTE: Fly app id `lineastr-indexer` kept across the LINEASTR -> LDAT brand
 # cutover (Phase 3, 2026-05-05) to preserve the live GraphQL endpoint URL and
 # avoid pglite data migration. Rename to `lineadat-indexer` is deferred to the
 # Phase 4 mainnet (Linea) cutover.

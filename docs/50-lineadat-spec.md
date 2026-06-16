@@ -1,4 +1,4 @@
-# 50. LineaDAT - Финальная спецификация
+# 50. LDAT - Финальная спецификация
 
 Это **залоченная** спека. Все параметры одобрены пользователем (1 мая 2026). Любые изменения - через явный `git rm` + новая ревизия этого документа.
 
@@ -6,8 +6,8 @@
 
 | Поле | Значение |
 |---|---|
-| **Token name** | `LineaDAT` |
-| **Token symbol** | **`LINEADAT`** | (deployed symbol is all-caps; `name` stays `LineaDAT`)
+| **Token name** | `LDAT` |
+| **Token symbol** | **`LDAT`** | (deployed symbol is all-caps; `name` stays `LDAT`)
 | **Decimals** | 18 |
 | **Total supply** | 1 000 000 000 × 10¹⁸ |
 | **Underlying** | $LINEA `0x1789e0043623282D5DCc7F213d703C6D8BAfBB04` (canonical L2 token, 18 dec, не fee-on-transfer, не rebase) |
@@ -26,31 +26,31 @@
 | `STARTING_BUY_FEE` | **9 900** bps (99%) | копия v3 |
 | `DEFAULT_FEE` | **1 000** bps (10%) - buy after decay AND sell всегда | копия v3 |
 | Buy-fee decay rate | **−100 bps/мин** | копия v3, плато за 89 мин |
-| Fee split (technical) | **80% / 10% / 10%** = treasury / LineaDAT-burn / creator | копия v3, см. §3 |
-| Fee split (effective for $LINEADAT self-launch) | **80% / 20%** = treasury / creator | edge-case: LineaDAT-burn redirected в feeAddress пока collection == LineaDAT_ADDRESS |
+| Fee split (technical) | **80% / 10% / 10%** = treasury / LDAT-burn / creator | копия v3, см. §3 |
+| Fee split (effective for $LDAT self-launch) | **80% / 20%** = treasury / creator | edge-case: LDAT-burn redirected в feeAddress пока collection == LDAT_ADDRESS |
 
 ## 3. Fee split - точная логика
 
 Источник для модификации: [`research/tokenworks-hook/ERC20StrategyHook.sol:_processFees`](../research/tokenworks-hook/ERC20StrategyHook.sol).
 
-### Patch v3 → LineaDAT версия
+### Patch v3 → LDAT версия
 
 ```solidity
-// LineaDAT-version of _processFees:
+// LDAT-version of _processFees:
 function _processFees(address collection, uint256 feeAmount) internal {
     if (feeAmount == 0) return;
 
     uint256 depositAmount   = (feeAmount * 80) / 100;     // 80% всегда treasury
-    uint256 lineaDATAmount  = (feeAmount * 10) / 100;     // 10% LineaDAT-burn (renamed from PNKSTR)
+    uint256 lineaDATAmount  = (feeAmount * 10) / 100;     // 10% LDAT-burn (renamed from PNKSTR)
     uint256 ownerAmount     = feeAmount - depositAmount - lineaDATAmount;  // 10% creator
 
-    // === EDGE CASE: для самого LineaDAT-токена 10% LineaDAT-burn redirected в feeAddress ===
-    if (collection == LineaDAT_ADDRESS) {
-        // На самом $LINEADAT жгать самого себя через factory некуда
+    // === EDGE CASE: для самого LDAT-токена 10% LDAT-burn redirected в feeAddress ===
+    if (collection == LDAT_ADDRESS) {
+        // На самом $LDAT жгать самого себя через factory некуда
         // → отправляем в feeAddress (creator), эффективный split 80/20
         SafeTransferLib.forceSafeTransferETH(feeAddress, lineaDATAmount);
     } else {
-        // Для будущих strategies на Linea: 10% → factory → swap ETH→LineaDAT → 0xdead
+        // Для будущих strategies на Linea: 10% → factory → swap ETH→LDAT → 0xdead
         SafeTransferLib.forceSafeTransferETH(address(strategyFactory), lineaDATAmount);
     }
 
@@ -68,23 +68,23 @@ function _processFees(address collection, uint256 feeAmount) internal {
 
 ### Что нужно установить при initialize
 
-`feeAddressClaimedByOwner[LineaDAT_PROXY] = 0x6e0d01089976093680c881CcDcB79e0D046e2433` (наш feeAddress).
+`feeAddressClaimedByOwner[LDAT_PROXY] = 0x6e0d01089976093680c881CcDcB79e0D046e2433` (наш feeAddress).
 
 ⚠️ **Если не установить** - ownerAmount сольётся в treasury (как у WBTCSTR), creator получит 0 от sell-fees. Это **обязательный шаг** в deployment runbook.
 
 ### Эффективные схемы
 
-**Для $LINEADAT (self-launch):**
+**Для $LDAT (self-launch):**
 - 80% treasury (через `addFees`)
-- 10% creator (LineaDAT-burn redirect)
+- 10% creator (LDAT-burn redirect)
 - 10% creator (`feeAddressClaimedByOwner` → feeAddress)
 - = **80% treasury / 20% creator**
 
 **Для будущего токена `$XYZSTR` (например $ETHSTR на Linea):**
 - 80% treasury (накапливает ETH под выкуп ETH-bag - ну, фигурально, под underlying)
-- 10% LineaDAT-burn (factory → ETH→LineaDAT swap → dead)
+- 10% LDAT-burn (factory → ETH→LDAT swap → dead)
 - 10% creator
-- = **80% treasury / 10% LineaDAT-burn / 10% creator**
+- = **80% treasury / 10% LDAT-burn / 10% creator**
 
 Это **общий код**, поведение зависит от того, какой токен запущен. Это и есть «база для следующих токенов на Linea».
 
@@ -93,20 +93,20 @@ function _processFees(address collection, uint256 feeAmount) internal {
 | Параметр | Значение |
 |---|---|
 | PoolKey.currency0 | `0x0000000000000000000000000000000000000000` (native ETH) |
-| PoolKey.currency1 | `LineaDAT_PROXY_ADDRESS` (TBD после deploy) |
+| PoolKey.currency1 | `LDAT_PROXY_ADDRESS` (TBD после deploy) |
 | PoolKey.fee | `0x800000` (DYNAMIC_FEE_FLAG) |
 | PoolKey.tickSpacing | 60 |
-| PoolKey.hooks | `LineaDAT_HOOK_ADDRESS` (TBD после CREATE2 mining) |
-| Initial sqrtPriceX96 | калибруется под `1 ETH ≈ 40 000 000 LineaDAT` (currentTick ≈ +175 052 при 18-decimal обоих сторон) |
-| Initial price 1 LineaDAT | ≈ $0.0001 (при ETH=$2 317) |
+| PoolKey.hooks | `LDAT_HOOK_ADDRESS` (TBD после CREATE2 mining) |
+| Initial sqrtPriceX96 | калибруется под `1 ETH ≈ 40 000 000 LDAT` (currentTick ≈ +175 052 при 18-decimal обоих сторон) |
+| Initial price 1 LDAT | ≈ $0.0001 (при ETH=$2 317) |
 | Initial FDV | ≈ $100 000 |
 | ModifyLiquidity range | tickLower = −887 220, tickUpper ≈ +175 020 (32 тика ниже initial tick для single-sided lock) |
-| Liquidity reserves | 0 ETH + ~1 000 000 000 LineaDAT (минус ~1k wei на rounding) |
+| Liquidity reserves | 0 ETH + ~1 000 000 000 LDAT (минус ~1k wei на rounding) |
 | LP-NFT (PositionManager) | tokenId TBD → minted to `0x000…dEaD` сразу |
 
-**Точный sqrtPriceX96** при ETH ≈ $2 317 на момент launch будет пересчитан скриптом deploy: цель - initial price `1 LineaDAT = (target_FDV $100k) / 1B / ETH_price = $0.0001 / $2 317 = 4.3 × 10⁻⁸ ETH = 4.3 × 10¹⁰ wei = 1 LineaDAT / 23 165 248 ETH-units`.
+**Точный sqrtPriceX96** при ETH ≈ $2 317 на момент launch будет пересчитан скриптом deploy: цель - initial price `1 LDAT = (target_FDV $100k) / 1B / ETH_price = $0.0001 / $2 317 = 4.3 × 10⁻⁸ ETH = 4.3 × 10¹⁰ wei = 1 LDAT / 23 165 248 ETH-units`.
 
-`sqrtPriceX96 = sqrt(token1/token0) × 2⁹⁶`. Если `token1/token0 = 23 165 248` (LineaDAT per ETH), то `sqrtP = 4 813.03`, `sqrtPriceX96 = 4 813.03 × 2⁹⁶ ≈ 3.81 × 10²⁹`. Сценарий пересчитаем точно в момент deploy под текущий ETH price.
+`sqrtPriceX96 = sqrt(token1/token0) × 2⁹⁶`. Если `token1/token0 = 23 165 248` (LDAT per ETH), то `sqrtP = 4 813.03`, `sqrtPriceX96 = 4 813.03 × 2⁹⁶ ≈ 3.81 × 10²⁹`. Сценарий пересчитаем точно в момент deploy под текущий ETH price.
 
 ## 5. Bot architecture
 
@@ -133,8 +133,8 @@ function _processFees(address collection, uint256 feeAmount) internal {
 
 ```typescript
 async function tick() {
-  const fees     = await read('currentFees', LineaDAT_PROXY);
-  const maxBuy   = await read('getMaxPriceForBuy', LineaDAT_PROXY);
+  const fees     = await read('currentFees', LDAT_PROXY);
+  const maxBuy   = await read('getMaxPriceForBuy', LDAT_PROXY);
   const avail    = min(fees, maxBuy);
 
   // Quote $LINEA price через aggregator (Lynex / Etherex / KyberSwap / Odos)
@@ -145,8 +145,8 @@ async function tick() {
   if (avail >= breakeven * 1.10) {
     // Atomic-ish (multicall если поддерживается, иначе 2 raw txs):
     await buy_LINEA_via_aggregator(BAG_SIZE_LINEA);
-    await approve(LINEA, LineaDAT_PROXY, BAG_SIZE_LINEA);
-    await call('buyTokens()', LineaDAT_PROXY);
+    await approve(LINEA, LDAT_PROXY, BAG_SIZE_LINEA);
+    await call('buyTokens()', LDAT_PROXY);
     log(`+cycle profit ≈ ${avail - linePrice} ETH`);
   }
 }
@@ -166,7 +166,7 @@ setInterval(tick, BLOCK_TIME_MS);  // 3000ms
 | **Стек** | Next.js 15 (App Router) + wagmi v2 + RainbowKit + viem + TailwindCSS |
 | **Хостинг** | Vercel (free tier) |
 | **Domain** | `on-chaindat.com` (already secured 2026-05-05) (купишь за неделю до launch на GoDaddy) |
-| **Структура** | одностраничник: hero (price + supply + burned + treasury holdings) → swap card (ETH↔LineaDAT через UniversalRouter V2_1_1) → **Actions card** (3 кнопки, см. §6.1) → recent trades feed → footer |
+| **Структура** | одностраничник: hero (price + supply + burned + treasury holdings) → swap card (ETH↔LDAT через UniversalRouter V2_1_1) → **Actions card** (3 кнопки, см. §6.1) → recent trades feed → footer |
 | **Дизайн** | 3 варианта на выбор: (a) Linea-style blue, (b) dark/neon, (c) academic minimalism. Финальный выбор перед mainnet deploy |
 
 ### 6.1 Actions card (точная копия паттерна tokenstrategy.com + одна наша добавка)
@@ -187,37 +187,37 @@ setInterval(tick, BLOCK_TIME_MS);  // 3000ms
 │     (показывает: «save $X vs market price»)         │
 │     disabled if no profitable bag available         │
 ├─────────────────────────────────────────────────────┤
-│ [3] Burn LineaDAT (+0.5% reward)                    │
+│ [3] Burn LDAT (+0.5% reward)                    │
 │     если ethToTwap = 0 → disabled «No ETH to Burn»  │
 │     иначе active: «Burn min(ethToTwap, 0.05) ETH»  │
 └─────────────────────────────────────────────────────┘
 ```
 
 **Кнопка 1 - Sell $LINEA → Strategy.** Эквивалент `Approve $WBTC + buyTokens()` у TokenWorks (см. их UI на скрине пользователя). Двухшаговый flow:
-- Step 1 (`approve`): `LINEA.approve(LineaDAT_PROXY, 150_000e18)` - разово.
-- Step 2 (`buyTokens`): вызов `LineaDAT_PROXY.buyTokens()` - контракт вытягивает 150k LINEA, платит `availableFunds()` ETH юзеру.
+- Step 1 (`approve`): `LINEA.approve(LDAT_PROXY, 150_000e18)` - разово.
+- Step 2 (`buyTokens`): вызов `LDAT_PROXY.buyTokens()` - контракт вытягивает 150k LINEA, платит `availableFunds()` ETH юзеру.
 - UI live-читает: `availableFunds` из proxy, `marketPrice(150 000 LINEA)` через GeckoTerminal API + Etherex/Lynex quote, выводит **premium** = разницу. Если premium ≤ 0 - кнопка показывает «Not profitable yet - wait for fees to accumulate» (не disabled, юзер может всё равно нажать).
 
 **Кнопка 2 - Buy bag at 1.2× from Strategy.** Эквивалент `sellTokens(bagId)` - это **наша добавка** (у TokenWorks этого нет в виде отдельной кнопки, у них сделано через список bag'ов). UI:
 - Читает `lastBagId`, потом для каждого `bagId in [1..lastBagId]` вызывает `onSale[bagId]` (read-only).
 - Фильтрует non-zero (= active bag'и в листинге).
 - Считает «у какого `listPrice / 150 000 LINEA` ниже текущей рыночной цены $LINEA» → выводит топ-1.
-- Кнопка вызывает `LineaDAT_PROXY.sellTokens{value: listPrice}(bagId)` - контракт отдаёт 150k LINEA, юзер платит ровно `listPrice`.
+- Кнопка вызывает `LDAT_PROXY.sellTokens{value: listPrice}(bagId)` - контракт отдаёт 150k LINEA, юзер платит ровно `listPrice`.
 - Если все bag'и невыгодны - кнопка disabled с tooltip «No profitable bag - market price is below Strategy listings».
 - Это **frontend-эквивалент `0xca60e8f0`** (sell-side bag-buyer на WBTCSTR, 77% всех `sellTokens()`). Привлекает органических покупателей $LINEA через стратегию.
 
-**Кнопка 3 - Burn LineaDAT (+0.5% reward).** Точная копия паттерна WBTCSTR. UI:
+**Кнопка 3 - Burn LDAT (+0.5% reward).** Точная копия паттерна WBTCSTR. UI:
 - Live-читает `ethToTwap` из proxy.
 - Disabled если `ethToTwap == 0n` с подписью «No ETH to Burn - wait for next bag-sale».
-- Active иначе: «Burn `min(ethToTwap, 0.05) ETH` → buys & burns ≈ X LineaDAT. Reward: `0.5% × min(ethToTwap, 0.05)` ETH ≈ $0.5».
-- Вызывает `LineaDAT_PROXY.processTokenTwap()`.
+- Active иначе: «Burn `min(ethToTwap, 0.05) ETH` → buys & burns ≈ X LDAT. Reward: `0.5% × min(ethToTwap, 0.05)` ETH ≈ $0.5».
+- Вызывает `LDAT_PROXY.processTokenTwap()`.
 
 ### 6.2 Live data feed
 
 Источники для всех чисел в UI:
 - On-chain (через wagmi/viem, частота: на каждый block через `watchBlocks`):
   - `currentFees`, `ethToTwap`, `lastBuyBlock`, `lastBagId`, `availableFunds()`, `getMaxPriceForBuy()` - proxy slots
-  - `LINEA.balanceOf(LineaDAT_PROXY)` - treasury inventory
+  - `LINEA.balanceOf(LDAT_PROXY)` - treasury inventory
   - `totalSupply()` − `balanceOf(0xdead)` - circulating supply (показатель «сколько уже сожжено»)
   - `onSale[bagId]` для всех active bag'ов
 - Off-chain (REST polling каждые 30 секунд):
@@ -234,7 +234,7 @@ setInterval(tick, BLOCK_TIME_MS);  // 3000ms
 | **Admin functions, доступные owner** | `updateHookAddress`, `setDistributor`, `_authorizeUpgrade` (UUPS), `setPriceMultiplier` (через factory), `updateBagSize` (только пока `lastBagId == 0`), `setTwapIncrement` (планируется добавить как `onlyOwner` setter поверх v3) |
 | **Pre-launch checklist owner-кошелька** | (1) ≥ 0.05 ETH на Linea для газа deploy + initialize + post-init настроек; (2) ключ хранится только на Keycard, **никогда** не загружается на хост-серверы; (3) для каждой admin-tx - ручная подпись через Keycard ↔ MetaMask flow |
 
-## 8. Что нужно изменить в v3-сурсах для LineaDAT
+## 8. Что нужно изменить в v3-сурсах для LDAT
 
 Список конкретных правок относительно [`research/tokenworks-sources/`](../research/tokenworks-sources/) и [`research/tokenworks-hook/`](../research/tokenworks-hook/):
 
@@ -259,9 +259,9 @@ setInterval(tick, BLOCK_TIME_MS);  // 3000ms
 - [ ] Переименовать event `Trade.nftStrategy` → `strategy`
 
 ### Factory (новый, наш - TokenWorks factory не используем)
-- [ ] Свой минимальный factory, deploy LineaDAT proxy + hook + initialize pool + seed liquidity + send LP-NFT в dead. Инспирация - TokenWorks Factory `0x9f834e16…000a0a`, но мы не клонируем launchpad-логику (нам не нужен `ownerLaunchStrategy` permissionless flow).
-- [ ] Factory держит `LineaDAT_ADDRESS` immutable - после первого deploy он зафиксирован
-- [ ] Factory имеет логику для buy-and-burn LineaDAT (получает ETH из hook через `forceSafeTransferETH`, свопает ETH→LineaDAT через UniversalRouter V2_1_1, шлёт на dead) - это используется только на будущих strategies, не на самом LineaDAT
+- [ ] Свой минимальный factory, deploy LDAT proxy + hook + initialize pool + seed liquidity + send LP-NFT в dead. Инспирация - TokenWorks Factory `0x9f834e16…000a0a`, но мы не клонируем launchpad-логику (нам не нужен `ownerLaunchStrategy` permissionless flow).
+- [ ] Factory держит `LDAT_ADDRESS` immutable - после первого deploy он зафиксирован
+- [ ] Factory имеет логику для buy-and-burn LDAT (получает ETH из hook через `forceSafeTransferETH`, свопает ETH→LDAT через UniversalRouter V2_1_1, шлёт на dead) - это используется только на будущих strategies, не на самом LDAT
 
 ## 9. Параметры для `initialize()`
 
@@ -271,8 +271,8 @@ LineaDATStrategy proxy = factory.deployStrategy({
     underlying:        0x1789e0043623282D5DCc7F213d703C6D8BAfBB04,  // $LINEA
     bagSize:           150_000 * 1e18,                              // 150 000 LINEA
     hook:              minedHookAddress,                            // CREATE2-mined
-    tokenName:         "LineaDAT",
-    tokenSymbol:       "LINEADAT",
+    tokenName:         "LDAT",
+    tokenSymbol:       "LDAT",
     buyIncrement:      0.005 ether,                                 // 5 × 10¹⁵ wei (immutable)
     owner:             ownerKeycardEOA
 });
@@ -280,7 +280,7 @@ LineaDATStrategy proxy = factory.deployStrategy({
 // После initialize:
 hook.adminUpdateFeeAddress(
     address(proxy),
-    0x6e0d01089976093680c881CcDcB79e0D046e2433  // feeAddressClaimedByOwner[LineaDAT] = creator
+    0x6e0d01089976093680c881CcDcB79e0D046e2433  // feeAddressClaimedByOwner[LDAT] = creator
 );
 
 proxy.setPriceMultiplier(1200);   // 1.2× markup (default уже 1200, но фиксируем явно)
@@ -313,7 +313,7 @@ proxy.setTwapDelayInBlocks(4);    // 12 секунд на Linea
 
 ### WBTCSTR (108 дней с launch, наш основной прототип)
 
-| Метрика | WBTCSTR | LineaDAT target (90 дней) | Обоснование |
+| Метрика | WBTCSTR | LDAT target (90 дней) | Обоснование |
 |---|---|---|---|
 | Cycles `buyTokens` (bag-creates) | 34 | **≥ 45** | наш bot активнее с launch + Linea быстрее (3с vs 12с блоки) |
 | Cycles `sellTokens` (bag-sales) | 22 (= 65% от buy) | **≥ 35** (= 78%) | наш UI с кнопкой «Buy bag at 1.2×» делает sell-flow видимым органическим юзерам |
@@ -341,10 +341,10 @@ proxy.setTwapDelayInBlocks(4);    // 12 секунд на Linea
 
 ### Что это значит финансово
 
-При параметрах WBTCSTR-baseline на дистанции 90 дней мы прогнозируем для LineaDAT (после моих корректировок):
+При параметрах WBTCSTR-baseline на дистанции 90 дней мы прогнозируем для LDAT (после моих корректировок):
 
 - **Treasury growth:** ≥ 1.5 ETH realized profit + 8 × bagSize ≈ 1.2M LINEA в inventory ⇒ **~$2 800 USD в treasury**
-- **Burn cumulative:** ≥ 30 × 0.04 ETH × 2.5M LineaDAT/ETH ≈ **3M LineaDAT сожжено** = 0.3% supply
+- **Burn cumulative:** ≥ 30 × 0.04 ETH × 2.5M LDAT/ETH ≈ **3M LDAT сожжено** = 0.3% supply
 - **Bot ROI (наш):** +1.5 ETH / 3 ETH capital = **+50%** за 90 дней - это **достаточно** чтобы покрыть hosting + газ и ещё иметь margin
 
-⚠️ **Предупреждение:** эти цифры основаны на **WBTCSTR baseline**, который сам по себе - относительно мёртвый рынок (0.31 цикла/день). Если LineaDAT получит **больше** интереса (волна meme-buyers, листинг на CEX, etc.) - числа вырастут на ×3-10. Если **меньше** (как REKTSTR, 3 цикла за 5 месяцев) - flywheel будет почти стоять.
+⚠️ **Предупреждение:** эти цифры основаны на **WBTCSTR baseline**, который сам по себе - относительно мёртвый рынок (0.31 цикла/день). Если LDAT получит **больше** интереса (волна meme-buyers, листинг на CEX, etc.) - числа вырастут на ×3-10. Если **меньше** (как REKTSTR, 3 цикла за 5 месяцев) - flywheel будет почти стоять.

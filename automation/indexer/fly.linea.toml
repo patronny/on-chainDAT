@@ -1,11 +1,11 @@
-# Ponder indexer for the LineaDAT contracts on LINEA MAINNET (chainId 59144).
+# Ponder indexer for the LDAT contracts on LINEA MAINNET (chainId 59144).
 # Separate Fly app `lineadat-indexer` so the live testnet `lineastr-indexer`
 # (Base Sepolia, fly.toml) stays untouched. Deploy with:
 #   fly deploy -c fly.linea.toml --app lineadat-indexer
 #
 # Chain-specific addresses + RPC are NOT here - they go via `fly secrets set`
 # (PONDER_RPC_URL_59144, STRATEGY_ADDRESS, HOOK_ADDRESS, START_BLOCK) so the SAME
-# file is reused for the real LINEADAT cutover (just change the secrets + redeploy).
+# file is reused for the real LDAT cutover (just change the secrets + redeploy).
 
 app = 'lineadat-indexer'
 primary_region = 'fra'
@@ -19,7 +19,7 @@ primary_region = 'fra'
 [env]
   CHAIN_ID = '59144'
   DATABASE_SCHEMA = 'public'
-  # Fresh DB dir for the real LINEADAT app - the old /data/pglite holds the TestDAT
+  # Fresh DB dir for the real LDAT app - the old /data/pglite holds the TestDAT
   # rehearsal Ponder app and Ponder 0.16 refuses to reuse another app's schema.
   PONDER_DATABASE_DIRECTORY = '/data/pglite-lineadat'
   # PONDER_RPC_URL_59144 (Infura, embeds API key) - via `fly secrets set`.

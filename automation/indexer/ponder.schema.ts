@@ -26,9 +26,9 @@ export const bag = onchainTable(
 );
 
 /**
- * Swap - one row per Trade event from the LineaDAT hook. Captures ALL swaps on
+ * Swap - one row per Trade event from the LDAT hook. Captures ALL swaps on
  * the hooked v4 pool: user-driven buys/sells AND the keeper's processTokenTwap
- * buy-and-burn (the burn swaps ETH->LINEADAT on the SAME hooked pool, so it also
+ * buy-and-burn (the burn swaps ETH->LDAT on the SAME hooked pool, so it also
  * fires afterSwap -> Trade, and is recorded here as a buy by the keeper EOA).
  * This is intentional: a TWAP burn is real on-chain volume and is shown on the
  * chart regardless of who triggered it, so these rows are NOT filtered out.
@@ -43,7 +43,7 @@ export const swap = onchainTable(
     trader: t.hex().notNull(),         // tx.from at the time of the swap
     side: t.text().notNull(),          // "buy" | "sell"
     ethAmount: t.bigint().notNull(),   // absolute value, wei
-    tokenAmount: t.bigint().notNull(), // absolute value, wei (LineaDAT has 18 decimals)
+    tokenAmount: t.bigint().notNull(), // absolute value, wei (LDAT has 18 decimals)
     sqrtPriceX96: t.bigint().notNull(),
   }),
   (table) => ({
