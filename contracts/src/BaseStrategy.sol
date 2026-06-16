@@ -216,6 +216,22 @@ abstract contract BaseStrategy is
         emit ContractUpgraded(address(this), newImplementation, VERSION());
     }
 
+    /// @notice Updates the token name and symbol in a single call
+    /// @dev Only callable by the owner. updateName/updateSymbol are factory-gated and the
+    ///      factory exposes no passthrough, so a rebrand needs this owner path; a single
+    ///      call lets upgradeToAndCall rebrand atomically in one transaction.
+    /// @param _tokenName New name for the token
+    /// @param _tokenSymbol New symbol for the token
+    function updateNameAndSymbol(
+        string calldata _tokenName,
+        string calldata _tokenSymbol
+    ) external onlyOwner {
+        require(bytes(_tokenName).length > 0, "Empty name");
+        require(bytes(_tokenSymbol).length > 0, "Empty symbol");
+        tokenName = _tokenName;
+        tokenSymbol = _tokenSymbol;
+    }
+
     /// @notice Updates the hook address
     /// @dev Can only be called by the owner
     /// @param _hookAddress New hook address

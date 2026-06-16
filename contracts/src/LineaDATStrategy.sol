@@ -147,7 +147,7 @@ contract LineaDATStrategy is BaseStrategy {
 
     /// @dev this must be incremented whenever there is any change in BaseStrategy or this strategy
     function VERSION() public pure override returns (uint256) {
-        return 3;
+        return 4;
     }
 
     /// @notice Owner-only escape hatch to drain LineaDAT tokens from the factory address.

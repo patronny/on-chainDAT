@@ -12,8 +12,8 @@ contract StrategyTest is BaseTest {
     /*                INITIAL STATE INVARIANTS              */
     /* ™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™™ */
 
-    function test_initialState_versionIs3() public view {
-        assertEq(strategy.VERSION(), 3, "VERSION should be 3 (forked v3)");
+    function test_initialState_versionIs4() public view {
+        assertEq(strategy.VERSION(), 4, "VERSION should be 4 (owner rename added)");
     }
 
     function test_initialState_totalSupplyIsBillion() public view {
