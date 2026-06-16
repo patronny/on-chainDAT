@@ -3,12 +3,12 @@
 import { useStrategyStats } from "@/hooks/useStrategyStats";
 import { useEthPrice } from "@/hooks/useEthPrice";
 import { formatTokens } from "@/lib/utils";
-import { LineaDatSquareIcon, EthIcon } from "./icons/token-icons";
+import { LdatIcon, EthIcon } from "./icons/token-icons";
 
 /**
- * Live composition of the $LINEADAT / ETH Uniswap v4 pool.
+ * Live composition of the $LDAT / ETH Uniswap v4 pool.
  *
- * LINEADAT side = exact on-chain balanceOf(PoolManager) from the snapshot.
+ * LDAT side = exact on-chain balanceOf(PoolManager) from the snapshot.
  * ETH side cannot be read the same way (the v4 PoolManager singleton holds
  * native ETH for ALL pools on the chain), so it is derived from the pool's
  * single permanently-locked seeder position (Deploy.s.sol): range
@@ -16,7 +16,7 @@ import { LineaDatSquareIcon, EthIcon } from "./icons/token-icons";
  * L = TOTAL_SUPPLY * 2^96 / (sqrtPb - sqrtPa). Standard CL math then gives
  * amount0(ETH) = L * (sqrtPb - sqrtP) * 2^96 / (sqrtP * sqrtPb).
  * Float precision is fine for display. Assumes no third-party LP positions
- * (LINEADAT is non-transferable, so nobody else can supply the token side).
+ * (LDAT is non-transferable, so nobody else can supply the token side).
  */
 const Q96 = 2 ** 96;
 const SQRT_PA = Math.sqrt(Math.pow(1.0001, -887220)) * Q96;
@@ -57,7 +57,7 @@ export function PoolLiquidityCard() {
     <div className="p-4 sm:p-5 space-y-3">
       <div className="flex items-center justify-between text-sm">
         <span className="flex items-center gap-2 text-muted-foreground">
-          <LineaDatSquareIcon className="w-5 h-5 flex-shrink-0" /> $LINEADAT
+          <LdatIcon className="w-5 h-5 flex-shrink-0" /> $LDAT
         </span>
         <span className="font-mono tabular">{loading ? "-" : formatTokens(poolTokens)}</span>
       </div>

@@ -10,7 +10,7 @@ function formatPair(n: number): string {
 /**
  * Countdown to scheduled trading open.
  *
- * Reads `deploymentTime[strategy]` from the LineaDAT hook. That timestamp is the moment
+ * Reads `deploymentTime[strategy]` from the LDAT hook. That timestamp is the moment
  * the buy-fee decay clock starts AND the moment swaps stop reverting with NotYetLaunched.
  *
  * Renders a 4-cell DD : HH : MM : SS grid in cyberpunk neon. Once the launch passes,

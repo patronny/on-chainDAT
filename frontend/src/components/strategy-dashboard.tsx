@@ -15,7 +15,7 @@ import { UNDERLYING_SYMBOL } from "@/lib/wagmi";
 
 /**
  * Live summary line under the Holdings card title:
- *   "LineaDAT is holding 450,000 tLINEA bought for 0.0742 ETH, listed for 0.0890 ETH"
+ *   "LDAT is holding 450,000 tLINEA bought for 0.0742 ETH, listed for 0.0890 ETH"
  * Mirrors the tokenstrategy.com header pattern. Falls back to the original
  * descriptive blurb while the totals are still loading.
  */
@@ -26,7 +26,7 @@ function HoldingsSubtitle() {
   }
   return (
     <span>
-      LineaDAT is holding{" "}
+      LDAT is holding{" "}
       <span className="text-foreground font-semibold">{formatTokens(totalTokens)} {UNDERLYING_SYMBOL}</span>{" "}
       bought for{" "}
       <span className="text-foreground font-semibold">{formatEth(totalPaid)} ETH</span>, listed for{" "}
@@ -39,7 +39,7 @@ function HoldingsSubtitle() {
 
 /**
  * Live summary line under the Sales card title:
- *   "LineaDAT sold 450,000 tLINEA for 0.089 ETH, realizing +0.015 ETH profit"
+ *   "LDAT sold 450,000 tLINEA for 0.089 ETH, realizing +0.015 ETH profit"
  * Profit number rendered with a neon glow (green positive, red negative) to
  * mirror the tokenstrategy.com header. Falls back to the descriptive blurb
  * while no bags have been redeemed yet.
@@ -57,7 +57,7 @@ function SalesSubtitle() {
   }`;
   return (
     <span>
-      LineaDAT sold{" "}
+      LDAT sold{" "}
       <span className="text-foreground font-semibold">{formatTokens(totalTokens)} {UNDERLYING_SYMBOL}</span>{" "}
       for{" "}
       <span className="text-foreground font-semibold">{formatEth(totalSold)} ETH</span>
@@ -81,7 +81,7 @@ function SalesSubtitle() {
 const leftSections: DraggableSection[] = [
   {
     id: "chart",
-    title: "$LINEADAT Chart",
+    title: "$LDAT Chart",
     subtitle: <ChartSubtitle />,
     render: () => <ChartOrCountdown />,
   },
@@ -100,7 +100,7 @@ const leftSections: DraggableSection[] = [
   {
     id: "swaps",
     title: "Last swaps",
-    subtitle: "Most recent ETH ↔ LINEADAT swaps from the live v4 pool.",
+    subtitle: "Most recent ETH ↔ LDAT swaps from the live v4 pool.",
     render: () => <PaginatedSwapsTable />,
   },
 ];
@@ -111,7 +111,7 @@ const rightSections: DraggableSection[] = [
   {
     id: "pool-liquidity",
     title: "Liquidity Pool",
-    subtitle: "Live $LINEADAT / $ETH Uniswap v4 pool.",
+    subtitle: "Live $LDAT / $ETH Uniswap v4 pool.",
     render: () => <PoolLiquidityCard />,
   },
   { id: "bot-intent", title: <BotIntentTitle />, render: () => <BotIntentCard /> },

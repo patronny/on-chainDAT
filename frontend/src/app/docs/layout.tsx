@@ -3,9 +3,9 @@ import { headers } from "next/headers";
 import { DocsShell } from "@/components/docs-shell";
 
 export const metadata: Metadata = {
-  title: { default: "LineaDAT Docs", template: "%s - LineaDAT Docs" },
+  title: { default: "LDAT Docs", template: "%s - LDAT Docs" },
   description:
-    "Technical and operational documentation for LineaDAT - the perpetual, automated digital asset treasury (DAT) on Linea L2.",
+    "Technical and operational documentation for LDAT - the perpetual, automated digital asset treasury (DAT) on Linea L2.",
 };
 
 export default async function DocsLayout({

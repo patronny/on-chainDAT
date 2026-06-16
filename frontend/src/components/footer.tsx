@@ -62,7 +62,7 @@ export function Footer() {
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><a href="https://docs.on-chaindat.com" target="_blank" rel="noopener noreferrer" className="hover:text-foreground">Docs</a></li>
               <li><Link href="/status" className="hover:text-foreground">Status</Link></li>
-              <li><a href="https://github.com/patronny/LineaDAT" target="_blank" rel="noopener noreferrer" className="hover:text-foreground">GitHub</a></li>
+              <li><a href="https://github.com/patronny/on-chainDAT" target="_blank" rel="noopener noreferrer" className="hover:text-foreground">GitHub</a></li>
               <li><a href="https://t.me/onchainDAT" target="_blank" rel="noopener noreferrer" className="hover:text-foreground">Telegram</a></li>
               <li><Link href="/contacts" className="hover:text-foreground">Contacts</Link></li>
               <li><Link href="/terms" className="hover:text-foreground">Terms of Service</Link></li>
@@ -89,7 +89,7 @@ export function Footer() {
         </div>
         <div className="mt-8 pt-6 border-t border-border text-xs text-muted-foreground text-center space-y-2">
           <div>© 2026 on-chainDAT. Forked from TokenWorks ERC20Strategy v3 (MIT). Open source.</div>
-          <div>LINEADAT is a community project and is not affiliated with, endorsed by, or sponsored by Linea or ConsenSys.</div>
+          <div>LDAT is a community project and is not affiliated with, endorsed by, or sponsored by Linea or ConsenSys.</div>
         </div>
       </div>
     </footer>

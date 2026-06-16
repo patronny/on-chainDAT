@@ -1,5 +1,5 @@
 /**
- * LineaDAT hook ABI - the `Trade` event (read by the trades table) plus `calculateFee` /
+ * LDAT hook ABI - the `Trade` event (read by the trades table) plus `calculateFee` /
  * `deploymentTime` views. Swaps go through the standard Universal Router (see lib/v4-swap.ts);
  * there is no custom swapper ABI anymore.
  */

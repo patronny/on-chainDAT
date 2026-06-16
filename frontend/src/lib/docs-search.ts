@@ -23,11 +23,11 @@ export const docsSearch: DocSearchEntry[] = [
     keywords: ["overview", "intro", "introduction", "start"],
   },
   {
-    title: "LINEADAT",
-    href: "/docs/lineadat",
+    title: "LDAT",
+    href: "/docs/ldat",
     group: "Docs",
     summary: "",
-    keywords: ["lineadat", "anchor", "linea"],
+    keywords: ["ldat", "anchor", "linea"],
   },
   {
     title: "Tokenomics",

@@ -9,7 +9,7 @@ import { useStrategyStats } from "@/hooks/useStrategyStats";
 import { useEthPrice } from "@/hooks/useEthPrice";
 import { useHoldingsTotals } from "./holdings-table";
 import { usePoolEthSide } from "./pool-liquidity-card";
-import { LineaDatSquareIcon } from "./icons/token-icons";
+import { LdatIcon } from "./icons/token-icons";
 import { TypeBadge, ScopeBadge } from "./dat-badges";
 
 type Network = "all" | "linea" | "base" | "hyperevm";
@@ -28,7 +28,7 @@ type DatEntry = {
   scope: Exclude<Scope, "all">;
   /**
    * Sort metrics, descending: fdv/vol24h/burn/treasury in USD terms, lp in the
-   * pool's base asset (ETH for LINEADAT). Placeholder zeros until DAT #2 exists
+   * pool's base asset (ETH for LDAT). Placeholder zeros until DAT #2 exists
    * and these get wired to live indexer/snapshot data - with a single DAT every
    * order is identical anyway.
    */
@@ -44,8 +44,8 @@ const NETWORK_LABELS: Record<Exclude<Network, "all">, string> = {
 const DATS: DatEntry[] = [
   {
     address: ADDR.strategy,
-    name: "LineaDAT",
-    symbol: "LINEADAT",
+    name: "LDAT",
+    symbol: "LDAT",
     underlying: UNDERLYING_SYMBOL,
     bagSize: "150 000",
     network: "linea",
@@ -134,7 +134,7 @@ export function DatsExplorer() {
   const [scope, setScope] = useState<Scope>("all");
   const [sort, setSort] = useState<SortKey>("fdv");
 
-  // Live USD metrics for the LINEADAT row (the only live DAT today).
+  // Live USD metrics for the LDAT row (the only live DAT today).
   // Treasury $ mirrors the Fundings card title: ETH fee pot + held bags at
   // their per-bag 1.2x LIST price (what the DAT will actually collect), NOT
   // the live market quote. LP $ = the pool's ETH side x ETH/USD - the same
@@ -250,7 +250,7 @@ export function DatsExplorer() {
                     >
                       <td className="py-4 pr-4">
                         <div className="flex items-center gap-3">
-                          <LineaDatSquareIcon className="w-9 h-9 flex-shrink-0" />
+                          <LdatIcon className="w-9 h-9 flex-shrink-0" />
                           <span className="font-display font-bold text-base">{s.name}</span>
                         </div>
                       </td>
@@ -298,7 +298,7 @@ export function DatsExplorer() {
                   className="py-4 space-y-2 cursor-pointer transition-colors hover:bg-secondary/25 active:bg-secondary/25 focus-visible:bg-secondary/25 focus-visible:outline-none"
                 >
                   <div className="flex items-center gap-3">
-                    <LineaDatSquareIcon className="w-9 h-9 flex-shrink-0" />
+                    <LdatIcon className="w-9 h-9 flex-shrink-0" />
                     <span className="font-display font-bold text-base">{s.name}</span>
                     <span className="ml-auto flex items-center gap-1.5">
                       <TypeBadge type={s.type} />

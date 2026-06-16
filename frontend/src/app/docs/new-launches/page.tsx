@@ -26,7 +26,7 @@ export default function NewLaunchesDocPage() {
       </p>
 
       <p>
-        For example, the base fee for <code>$LINEADAT</code> is{" "}
+        For example, the base fee for <code>$LDAT</code> is{" "}
         <strong>10%</strong>.
       </p>
 
@@ -53,9 +53,9 @@ export default function NewLaunchesDocPage() {
 
       <p>
         If the token is launched on <strong>Linea L2</strong>, this 1% is used
-        to buy and burn <code>$LINEADAT</code>. The more DAT tokens are launched
+        to buy and burn <code>$LDAT</code>. The more DAT tokens are launched
         in the Linea ecosystem, the stronger the constant deflationary pressure
-        on <code>$LINEADAT</code> becomes.
+        on <code>$LDAT</code> becomes.
       </p>
     </>
   );

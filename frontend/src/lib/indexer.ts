@@ -1,5 +1,5 @@
 /**
- * Thin GraphQL client for the on-chainDAT / LineaDAT Ponder indexer
+ * Thin GraphQL client for the on-chainDAT / LDAT Ponder indexer
  * (testnet phase: still indexes the deployed $LINEASTR strategy on Base Sepolia).
  *
  * Indexer source: automation/indexer/, deployed on Fly. The browser reaches

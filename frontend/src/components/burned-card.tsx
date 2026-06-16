@@ -67,7 +67,7 @@ export function BurnedCard() {
                 "drop-shadow(0 0 4px rgba(255, 45, 172, 0.95)) drop-shadow(0 0 10px rgba(255, 0, 170, 0.7))",
             }}
           />
-          $LINEADAT burned
+          $LDAT burned
         </div>
         <div className="flex items-baseline gap-2 font-display font-bold">
           <span className="text-3xl sm:text-4xl tabular neon-glitch">{pctStr}</span>

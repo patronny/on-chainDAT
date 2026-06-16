@@ -3,7 +3,7 @@
 import { useAccount, useReadContract } from "wagmi";
 import { erc20Abi } from "@/lib/abis/erc20";
 import { ADDR } from "@/lib/wagmi";
-import { lineastrPriceInEth } from "@/lib/utils";
+import { ldatPriceInEth } from "@/lib/utils";
 import { useStrategyStats } from "@/hooks/useStrategyStats";
 import { useEthPrice } from "@/hooks/useEthPrice";
 import { usePriceChange24h } from "@/hooks/usePriceChange24h";
@@ -14,10 +14,10 @@ import { SignedDelta } from "./signed-delta";
  * Top of /portfolio - aggregate stats + allocation diagram.
  *
  *   [Portfolio Value $X.XX]            [24h % ($)]    [After buy % ($)]
- *   [============= LineaDAT 100.0% =============]
+ *   [============= LDAT 100.0% =============]
  *   [legend chip]
  *
- * Today the family has a single DAT (LineaDAT), so the bar is a single full
+ * Today the family has a single DAT (LDAT), so the bar is a single full
  * slice. When more DATs ship, push their `{ address, name, color }` into
  * KNOWN_DATS and the loops below produce one slice per DAT with weighted
  * per-position aggregation for the 24h / after-buy stats. Per-DAT cost basis
@@ -35,7 +35,7 @@ type DatDef = {
 const KNOWN_DATS: DatDef[] = [
   {
     address: ADDR.strategy,
-    name: "LineaDAT",
+    name: "LDAT",
     color: "hsl(var(--primary))",
   },
 ];
@@ -58,7 +58,7 @@ export function PortfolioSummary() {
   const { avgPriceEth } = useAvgCostBasis(address);
 
   const balance = Number(balanceWei ?? 0n) / 1e18;
-  const priceEth = lineastrPriceInEth(stats?.sqrtPriceX96);
+  const priceEth = ldatPriceInEth(stats?.sqrtPriceX96);
   const priceUsd = priceEth * (ethUsd || 0);
   const totalValue = balance * priceUsd;
 

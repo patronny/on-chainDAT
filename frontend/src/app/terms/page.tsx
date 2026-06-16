@@ -3,9 +3,9 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 
 export const metadata: Metadata = {
-  title: "Terms of Service - LineaDAT",
+  title: "Terms of Service - LDAT",
   description:
-    "Terms of Service for the LineaDAT / on-chainDAT website and smart contracts operated by PaTRoN Labs.",
+    "Terms of Service for the LDAT / on-chainDAT website and smart contracts operated by PaTRoN Labs.",
 };
 
 export default function TermsPage() {
@@ -18,7 +18,7 @@ export default function TermsPage() {
 
         <div className="rounded-md border border-primary/30 bg-primary/5 p-4 sm:p-5 mb-10 text-sm text-foreground leading-relaxed">
           <p>
-            <span className="font-semibold">on-chaindat.com and the LINEADAT token are an independent,
+            <span className="font-semibold">on-chaindat.com and the LDAT token are an independent,
             community-driven project.</span> They are <span className="font-semibold">not affiliated with,
             endorsed by, or sponsored by</span> Linea, ConsenSys, Base, Coinbase, Uniswap, TokenWorks, or
             any other company, foundation, or organization. All third-party brand, network, and project
@@ -31,7 +31,7 @@ export default function TermsPage() {
           <p>
             PaTRoN Labs (an unincorporated team of independent open-source contributors -{" "}
             <span className="text-foreground">&quot;PaTRoN Labs,&quot; &quot;we,&quot; &quot;us,&quot; &quot;our&quot;</span>) operates the{" "}
-            on-chainDAT / LineaDAT websites and related subdomains (including{" "}
+            on-chainDAT / LDAT websites and related subdomains (including{" "}
             <a href="https://www.on-chaindat.com" className="text-primary underline hover:no-underline break-all">https://www.on-chaindat.com</a>),
             the Smart Contracts directly accessible through the Site, and other products or services that we make
             available through the Site or applications (collectively, the <span className="text-foreground">&quot;Services&quot;</span>).
@@ -84,12 +84,12 @@ export default function TermsPage() {
               You acknowledge and agree that your access to and use of the Services is further governed by, and subject
               to, the technical specifications, operational descriptions, and explanatory materials provided at{" "}
               <a
-                href="https://github.com/patronny/LineaDAT/tree/main/docs"
+                href="https://github.com/patronny/on-chainDAT/tree/main/docs"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-primary underline hover:no-underline break-all"
               >
-                github.com/patronny/LineaDAT/tree/main/docs
+                github.com/patronny/on-chainDAT/tree/main/docs
               </a>{" "}
               (the &quot;Documentation&quot;). The Documentation is incorporated by reference into these Terms. To the
               extent any description in the Documentation conflicts with these Terms, the publicly deployed Smart-Contract
@@ -394,9 +394,9 @@ export default function TermsPage() {
             <p>
               You acknowledge and agree that PaTRoN Labs owns all legal rights, title, and interest in and to the Site,
               documentation, the proprietary components of the Services, and all trademark interests in the names
-              on-chainDAT, LineaDAT, and the ticker $LINEADAT. PaTRoN Labs retains intellectual-property rights in the
+              on-chainDAT, LDAT, and the ticker $LDAT. PaTRoN Labs retains intellectual-property rights in the
               Site, Services, Smart Contract, source code, designs, and trademarks, subject to any applicable open-source
-              licenses (including the upstream MIT-licensed TokenWorks ERC20Strategy v3 from which the LineaDAT
+              licenses (including the upstream MIT-licensed TokenWorks ERC20Strategy v3 from which the LDAT
               contracts are forked). Your use of the Services does not grant you any ownership or license rights except
               as expressly stated herein. Certain components of the Services may be released under open-source licenses.
               To the extent you submit code, comments, ideas, or other contributions to PaTRoN Labs, whether through

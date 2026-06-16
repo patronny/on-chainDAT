@@ -4,12 +4,12 @@ import Link from "next/link";
 import { useAccount, useReadContract } from "wagmi";
 import { erc20Abi } from "@/lib/abis/erc20";
 import { ADDR } from "@/lib/wagmi";
-import { lineastrPriceInEth, formatTokens } from "@/lib/utils";
+import { ldatPriceInEth, formatTokens } from "@/lib/utils";
 import { useStrategyStats } from "@/hooks/useStrategyStats";
 import { useEthPrice } from "@/hooks/useEthPrice";
 import { usePriceChange24h } from "@/hooks/usePriceChange24h";
 import { useAvgCostBasis } from "@/hooks/useAvgCostBasis";
-import { LineaDatSquareIcon } from "./icons/token-icons";
+import { LdatIcon } from "./icons/token-icons";
 import { SignedDelta } from "./signed-delta";
 import { SortHeader, useTableSort } from "./ui/sort-header";
 
@@ -19,7 +19,7 @@ import { SortHeader, useTableSort } from "./ui/sort-header";
  * Columns: DAT | Balance | Value | 24h % ($) | After buy % ($) - all sortable
  * with the standard table-sort UX from the strategy dashboards.
  *
- * Phase 3 renders one row (LineaDAT). When the factory pattern unlocks
+ * Phase 3 renders one row (LDAT). When the factory pattern unlocks
  * additional DATs, swap the single useReadContract for a useReadContracts
  * multicall driven by KNOWN_DATS, and per-DAT strategy stats + avg-cost will
  * need their own per-row hooks (today useStrategyStats is hardcoded to the
@@ -41,8 +41,8 @@ type DatDef = {
 const KNOWN_DATS: DatDef[] = [
   {
     address: ADDR.strategy,
-    name: "LineaDAT",
-    symbol: "LINEADAT",
+    name: "LDAT",
+    symbol: "LDAT",
   },
 ];
 
@@ -76,7 +76,7 @@ export function PortfolioHoldings() {
 
   const tokenBalance = anchorBalance ?? 0n;
   const balanceFloat = Number(tokenBalance) / 1e18;
-  const priceEth = lineastrPriceInEth(stats?.sqrtPriceX96);
+  const priceEth = ldatPriceInEth(stats?.sqrtPriceX96);
   const priceUsd = priceEth * (ethUsd || 0);
   const valueUsd = balanceFloat * priceUsd;
 
@@ -188,7 +188,7 @@ function HoldingRow({ row }: { row: Row }) {
           href={`/dats/${row.dat.address}` as never}
           className="inline-flex items-center gap-2 group"
         >
-          <LineaDatSquareIcon className="w-6 h-6 shrink-0" />
+          <LdatIcon className="w-6 h-6 shrink-0" />
           <span className="flex flex-col leading-tight">
             <span className="font-semibold text-foreground group-hover:text-primary transition-colors">
               {row.dat.name}

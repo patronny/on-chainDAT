@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { fetchBaselineSwapFor24h, INDEXER_ENABLED } from "@/lib/indexer";
-import { lineastrPriceInEth } from "@/lib/utils";
+import { ldatPriceInEth } from "@/lib/utils";
 
 /**
  * 24h LINEASTR price change in percent vs the price 24 hours ago.
@@ -35,8 +35,8 @@ export function usePriceChange24h(currentSqrtPriceX96: bigint | undefined): numb
           setPct(null);
           return;
         }
-        const baselinePrice = lineastrPriceInEth(BigInt(baseline.sqrtPriceX96));
-        const currentPrice = lineastrPriceInEth(currentSqrtPriceX96);
+        const baselinePrice = ldatPriceInEth(BigInt(baseline.sqrtPriceX96));
+        const currentPrice = ldatPriceInEth(currentSqrtPriceX96);
         if (baselinePrice <= 0 || currentPrice <= 0) {
           setPct(null);
           return;

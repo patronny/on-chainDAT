@@ -3,9 +3,9 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 
 export const metadata: Metadata = {
-  title: "Contacts - LineaDAT",
+  title: "Contacts - LDAT",
   description:
-    "All contact channels for the on-chainDAT / LineaDAT team: founder, legal, security, support, and partnerships.",
+    "All contact channels for the on-chainDAT / LDAT team: founder, legal, security, support, and partnerships.",
 };
 
 interface ContactRow {
@@ -85,7 +85,7 @@ export default function ContactsPage() {
       <main className="container py-10 sm:py-16 min-h-[calc(100vh-3.5rem)] max-w-3xl">
         <h1 className="text-3xl sm:text-4xl font-display font-bold mb-3">Contacts</h1>
         <p className="text-base text-muted-foreground mb-8 leading-relaxed">
-          Everything you need to reach the on-chainDAT / LineaDAT team. Pick the channel that fits
+          Everything you need to reach the on-chainDAT / LDAT team. Pick the channel that fits
           your question - we route partnership and security mail separately, so the right address
           gets you a faster reply.
         </p>

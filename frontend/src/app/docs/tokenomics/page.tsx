@@ -9,7 +9,7 @@ export default function TokenomicsDocPage() {
 
       <p>
         The maximum supply of any token launched through{" "}
-        <strong>on-chaindat.com</strong>, including <code>$LINEADAT</code>, is{" "}
+        <strong>on-chaindat.com</strong>, including <code>$LDAT</code>, is{" "}
         <strong>1 billion tokens</strong>.
       </p>
 

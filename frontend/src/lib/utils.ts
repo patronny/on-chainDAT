@@ -121,7 +121,7 @@ export function sqrtPriceX96ToRatio(sqrt: bigint): number {
 }
 
 /** ETH per 1 LINEASTR (inverse of pool price). */
-export function lineastrPriceInEth(sqrt: bigint | undefined): number {
+export function ldatPriceInEth(sqrt: bigint | undefined): number {
   if (!sqrt || sqrt === 0n) return 0;
   const r = sqrtPriceX96ToRatio(sqrt);
   return r > 0 ? 1 / r : 0;

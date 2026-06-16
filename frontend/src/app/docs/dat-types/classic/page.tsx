@@ -9,7 +9,7 @@ export default function ClassicDatsDocPage() {
 
       <p>
         Classic DATs are DAT tokens with economics similar to{" "}
-        <code>$LINEADAT</code>, but with one small difference.
+        <code>$LDAT</code>, but with one small difference.
       </p>
 
       <p>

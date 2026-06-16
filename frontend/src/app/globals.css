@@ -371,7 +371,7 @@
   /* Cyberpunk docs prose - overrides for /docs pages.
      Headings use the display font with primary-tinted accents and a soft glow
      on h1/h2. Inline code, blockquotes, tables and links are themed to match
-     the rest of the LineaDAT cyberpunk palette. */
+     the rest of the LDAT cyberpunk palette. */
   .docs-prose {
     color: hsl(var(--muted-foreground));
     line-height: 1.7;

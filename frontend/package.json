@@ -1,5 +1,5 @@
 {
-  "name": "lineadat-frontend",
+  "name": "on-chaindat-frontend",
   "version": "0.1.0",
   "private": true,
   "description": "on-chainDAT / LineaDAT frontend - Next.js 15 + RainbowKit + wagmi v2 + viem + Tailwind + shadcn/ui. Phase 3 testnet runs against deployed $LINEASTR on Base Sepolia.",

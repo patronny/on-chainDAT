@@ -4,9 +4,9 @@ import { Footer } from "@/components/footer";
 import { Card } from "@/components/ui/card";
 
 export const metadata: Metadata = {
-  title: "Transfer - LineaDAT",
+  title: "Transfer - LDAT",
   description:
-    "Coming Soon: relay-contract tool to send LINEADAT between wallets in protocol v2.",
+    "Coming Soon: relay-contract tool to send LDAT between wallets in protocol v2.",
 };
 
 export default function TransferPage() {

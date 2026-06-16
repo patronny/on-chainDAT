@@ -13,7 +13,7 @@ export function DexChart() {
       <div className="relative w-full" style={{ paddingBottom: "60%" }}>
         <iframe
           src={src}
-          title="LineaDAT price chart by Dexscreener"
+          title="LDAT price chart by Dexscreener"
           className="absolute inset-0 w-full h-full border-0"
           loading="lazy"
         />

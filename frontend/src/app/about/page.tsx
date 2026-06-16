@@ -6,16 +6,16 @@ export default function AboutPage() {
     <>
       <Header />
       <main className="container py-10 sm:py-16 min-h-[calc(100vh-3.5rem)] max-w-3xl">
-        <h1 className="text-3xl sm:text-4xl font-display font-bold mb-6 heading-accent">About LineaDAT</h1>
+        <h1 className="text-3xl sm:text-4xl font-display font-bold mb-6 heading-accent">About LDAT</h1>
 
         <div className="prose-style space-y-6 text-base text-muted-foreground leading-relaxed">
           <p>
-            <strong className="text-foreground">LineaDAT is a digital asset treasury (DAT) on Linea L2.</strong>{" "}
+            <strong className="text-foreground">LDAT is a digital asset treasury (DAT) on Linea L2.</strong>{" "}
             The protocol accumulates the network&apos;s base asset, $LINEA, resells it on a P2P market at a
-            markup, and routes the resulting $ETH into buying and burning its own $LINEADAT token.
+            markup, and routes the resulting $ETH into buying and burning its own $LDAT token.
           </p>
           <p>
-            In one sentence: the more trading and volatility there is in $LINEA, the more $LINEADAT
+            In one sentence: the more trading and volatility there is in $LINEA, the more $LDAT
             goes into the fire, and the less of it stays in circulation.
           </p>
 
@@ -25,15 +25,15 @@ export default function AboutPage() {
             <strong className="text-foreground">1. Amplified $LINEA exposure with no liquidation risk.</strong>
           </p>
           <p>
-            $LINEADAT acts like leverage on $LINEA, but without margin calls and without interest on the
+            $LDAT acts like leverage on $LINEA, but without margin calls and without interest on the
             leverage. The logic is simple:
           </p>
           <ul className="list-disc pl-6 space-y-1">
             <li>the treasury holds $LINEA and $ETH;</li>
             <li>when $LINEA appreciates, the dollar value of the treasury grows with it;</li>
-            <li>in parallel, the treasury buys $LINEADAT from the market and burns it, shrinking supply;</li>
+            <li>in parallel, the treasury buys $LDAT from the market and burns it, shrinking supply;</li>
             <li>
-              these two effects compound, and $LINEADAT&apos;s price typically moves harder than $LINEA
+              these two effects compound, and $LDAT&apos;s price typically moves harder than $LINEA
               itself.
             </li>
           </ul>
@@ -56,7 +56,7 @@ export default function AboutPage() {
           </p>
           <p>
             $LINEA has a built-in value-return mechanism: a share of network fees funds buybacks and
-            burns of $LINEA. The more activity on Linea, the less $LINEA stays in circulation. LineaDAT
+            burns of $LINEA. The more activity on Linea, the less $LINEA stays in circulation. LDAT
             is one of the protocols that generates this activity by design.
           </p>
 
@@ -68,12 +68,12 @@ export default function AboutPage() {
             <strong className="text-foreground">1. No external dependencies.</strong>
           </p>
           <p>
-            LineaDAT does not borrow, does not stake, does not hand the treasury to other protocols. The
+            LDAT does not borrow, does not stake, does not hand the treasury to other protocols. The
             buy and sell of $LINEA happens through a transparent P2P mechanism:
           </p>
           <ul className="list-disc pl-6 space-y-1">
             <li>
-              while anyone trades $LINEADAT on Uniswap, $ETH builds up in the treasury (10% of every swap);
+              while anyone trades $LDAT on Uniswap, $ETH builds up in the treasury (10% of every swap);
             </li>
             <li>
               once the dollar value of the accumulated $ETH exceeds the market price of 150,000 $LINEA
@@ -104,19 +104,19 @@ export default function AboutPage() {
           </p>
           <p>
             Linea is a zkEVM L2 with full EVM equivalence. It is built by ConsenSys, the company of
-            Ethereum co-founder Joe Lubin, who is known for his focus on decentralization. LineaDAT&apos;s
+            Ethereum co-founder Joe Lubin, who is known for his focus on decentralization. LDAT&apos;s
             smart contracts execute exactly the same way as on Ethereum itself, with the same
             cryptographic guarantees, only cheaper and faster.
           </p>
 
           <p>
-            <strong className="text-foreground">4. The $ETH/$LINEADAT liquidity is unkillable.</strong>
+            <strong className="text-foreground">4. The $ETH/$LDAT liquidity is unkillable.</strong>
           </p>
           <p>The entire pool sits on Uniswap V4 and the LP position has been burned. That means:</p>
           <ul className="list-disc pl-6 space-y-1">
             <li>nobody, including the team, can pull liquidity;</li>
             <li>even if the Uniswap frontend is taken offline, the pool keeps working directly on-chain;</li>
-            <li>$LINEADAT will be tradeable for as long as Ethereum lives.</li>
+            <li>$LDAT will be tradeable for as long as Ethereum lives.</li>
           </ul>
 
           <p>
@@ -133,7 +133,7 @@ export default function AboutPage() {
             Why this is interesting for a holder
           </h2>
           <p>
-            The core idea of LineaDAT is a reflexive loop. It spins in both directions and never
+            The core idea of LDAT is a reflexive loop. It spins in both directions and never
             switches off.
           </p>
 
@@ -151,19 +151,19 @@ export default function AboutPage() {
             </strong>
           </p>
           <p>
-            $LINEADAT&apos;s market cap is the combined value of all tokens in circulation. The treasury
+            $LDAT&apos;s market cap is the combined value of all tokens in circulation. The treasury
             is how much $LINEA and $ETH sits inside the protocol. When market cap falls below the
-            treasury, $LINEADAT effectively trades at a discount to its net assets, the signal is read
+            treasury, $LDAT effectively trades at a discount to its net assets, the signal is read
             quickly, and the gap closes. When the situation reverses, holders take profit. The cycle
             repeats, and every loop generates volume, fees, and treasury growth.
           </p>
 
           <p>
-            <strong className="text-foreground">3. $LINEA up → $LINEADAT usually up harder.</strong>
+            <strong className="text-foreground">3. $LINEA up → $LDAT usually up harder.</strong>
           </p>
           <p>
             The dollar value of the treasury rises, and part of the $LINEA position gradually converts
-            back into $ETH through the P2P mechanism, and that $ETH buys $LINEADAT for burning. Two
+            back into $ETH through the P2P mechanism, and that $ETH buys $LDAT for burning. Two
             flows pull the price up at the same time.
           </p>
 
@@ -171,7 +171,7 @@ export default function AboutPage() {
             <strong className="text-foreground">4. $LINEA down → also good for the protocol.</strong>
           </p>
           <p>
-            When the base asset gets cheaper, holders get nervous and trade more. $LINEADAT volume
+            When the base asset gets cheaper, holders get nervous and trade more. $LDAT volume
             rises, fees in the treasury rise, the buy-and-burn cycle never stops. The protocol feeds on
             movement, not on direction.
           </p>
@@ -180,17 +180,17 @@ export default function AboutPage() {
             <strong className="text-foreground">5. Volatility is our ally.</strong>
           </p>
           <p>
-            Most protocols fear sharp markets. LineaDAT loves them. Any move, up or down, equals volume,
-            equals fees, equals buy-and-burn of $LINEADAT.
+            Most protocols fear sharp markets. LDAT loves them. Any move, up or down, equals volume,
+            equals fees, equals buy-and-burn of $LDAT.
           </p>
 
           <h2 className="text-xl font-display font-semibold text-secondary pt-4">What comes next</h2>
           <ul className="list-disc pl-6 space-y-2">
-            <li>$LINEADAT is the first and anchor DAT in the on-chainDAT ecosystem on Linea L2.</li>
+            <li>$LDAT is the first and anchor DAT in the on-chainDAT ecosystem on Linea L2.</li>
             <li>The next planned launch is $REX33DAT.</li>
             <li>
-              All DAT tokens launched after $LINEADAT will route 1% of their volume into buying and
-              burning $LINEADAT. The bigger the ecosystem gets, the stronger the deflationary pressure
+              All DAT tokens launched after $LDAT will route 1% of their volume into buying and
+              burning $LDAT. The bigger the ecosystem gets, the stronger the deflationary pressure
               on the anchor token.
             </li>
           </ul>

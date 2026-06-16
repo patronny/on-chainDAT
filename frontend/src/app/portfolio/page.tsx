@@ -7,7 +7,7 @@ import { PortfolioHoldings } from "@/components/portfolio-holdings";
 import { PortfolioSummary } from "@/components/portfolio-summary";
 
 export const metadata: Metadata = {
-  title: "Portfolio - LineaDAT",
+  title: "Portfolio - LDAT",
   description:
     "Your DAT holdings across on-chainDAT: balances, position value, 24h change, and since-first-buy P&L.",
 };

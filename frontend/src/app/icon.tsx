@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 
 // Browser tab icon for the on-chainDAT site.
 // Spec: rounded black square with bold "DAT" in the brand magenta -> cyan gradient
-// (#ff33cc -> #00ffff), matching the $LINEADAT "L" mark and the site logo.
+// (#ff33cc -> #00ffff), matching the $LDAT "L" mark and the site logo.
 export const size = { width: 32, height: 32 };
 export const contentType = "image/png";
 

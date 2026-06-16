@@ -52,7 +52,7 @@ export default function HomePage() {
               <div className="mt-8 flex flex-col sm:flex-row gap-3">
                 <Button size="xl" asChild>
                   <Link href={`/dats/${ADDR.strategy}` as never}>
-                    Buy LineaDAT
+                    Buy LDAT
                   </Link>
                 </Button>
                 <Button size="xl" variant="outline" asChild>
@@ -95,12 +95,12 @@ export default function HomePage() {
         {/* MECHANICS */}
         <section className="container py-8 sm:py-12">
           <Card className="p-6 sm:p-10">
-            <h2 className="text-2xl sm:text-3xl font-display font-bold mb-4 heading-accent">How LineaDAT works</h2>
+            <h2 className="text-2xl sm:text-3xl font-display font-bold mb-4 heading-accent">How LDAT works</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm sm:text-base text-muted-foreground leading-relaxed">
               <div>
                 <h4 className="text-secondary font-semibold mb-2">1. Trading tax</h4>
                 <p>
-                  Every buy or sell of LINEADAT pays <span className="font-mono text-foreground">10%</span> straight
+                  Every buy or sell of LDAT pays <span className="font-mono text-foreground">10%</span> straight
                   to the treasury. The tax lives inside the pool&apos;s own hook, so there are no exemptions and no
                   whitelist.
                 </p>
@@ -121,9 +121,9 @@ export default function HomePage() {
                 </p>
               </div>
               <div>
-                <h4 className="text-secondary font-semibold mb-2">4. Markup ETH burns LINEADAT</h4>
+                <h4 className="text-secondary font-semibold mb-2">4. Markup ETH burns LDAT</h4>
                 <p>
-                  The ETH from the sold bag funds a buyback that purchases LINEADAT on Uniswap and burns it. Anyone
+                  The ETH from the sold bag funds a buyback that purchases LDAT on Uniswap and burns it. Anyone
                   can trigger this and earn a <span className="font-mono text-foreground">0.5%</span> reward.
                 </p>
               </div>

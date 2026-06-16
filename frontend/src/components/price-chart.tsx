@@ -13,7 +13,7 @@ import {
 import { useSwaps } from "@/hooks/useIndexer";
 import { useStrategyStats } from "@/hooks/useStrategyStats";
 import { useEthPrice } from "@/hooks/useEthPrice";
-import { lineastrPriceInEth } from "@/lib/utils";
+import { ldatPriceInEth } from "@/lib/utils";
 import { priceSanityBand, inPriceBand, robustPriceRange } from "@/lib/chart-scale";
 
 /**
@@ -126,7 +126,7 @@ export function PriceChart() {
     return () => clearInterval(id);
   }, []);
 
-  const symbol = stats.data?.symbol || "LINEADAT";
+  const symbol = stats.data?.symbol || "LDAT";
   const liveSqrt = stats.data?.sqrtPriceX96;
   // Circulating supply (totalSupply minus the dead-address burn balance), float.
   const circ = stats.data
@@ -138,12 +138,12 @@ export function PriceChart() {
   // does NOT count) - drives the "No trades yet" empty state so a lone live point
   // never renders as a dead-looking flat line.
   const { points, swapCount } = useMemo<{ points: Pt[]; swapCount: number }>(() => {
-    const livePrice = liveSqrt && liveSqrt > 0n ? lineastrPriceInEth(liveSqrt) : 0;
+    const livePrice = liveSqrt && liveSqrt > 0n ? ldatPriceInEth(liveSqrt) : 0;
     const raw: Pt[] = [];
     if (swaps) {
       const asc = [...swaps].sort((a, b) => a.timestamp - b.timestamp);
       for (const s of asc) {
-        const priceEth = lineastrPriceInEth(BigInt(s.sqrtPriceX96));
+        const priceEth = ldatPriceInEth(BigInt(s.sqrtPriceX96));
         const volEth = Number(s.ethAmount) / 1e18;
         if (priceEth > 0) raw.push({ t: s.timestamp, priceEth, volEth: isFinite(volEth) ? volEth : 0 });
       }

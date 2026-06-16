@@ -26,7 +26,7 @@ import { ADDR, UNIVERSAL_ROUTER, PERMIT2, V4_QUOTER, POOL_KEY } from "@/lib/wagm
 import { formatEth, formatTokens, sqrtPriceX96ToRatio } from "@/lib/utils";
 import { useStrategyStats } from "@/hooks/useStrategyStats";
 import { ArrowDown } from "lucide-react";
-import { EthIcon, LineaDatSquareIcon } from "./icons/token-icons";
+import { EthIcon, LdatIcon } from "./icons/token-icons";
 import { SwapProgressModal, SwapStep } from "./swap-progress-modal";
 
 /**
@@ -45,7 +45,7 @@ function cleanAmount(v: number): string {
 }
 
 function TokenBadge({ symbol }: { symbol: string }) {
-  const Icon = symbol === "ETH" ? EthIcon : LineaDatSquareIcon;
+  const Icon = symbol === "ETH" ? EthIcon : LdatIcon;
   return (
     <span className="flex-shrink-0 inline-flex items-center gap-1.5 font-semibold text-sm font-mono">
       <Icon className="w-5 h-5" />
@@ -58,11 +58,11 @@ type ApprovalKind = "token" | "permit2";
 
 /**
  * Standalone Swap card. Trades go through the standard Uniswap Universal Router (V4_SWAP), NOT a
- * custom swapper - matching wBTCSTR. $LINEADAT is non-transferable, but the swap works because the
+ * custom swapper - matching wBTCSTR. $LDAT is non-transferable, but the swap works because the
  * hook grants a transient transfer allowance in afterSwap (no distributor whitelist needed).
  *
- * - Buy (ETH -> LINEADAT): single `execute{value}` call, no approval.
- * - Sell (LINEADAT -> ETH): Permit2 - one-time `token.approve(Permit2)` + `Permit2.approve(router)`
+ * - Buy (ETH -> LDAT): single `execute{value}` call, no approval.
+ * - Sell (LDAT -> ETH): Permit2 - one-time `token.approve(Permit2)` + `Permit2.approve(router)`
  *   (max amount / max expiry, so later sells are a single tx), then `execute`.
  *
  * Execution lives in a LlamaSwap-style progress modal (Approve -> Swap with auto-advance). The
@@ -351,8 +351,8 @@ export function SwapCard() {
   }
 
   // Selling/Buying assignments based on side
-  const sellingLabel = side === "buy" ? "ETH" : "LINEADAT";
-  const buyingLabel = side === "buy" ? "LINEADAT" : "ETH";
+  const sellingLabel = side === "buy" ? "ETH" : "LDAT";
+  const buyingLabel = side === "buy" ? "LDAT" : "ETH";
   const sellingBalance = side === "buy" ? userEth : userLin;
   const buyingBalance = side === "buy" ? userLin : userEth;
 
@@ -366,8 +366,8 @@ export function SwapCard() {
   const modalSide = tradeSnapshot?.side ?? side;
   const modalFromAmount = tradeSnapshot?.amountStr ?? amountStr;
   const modalToAmount = tradeSnapshot?.estimatedOut ?? estimatedOut;
-  const modalFromSymbol = modalSide === "buy" ? "ETH" : "LINEADAT";
-  const modalToSymbol = modalSide === "buy" ? "LINEADAT" : "ETH";
+  const modalFromSymbol = modalSide === "buy" ? "ETH" : "LDAT";
+  const modalToSymbol = modalSide === "buy" ? "LDAT" : "ETH";
 
   return (
     <>
@@ -447,14 +447,14 @@ export function SwapCard() {
             <Button className="w-full" disabled size="lg">Insufficient ETH</Button>
           ) : (
             <Button className="w-full" onClick={openBuy} disabled={modalOpen} size="lg">
-              {modalOpen ? "Swap in progress…" : `Buy LINEADAT with ${amountStr} ETH`}
+              {modalOpen ? "Swap in progress…" : `Buy LDAT with ${amountStr} ETH`}
             </Button>
           )
         ) : !enoughForSell ? (
-          <Button className="w-full" disabled size="lg">Insufficient LINEADAT</Button>
+          <Button className="w-full" disabled size="lg">Insufficient LDAT</Button>
         ) : (
           <Button className="w-full" onClick={openSell} disabled={modalOpen} size="lg">
-            {modalOpen ? "Swap in progress…" : `Sell ${amountStr} LINEADAT`}
+            {modalOpen ? "Swap in progress…" : `Sell ${amountStr} LDAT`}
           </Button>
         )}
       </div>

@@ -22,9 +22,9 @@ export const UNDERLYING_SYMBOL = DEFAULT_CHAIN_ID === 59144 ? "LINEA" : "tLINEA"
 /**
  * Strategy deploy block - lower bound for full-history event reads (used by
  * the future Ponder indexer wiring; rolling-window queries don't read this).
- * Defaults to the LineaDAT Phase 3.5 launch block on Base Sepolia (with launch
+ * Defaults to the LDAT Phase 3.5 launch block on Base Sepolia (with launch
  * gate; previous values from the legacy LINEASTR deploy and the gate-less
- * LineaDAT deploy are now zombies).
+ * LDAT deploy are now zombies).
  * Override via NEXT_PUBLIC_DEPLOY_BLOCK after each redeploy. NEVER 0n in
  * production - a 0n value triggers a 41M-block scan and 4500+ parallel RPC
  * chunk requests.
@@ -41,7 +41,7 @@ function addressOr0(envVar: string | undefined): `0x${string}` {
 }
 
 /**
- * Hardcoded fallbacks below point at the LineaDAT Phase 3.5 deployment on Base Sepolia
+ * Hardcoded fallbacks below point at the LDAT Phase 3.5 deployment on Base Sepolia
  * (with scheduled launch gate). Override via NEXT_PUBLIC_*_ADDRESS env vars on Vercel.
  * tLINEA stays the same across redeploys (never re-deployed by design).
  */
@@ -84,7 +84,7 @@ export const V4_QUOTER = addressOrFallback(
   "0x2c125569c0bee20a66e33e5491c552b37ebd9934"
 );
 
-/// LineaDAT Uniswap v4 pool key (currency0=ETH, currency1=LineaDAT strategy token, dynamic fee).
+/// LDAT Uniswap v4 pool key (currency0=ETH, currency1=LDAT strategy token, dynamic fee).
 /// Passed to V4_SWAP actions in the Universal Router.
 export const POOL_KEY = {
   currency0: "0x0000000000000000000000000000000000000000" as `0x${string}`,

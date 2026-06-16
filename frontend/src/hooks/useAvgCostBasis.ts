@@ -5,7 +5,7 @@ import { fetchSwapsByTrader, INDEXER_ENABLED } from "@/lib/indexer";
 
 /**
  * Average buy price in ETH-per-token across all of a trader's BUY swaps on the
- * LineaDAT v4 pool. Returns null when:
+ * LDAT v4 pool. Returns null when:
  *   - indexer disabled / errored
  *   - the user has no buy swaps on record (then "After buy %" should render "-")
  *

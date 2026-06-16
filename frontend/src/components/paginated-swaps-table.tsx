@@ -89,7 +89,7 @@ export function PaginatedSwapsTable() {
               <SortHeader field="date" active={sortKey} dir={sortDir} onClick={toggle}>Date (UTC)</SortHeader>
               <SortHeader field="side" active={sortKey} dir={sortDir} onClick={toggle}>Side</SortHeader>
               <SortHeader field="eth" active={sortKey} dir={sortDir} onClick={toggle} align="right">ETH</SortHeader>
-              <SortHeader field="token" active={sortKey} dir={sortDir} onClick={toggle} align="right">LINEADAT</SortHeader>
+              <SortHeader field="token" active={sortKey} dir={sortDir} onClick={toggle} align="right">LDAT</SortHeader>
               <SortHeader field="trader" active={sortKey} dir={sortDir} onClick={toggle}>Trader</SortHeader>
               <th className="text-right py-3 px-4 font-medium"></th>
             </tr>
@@ -158,7 +158,7 @@ export function PaginatedSwapsTable() {
               </span>
             </div>
             <div className="text-sm font-mono tabular">
-              {formatEth(r.ethAmount)} ETH {r.side === "buy" ? "→" : "←"} {formatTokens(r.tokenAmount)} LINEADAT
+              {formatEth(r.ethAmount)} ETH {r.side === "buy" ? "→" : "←"} {formatTokens(r.tokenAmount)} LDAT
             </div>
             <div className="text-xs text-muted-foreground font-mono">
               {r.origin ? shortAddress(r.origin) : "-"}

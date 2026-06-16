@@ -4,12 +4,12 @@ import { useMemo, useState } from "react";
 import { useSwaps } from "@/hooks/useIndexer";
 import { Check, Copy, ExternalLink } from "lucide-react";
 import { Card } from "./ui/card";
-import { LineaDatSquareIcon, LineaIcon } from "./icons/token-icons";
+import { LdatIcon, LineaIcon } from "./icons/token-icons";
 import { useStrategyStats } from "@/hooks/useStrategyStats";
 import { useEthPrice } from "@/hooks/useEthPrice";
 import { usePriceChange24h } from "@/hooks/usePriceChange24h";
 import { ADDR, addressUrl } from "@/lib/wagmi";
-import { lineastrPriceInEth } from "@/lib/utils";
+import { ldatPriceInEth } from "@/lib/utils";
 import { TypeBadge, ScopeBadge } from "./dat-badges";
 
 /**
@@ -48,15 +48,15 @@ export function StrategyHeader() {
 
   const vol24h = indexerVol24h ?? 0n;
 
-  const pricePerLineastrEth = data ? lineastrPriceInEth(data.sqrtPriceX96) : 0;
-  const pricePerLineastrUsd = pricePerLineastrEth * ethUsd;
+  const pricePerLdatEth = data ? ldatPriceInEth(data.sqrtPriceX96) : 0;
+  const pricePerLdatUsd = pricePerLdatEth * ethUsd;
   const totalSupplyFloat = data ? Number(data.totalSupply) / 1e18 : 0;
   const burnedFloat = data ? Number(data.burned) / 1e18 : 0;
   const circulatingFloat = totalSupplyFloat - burnedFloat;
   const change24hPct = usePriceChange24h(data?.sqrtPriceX96);
 
-  const marketCapUsd = pricePerLineastrUsd * circulatingFloat;
-  const fdvUsd = pricePerLineastrUsd * totalSupplyFloat;
+  const marketCapUsd = pricePerLdatUsd * circulatingFloat;
+  const fdvUsd = pricePerLdatUsd * totalSupplyFloat;
   const vol24hUsd = (Number(vol24h) / 1e18) * ethUsd;
 
   const fmtPriceUsd = (n: number) => {
@@ -89,13 +89,13 @@ export function StrategyHeader() {
       <div className="p-4 sm:p-6 flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-8">
         {/* Logo + name */}
         <div className="flex items-center gap-4 flex-shrink-0">
-          <LineaDatSquareIcon className="w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0" />
+          <LdatIcon className="w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0" />
           <div>
             <h1 className="text-2xl sm:text-3xl font-display font-bold leading-tight">
-              LineaDAT
+              LDAT
             </h1>
             <div className="flex flex-wrap items-center gap-2 mt-1 text-xs">
-              <span className="text-muted-foreground font-mono">$LINEADAT</span>
+              <span className="text-muted-foreground font-mono">$LDAT</span>
               <span className="px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground border border-border font-mono uppercase tracking-wider">
                 ERC-20 on
               </span>
@@ -134,7 +134,7 @@ export function StrategyHeader() {
 
         {/* Inline stats - desktop horizontal, mobile 2-col grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:flex lg:flex-1 lg:justify-end gap-3 sm:gap-6 text-xs lg:text-sm">
-          <Stat label="$LINEADAT" value={fmtPriceUsd(pricePerLineastrUsd)} />
+          <Stat label="$LDAT" value={fmtPriceUsd(pricePerLdatUsd)} />
           <Stat label="Market Cap" value={fmtUsdLarge(marketCapUsd)} />
           <Stat label="FDV" value={fmtUsdLarge(fdvUsd)} />
           <Stat

@@ -50,7 +50,7 @@ export function GeckoChart() {
         ) : null}
         <iframe
           src={src}
-          title="LineaDAT price chart by GeckoTerminal"
+          title="LDAT price chart by GeckoTerminal"
           className={`absolute inset-0 h-full w-full border-0 transition-opacity duration-500 ${
             chartReady ? "opacity-100" : "opacity-0"
           }`}

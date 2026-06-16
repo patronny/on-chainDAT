@@ -12,7 +12,7 @@ export type DocItem = {
 
 export const docsNav: DocItem[] = [
   { title: "Overview", href: "/docs" },
-  { title: "LINEADAT", href: "/docs/lineadat" },
+  { title: "LDAT", href: "/docs/ldat" },
   { title: "Tokenomics", href: "/docs/tokenomics" },
   { title: "Transfer", href: "/docs/transfer" },
   { title: "New Launches", href: "/docs/new-launches" },

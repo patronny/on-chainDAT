@@ -2,15 +2,15 @@
  * Uniswap v4 swap encoding for the Universal Router (V4_SWAP command), plus the Universal Router
  * and Permit2 ABIs the swap card needs.
  *
- * This replaces the custom LineaDATTestSwapper: $LINEADAT is non-transferable, but a swap through
+ * This replaces the custom LineaDATTestSwapper: $LDAT is non-transferable, but a swap through
  * the standard Universal Router works because the hook grants a transient transfer allowance in
  * afterSwap (covers PoolManager<->user moves) - no distributor whitelist required. The exact
  * command/action/param encoding below was validated on a Linea-mainnet fork against the real
  * Universal Router (0x8B844f) for both buy and sell, including the Quoter-derived slippage floor
  * (see contracts/test/ForkQuoterSlippage.t.sol).
  *
- * Buy  (ETH -> LINEADAT): execute{value}( [V4_SWAP], [encode(actions, params)] ), no approval.
- * Sell (LINEADAT -> ETH): needs Permit2 (token->Permit2 approve, Permit2->UR allowance), then execute.
+ * Buy  (ETH -> LDAT): execute{value}( [V4_SWAP], [encode(actions, params)] ), no approval.
+ * Sell (LDAT -> ETH): needs Permit2 (token->Permit2 approve, Permit2->UR allowance), then execute.
  */
 import { encodeAbiParameters, encodePacked, type Hex } from "viem";
 import { POOL_KEY } from "./wagmi";
@@ -58,7 +58,7 @@ function poolKeyStruct() {
 
 /**
  * Encode a single-pool exact-input V4_SWAP for the Universal Router.
- * @param zeroForOne true = ETH(0)->LINEADAT(1) buy; false = LINEADAT(1)->ETH(0) sell
+ * @param zeroForOne true = ETH(0)->LDAT(1) buy; false = LDAT(1)->ETH(0) sell
  * @param amountIn   exact input amount (wei)
  * @param amountOutMinimum slippage floor on the output (wei); revert if not met
  */

@@ -34,7 +34,7 @@ const activeChains =
 const baseSepoliaRpc = process.env.NEXT_PUBLIC_RPC_URL || "https://sepolia.base.org";
 
 export const config = getDefaultConfig({
-  appName: "LineaDAT",
+  appName: "LDAT",
   projectId: wcProjectId,
   chains: activeChains,
   transports: {

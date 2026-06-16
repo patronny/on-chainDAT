@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
-const STORAGE_KEY = "lineadat-tos-accepted-v1";
+const STORAGE_KEY = "ldat-tos-accepted-v1";
 
 export function TermsGate() {
   const pathname = usePathname();
@@ -89,12 +89,12 @@ export function TermsGate() {
             Terms of Service
           </h2>
           <p id="tos-gate-desc" className="text-sm text-muted-foreground leading-relaxed">
-            Before using this site please accept our Terms of Service. LineaDAT is an experimental,
+            Before using this site please accept our Terms of Service. LDAT is an experimental,
             non-custodial protocol - interactions are final and at your own risk.
           </p>
           <p className="text-xs text-muted-foreground leading-relaxed border-l-2 border-primary/40 pl-3">
             <span className="text-foreground font-semibold">on-chaindat.com</span> and the{" "}
-            <span className="text-foreground font-semibold">LINEADAT</span> token are an independent,
+            <span className="text-foreground font-semibold">LDAT</span> token are an independent,
             community-driven project. We are <span className="text-foreground">not affiliated with,
             endorsed by, or sponsored by</span> Linea, ConsenSys, Base, Coinbase, Uniswap, TokenWorks
             or any other company. Brand and network names are used nominatively for descriptive
