@@ -18,15 +18,11 @@ export default function TransferPage() {
         <div className="w-full max-w-md">
           <div className="text-center mb-5">
             <h1
-              className="text-2xl sm:text-3xl font-display font-bold mb-2 text-foreground"
+              className="text-2xl sm:text-3xl font-display font-bold text-foreground"
               style={{ textShadow: "0 0 14px hsl(var(--primary) / 0.45)" }}
             >
-              Transfer $LDAT
+              Transfer DATs
             </h1>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              $LDAT is non-transferable except through this official relay. 1% is burned on each
-              transfer; the recipient gets 99%.
-            </p>
           </div>
           <Card className="w-full overflow-hidden">
             <TransferCard />
