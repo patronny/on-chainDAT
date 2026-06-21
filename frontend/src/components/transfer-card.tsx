@@ -31,7 +31,7 @@ type TransferToken = {
 };
 
 const TOKENS: TransferToken[] = [
-  { symbol: "LDAT", name: "on-chainDAT", address: ADDR.strategy, relay: ADDR.relay, Icon: LdatIcon },
+  { symbol: "LDAT", name: "MAIN-DAT on Linea L2", address: ADDR.strategy, relay: ADDR.relay, Icon: LdatIcon },
 ];
 
 /** Compact, human-friendly amount for the MAX-filled input (display only). */
