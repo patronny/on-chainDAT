@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LDAT - whitelist transfer relay (owner signing)</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 32px 16px;
+    font: 15px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace;
+    background: #0b0e14; color: #e8ecf6;
+    display: flex; justify-content: center;
+  }
+  .wrap { width: 100%; max-width: 760px; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: #8a9ab2; margin: 0 0 24px; font-size: 13px; }
+  .card { background: #11151f; border: 1px solid #1f2937; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+  .card h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: #8a9ab2; margin: 0 0 12px; }
+  .row { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px solid #161c28; word-break: break-all; }
+  .row:last-child { border-bottom: 0; }
+  .k { color: #8a9ab2; flex: 0 0 auto; }
+  .v { text-align: right; }
+  .mono { font-family: inherit; }
+  code { background: #0b0e14; border: 1px solid #1f2937; border-radius: 6px; padding: 2px 6px; font-size: 12px; }
+  .calldata { background: #0b0e14; border: 1px solid #1f2937; border-radius: 8px; padding: 12px; font-size: 12px; word-break: break-all; color: #b9c4d6; }
+  button {
+    font: inherit; cursor: pointer; border: 0; border-radius: 10px;
+    padding: 12px 18px; background: #2563eb; color: #fff; font-weight: 700;
+  }
+  button.secondary { background: #1f2937; color: #e8ecf6; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .ok { color: #34d399; }
+  .bad { color: #f87171; }
+  .warn { color: #fbbf24; }
+  .muted { color: #8a9ab2; }
+  .check { padding: 5px 0; }
+  .check b { display: inline-block; min-width: 22px; }
+  a { color: #60a5fa; }
+  .btns { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; border:1px solid #1f2937; }
+  #status { margin-top: 14px; font-size: 14px; }
+  .big { font-size: 17px; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Whitelist the $LDAT transfer relay</h1>
+  <p class="sub">Owner-only. Signs one transaction: <code>setDistributor(relay, true)</code> on the live $LDAT proxy.
+  This activates wallet-to-wallet transfers (via the relay, 1% burn fee). Reversible later with the same call set to <code>false</code>.
+  Lineascan "Write as Proxy" is broken for this Solady clone, so use this page. No libraries, no network calls except your wallet's RPC.</p>
+
+  <div class="card">
+    <h2>The transaction</h2>
+    <div class="row"><span class="k">to (proxy)</span><span class="v" id="to"></span></div>
+    <div class="row"><span class="k">value</span><span class="v">0 ETH</span></div>
+    <div class="row"><span class="k">function</span><span class="v">setDistributor(address,bool)</span></div>
+    <div class="row"><span class="k">arg: relay</span><span class="v" id="argRelay"></span></div>
+    <div class="row"><span class="k">arg: status</span><span class="v">true</span></div>
+    <div class="row"><span class="k">chain</span><span class="v">Linea (59144)</span></div>
+    <div style="margin-top:12px" class="muted">raw calldata (verify the last 40 hex of the relay below):</div>
+    <div class="calldata" id="calldata"></div>
+  </div>
+
+  <div class="card">
+    <h2>Connection</h2>
+    <div class="btns">
+      <button id="connect">Connect wallet</button>
+      <button id="switch" class="secondary" style="display:none">Switch to Linea</button>
+    </div>
+    <div id="status" class="muted">Not connected.</div>
+  </div>
+
+  <div class="card" id="preflightCard" style="display:none">
+    <h2>Pre-flight checks (read-only)</h2>
+    <div id="preflight"></div>
+    <div class="btns">
+      <button id="send" disabled>Sign &amp; send</button>
+      <button id="recheck" class="secondary">Re-run checks</button>
+    </div>
+    <div id="result" style="margin-top:14px"></div>
+  </div>
+
+  <p class="sub">After it confirms, this page re-reads <code>isDistributor(relay)</code> and shows it as <span class="ok">true</span>.
+  The relay then accepts transfers; the burn shows up automatically in the Burned counter.</p>
+</div>
+
+<script>
+// ---- constants (verified on-chain 2026-06-21) ----
+const PROXY  = "0x02F289E429655d0C0D713A7dFD26850A81f7cFC5"; // $LDAT
+const RELAY  = "0xe6e4bAff1E8b186420733833A043Ae28132195dB"; // LineaDATTransferRelay
+const OWNER  = "0x1470c542D60e83EcCFE005332f5789Bd669D027C"; // cold Keycard
+const CHAIN_ID_HEX = "0xe708"; // 59144
+const EXPLORER = "https://lineascan.build";
+
+// calldata
+const CALLDATA = "0xd59ba0df000000000000000000000000" + RELAY.slice(2).toLowerCase()
+               + "0000000000000000000000000000000000000000000000000000000000000001";
+// read selectors
+const SEL_isDistributor = "0x8f0c86fa";
+const SEL_LDAT = "0xe6c24618";
+const SEL_owner = "0x8da5cb5b";
+const word = (addr) => addr.slice(2).toLowerCase().padStart(64, "0");
+
+let account = null;
+
+const $ = (id) => document.getElementById(id);
+$("to").textContent = PROXY;
+$("argRelay").textContent = RELAY;
+$("calldata").textContent = CALLDATA;
+
+function eth(method, params) {
+  if (!window.ethereum) throw new Error("No injected wallet found. Open this in a browser with MetaMask/Frame/Status.");
+  return window.ethereum.request({ method, params: params || [] });
+}
+const eqAddr = (a, b) => a && b && a.toLowerCase() === b.toLowerCase();
+const addrFromWord = (hex) => "0x" + hex.slice(-40);
+
+async function call(to, data) { return eth("eth_call", [{ to, data }, "latest"]); }
+
+function setStatus(html, cls) { const el = $("status"); el.innerHTML = html; el.className = cls || ""; }
+
+async function refreshChainUi() {
+  const cid = await eth("eth_chainId");
+  $("switch").style.display = (cid === CHAIN_ID_HEX) ? "none" : "inline-block";
+  return cid;
+}
+
+$("connect").onclick = async () => {
+  try {
+    const accs = await eth("eth_requestAccounts");
+    account = accs[0];
+    const cid = await refreshChainUi();
+    let s = `Connected: <span class="mono">${account}</span> `;
+    s += eqAddr(account, OWNER) ? `<span class="pill ok">owner ✓</span>` : `<span class="pill bad">NOT the owner ✗</span>`;
+    if (cid !== CHAIN_ID_HEX) s += ` <span class="pill warn">wrong network</span>`;
+    setStatus(s, "");
+    $("preflightCard").style.display = "block";
+    await preflight();
+  } catch (e) { setStatus("Error: " + (e.message || e), "bad"); }
+};
+
+$("switch").onclick = async () => {
+  try {
+    await eth("wallet_switchEthereumChain", [{ chainId: CHAIN_ID_HEX }]);
+  } catch (e) {
+    if (e && e.code === 4902) {
+      await eth("wallet_addEthereumChain", [{
+        chainId: CHAIN_ID_HEX, chainName: "Linea",
+        nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+        rpcUrls: ["https://rpc.linea.build"], blockExplorerUrls: [EXPLORER],
+      }]);
+    } else { setStatus("Switch failed: " + (e.message || e), "bad"); return; }
+  }
+  await refreshChainUi(); await preflight();
+};
+
+function line(ok, label, extra) {
+  const mark = ok === true ? '<b class="ok">✓</b>' : ok === false ? '<b class="bad">✗</b>' : '<b class="warn">…</b>';
+  return `<div class="check">${mark}${label}${extra ? ` <span class="muted">${extra}</span>` : ""}</div>`;
+}
+
+async function preflight() {
+  const pf = $("preflight");
+  pf.innerHTML = "Running…";
+  $("send").disabled = true;
+  let html = "", allGood = true;
+  try {
+    const cid = await eth("eth_chainId");
+    const onLinea = cid === CHAIN_ID_HEX;
+    html += line(onLinea, "Network is Linea (59144)", onLinea ? "" : "switch network above");
+    allGood = allGood && onLinea;
+
+    const isOwner = eqAddr(account, OWNER);
+    html += line(isOwner, "Connected account is the owner", isOwner ? "" : "this account cannot sign setDistributor");
+    allGood = allGood && isOwner;
+
+    if (onLinea) {
+      // relay is bound to the right token
+      const ldat = addrFromWord(await call(RELAY, SEL_LDAT));
+      const ldatOk = eqAddr(ldat, PROXY);
+      html += line(ldatOk, "Relay is bound to this $LDAT proxy", ldatOk ? "" : `relay.LDAT()=${ldat}`);
+      allGood = allGood && ldatOk;
+
+      // chain-reported owner matches
+      const chainOwner = addrFromWord(await call(PROXY, SEL_owner));
+      const ownerOk = eqAddr(chainOwner, account);
+      html += line(ownerOk, "Proxy.owner() == connected account", ownerOk ? "" : `owner()=${chainOwner}`);
+      allGood = allGood && ownerOk;
+
+      // current state
+      const cur = await call(PROXY, SEL_isDistributor + word(RELAY));
+      const already = /1$/.test(cur);
+      html += line(!already ? null : true, already ? "Relay is ALREADY whitelisted" : "Relay not yet whitelisted (expected)", already ? "nothing to do" : "");
+
+      // dry-run the actual tx
+      try {
+        await eth("eth_call", [{ from: account, to: PROXY, data: CALLDATA, value: "0x0" }, "latest"]);
+        html += line(true, "Dry-run of setDistributor(relay,true) succeeds (won't revert)");
+      } catch (e) {
+        html += line(false, "Dry-run reverts", e.message || "");
+        allGood = false;
+      }
+    }
+  } catch (e) {
+    html += line(false, "Pre-flight error", e.message || String(e));
+    allGood = false;
+  }
+  pf.innerHTML = html;
+  $("send").disabled = !allGood;
+}
+$("recheck").onclick = preflight;
+
+$("send").onclick = async () => {
+  const res = $("result");
+  try {
+    $("send").disabled = true;
+    res.innerHTML = '<span class="warn">Confirm in your wallet (Keycard)…</span>';
+    const txHash = await eth("eth_sendTransaction", [{ from: account, to: PROXY, data: CALLDATA, value: "0x0" }]);
+    res.innerHTML = `Sent: <a href="${EXPLORER}/tx/${txHash}" target="_blank" rel="noopener">${txHash}</a><br><span class="warn">Waiting for confirmation…</span>`;
+    let receipt = null;
+    for (let i = 0; i < 120 && !receipt; i++) {
+      await new Promise(r => setTimeout(r, 3000));
+      receipt = await eth("eth_getTransactionReceipt", [txHash]);
+    }
+    if (!receipt) { res.innerHTML += `<br><span class="warn">Still pending - check the explorer link.</span>`; return; }
+    const success = receipt.status === "0x1";
+    if (!success) { res.innerHTML = `<span class="bad big">Transaction reverted.</span> <a href="${EXPLORER}/tx/${txHash}" target="_blank">view</a>`; return; }
+    const cur = await call(PROXY, SEL_isDistributor + word(RELAY));
+    const live = /1$/.test(cur);
+    res.innerHTML = `<span class="ok big">Done. Relay whitelisted ✓</span><br>`
+      + `tx: <a href="${EXPLORER}/tx/${txHash}" target="_blank">${txHash}</a><br>`
+      + `isDistributor(relay) now: <span class="${live ? "ok" : "bad"}">${live}</span><br>`
+      + `<span class="muted">Transfers via the relay are live. Set frontend NEXT_PUBLIC_RELAY_ADDRESS = ${RELAY}.</span>`;
+  } catch (e) {
+    res.innerHTML = `<span class="bad">Failed: ${(e && e.message) || e}</span>`;
+    $("send").disabled = false;
+  }
+};
+</script>
+</body>
+</html>

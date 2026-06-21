@@ -23,7 +23,7 @@ export default function TransferDocPage() {
         <li>move assets to a safer address</li>
       </ul>
 
-      <p>For this, we will launch a separate interface on our website:</p>
+      <p>For this, there is a dedicated interface on our website:</p>
 
       <p>
         <a href="https://www.on-chaindat.com/transfer">
@@ -32,7 +32,7 @@ export default function TransferDocPage() {
       </p>
 
       <p>
-        The transfer will work through a special intermediary contract.
+        The transfer works through a special intermediary contract (the relay).
       </p>
 
       <p>
@@ -41,7 +41,7 @@ export default function TransferDocPage() {
       </p>
 
       <p>
-        <strong>How it will work:</strong>
+        <strong>How it works:</strong>
       </p>
 
       <ul>
@@ -59,6 +59,18 @@ export default function TransferDocPage() {
       </ul>
 
       <p>
+        <strong>Transfer fee:</strong>
+      </p>
+
+      <p>
+        Every transfer charges a mandatory <strong>1% fee</strong>, taken in{" "}
+        <code>$XXXDAT</code> and <strong>burned</strong> (sent to the dead
+        address). The recipient receives the remaining <strong>99%</strong>. The
+        burn permanently reduces the circulating supply and shows up in the
+        protocol&rsquo;s burn total like any other buy-and-burn.
+      </p>
+
+      <p>
         <strong>Important:</strong>
       </p>
 
@@ -68,11 +80,12 @@ export default function TransferDocPage() {
         </li>
         <li>
           transfers are only possible through the official interface and the
-          special contract
+          relay contract
         </li>
         <li>
           the contract receives permission only for the exact amount you choose
         </li>
+        <li>a 1% fee is burned on every transfer; the recipient receives 99%</li>
         <li>tokens cannot be moved without your confirmation in your wallet</li>
       </ul>
     </>
