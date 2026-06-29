@@ -1,19 +1,19 @@
 # Phase 2 - Anvil Fork Stress Test Results
 
-**Дата:** 2026-05-01
-**Статус:** ✅ PASS (1000/1000 cycles, all invariants hold)
-**Тест:** [`contracts/test/Stress.t.sol`](../contracts/test/Stress.t.sol)
-**Скрипт-указатель:** [`contracts/script/SimulateCycles.s.sol`](../contracts/script/SimulateCycles.s.sol)
+**Date:** 2026-05-01
+**Status:** ✅ PASS (1000/1000 cycles, all invariants hold)
+**Test:** [`contracts/test/Stress.t.sol`](../contracts/test/Stress.t.sol)
+**Pointer script:** [`contracts/script/SimulateCycles.s.sol`](../contracts/script/SimulateCycles.s.sol)
 
 ---
 
 ## Summary
 
-Phase 2 стресс-тест запускается на форке Linea mainnet (chainId 59144), деплоит полную LDAT-инфраструктуру (factory + impl + proxy + mock pool manager + mock universal router), использует **настоящий $LINEA токен** (`0x1789e0043623282D5DCc7F213d703C6D8BAfBB04`) как underlying, балансы выдаются через forge-std `deal()` cheatcode (write-to-storage bypass).
+The Phase 2 stress test runs on a Linea mainnet fork (chainId 59144), deploys the full LDAT infrastructure (factory + impl + proxy + mock pool manager + mock universal router), uses the **real $LINEA token** (`0x1789e0043623282D5DCc7F213d703C6D8BAfBB04`) as the underlying, and balances are granted via the forge-std `deal()` cheatcode (write-to-storage bypass).
 
-Прогоняем 1000 рандомных циклов: каждый цикл - `vm.roll(+1..10 blocks)` плюс одна из 4 случайных операций (`addFees` / `buyTokens` / `sellTokens` / `processTokenTwap`-stub). После каждого цикла проверяются инварианты.
+We run 1000 random cycles: each cycle is `vm.roll(+1..10 blocks)` plus one of 4 random operations (`addFees` / `buyTokens` / `sellTokens` / `processTokenTwap`-stub). Invariants are checked after each cycle.
 
-**Команда запуска:**
+**Run command:**
 ```bash
 cd contracts/
 forge test --match-contract StressTest --fork-url https://rpc.linea.build -vv
@@ -21,9 +21,9 @@ forge test --match-contract StressTest --fork-url https://rpc.linea.build -vv
 
 ---
 
-## Метрики из последнего прогона
+## Metrics from the latest run
 
-| Метрика | Значение |
+| Metric | Value |
 |---|---|
 | Cycles executed | 1000 |
 | addFees actions | 247 |
@@ -32,12 +32,12 @@ forge test --match-contract StressTest --fork-url https://rpc.linea.build -vv
 | sellTokens attempts | 240 |
 | **sellTokens successes** | **98** (40.8% success rate) |
 | Total fees deposited | 66.245 ETH |
-| **Total bot gross profit (paid out по buyTokens)** | **65.27 ETH** |
+| **Total bot gross profit (paid out via buyTokens)** | **65.27 ETH** |
 | **Avg paid per successful buy** | **0.362 ETH** |
-| **Avg time-to-sell (blocks)** | **768** (~38 минут на Linea при 3s/block) |
-| Final totalSupply (LDAT) | 1 000 000 000 (без изменений - processTokenTwap stub) |
-| Final currentFees | 0.977 ETH (residual ниже buyIncrement-ramp ceiling) |
-| Final ethToTwap | 44.18 ETH (накоплен с sellTokens, не сожжён в stub) |
+| **Avg time-to-sell (blocks)** | **768** (~38 minutes on Linea at 3s/block) |
+| Final totalSupply (LDAT) | 1 000 000 000 (unchanged - processTokenTwap stub) |
+| Final currentFees | 0.977 ETH (residual below the buyIncrement-ramp ceiling) |
+| Final ethToTwap | 44.18 ETH (accumulated from sellTokens, not burned in the stub) |
 | Final treasury LINEA balance | 12.3M LINEA (82 unsold bags × 150k) |
 | Gas (1000 cycles) | 31.66M gas |
 | Wall time | 11.42s |
@@ -62,67 +62,67 @@ forge test --match-contract StressTest --fork-url https://rpc.linea.build -vv
 
 ## Slow-rug invariant verification (key security property)
 
-Среднее `paid` за успешный bag-buy = **0.362 ETH**. Это значение полностью укладывается в slow-rug-ceiling из `BaseStrategy.getMaxPriceForBuy()`:
+The average `paid` per successful bag-buy = **0.362 ETH**. This value fits entirely within the slow-rug ceiling from `BaseStrategy.getMaxPriceForBuy()`:
 ```
 maxBuy = (block.number - lastBuyBlock + 1) * buyIncrement = N * 0.02 ETH
 ```
 
-Между buy-операциями в среднем проходит ~5.5 блоков (обусловлено `vm.roll(+1..10)` × 1000 циклов / 180 успешных buys). Это даёт maxBuy ceiling ≈ 0.11 ETH на свежий buy. Среднее 0.362 ETH выше mean ceiling - это потому, что некоторые buys случаются после длинных простоев (10..50 блоков без buyTokens), когда `currentFees` накопился из multiple addFees.
+On average ~5.5 blocks pass between buy operations (driven by `vm.roll(+1..10)` × 1000 cycles / 180 successful buys). This gives a maxBuy ceiling ≈ 0.11 ETH per fresh buy. The average of 0.362 ETH is above the mean ceiling - this is because some buys occur after long idle periods (10..50 blocks without buyTokens), when `currentFees` has accumulated from multiple addFees.
 
-**Ни в одном из 180 успешных buys** не было нарушений: `actualPaid == availableFunds()` всегда выполнялось exactly. Это математически гарантирует, что **никакой бот не может вытащить больше, чем `min(currentFees, ramp ceiling)`** - slow-rug atomic-drain атака невозможна.
+**In none of the 180 successful buys** were there any violations: `actualPaid == availableFunds()` always held exactly. This mathematically guarantees that **no bot can extract more than `min(currentFees, ramp ceiling)`** - a slow-rug atomic-drain attack is impossible.
 
 ---
 
 ## Conservation laws (per buy/sell cycle)
 
-Полный buy → sell cycle:
-1. Bot платит `BAG_SIZE = 150_000` LINEA → получает `paid = availableFunds()` ETH
-2. Bag листится за `paid * 1.2` (20% маркап)
-3. Buyer платит `paid * 1.2` ETH → получает `BAG_SIZE` LINEA обратно
+Full buy → sell cycle:
+1. Bot pays `BAG_SIZE = 150_000` LINEA → receives `paid = availableFunds()` ETH
+2. Bag is listed for `paid * 1.2` (20% markup)
+3. Buyer pays `paid * 1.2` ETH → receives `BAG_SIZE` LINEA back
 4. Treasury: net 0 LINEA (gained 150k, lost 150k)
 5. Bot net: gained `paid` ETH, lost `BAG_SIZE` LINEA
 6. Buyer net: lost `paid * 1.2` ETH, gained `BAG_SIZE` LINEA
-7. Protocol net: gained `paid * 1.2` ETH (locked в `ethToTwap` для buy-and-burn)
+7. Protocol net: gained `paid * 1.2` ETH (locked in `ethToTwap` for buy-and-burn)
 
-Ассерты 3-9 в Stress.t.sol verify все эти балансовые равенства exactly per cycle. **Утечек LINEA или ETH из системы не обнаружено.**
+Assertions 3-9 in Stress.t.sol verify all these balance equalities exactly per cycle. **No leakage of LINEA or ETH out of the system was detected.**
 
 ---
 
 ## Phase 2 scope decisions
 
-**В scope Phase 2 (выполнено):**
-- ✅ Fork Linea mainnet, реальный $LINEA token
-- ✅ 1000 рандомных циклов с invariant checks
-- ✅ Conservation laws проверены exactly per buy/sell
+**In Phase 2 scope (completed):**
+- ✅ Fork Linea mainnet, real $LINEA token
+- ✅ 1000 random cycles with invariant checks
+- ✅ Conservation laws verified exactly per buy/sell
 - ✅ Slow-rug ceiling verified
 
-**Out of Phase 2 scope (отложено):**
-- ❌ Реальные swap'ы через настоящий PoolManager - нужен calibrated sqrtPriceX96 init + LP-NFT seed + хук с правильными flag bits. Это Phase 4 mainnet deploy task.
-- ❌ `processTokenTwap` execution - наш `MockUniversalRouter` не возвращает LDAT при swap, поэтому `_buyAndBurnTokens` корректно не отработает. Это тестируется отдельно в `Sandwich.t.sol` с controlled mock router.
-- ❌ Multi-block sandwich attack scenarios - Phase 3 testnet validation (Base Sepolia с реальным Uniswap v4).
+**Out of Phase 2 scope (deferred):**
+- ❌ Real swaps through an actual PoolManager - requires a calibrated sqrtPriceX96 init + LP-NFT seed + hook with the correct flag bits. This is a Phase 4 mainnet deploy task.
+- ❌ `processTokenTwap` execution - our `MockUniversalRouter` does not return LDAT on swap, so `_buyAndBurnTokens` will not run correctly. This is tested separately in `Sandwich.t.sol` with a controlled mock router.
+- ❌ Multi-block sandwich attack scenarios - Phase 3 testnet validation (Base Sepolia with real Uniswap v4).
 
 ---
 
-## Acceptance criteria для Phase 2
+## Acceptance criteria for Phase 2
 
-- [x] Stress test passes на Linea mainnet fork (1000/1000 cycles)
-- [x] Все Phase 1 unit tests остаются зелёными (102/102)
-- [x] Все 9 invariants верифицированы exactly
+- [x] Stress test passes on the Linea mainnet fork (1000/1000 cycles)
+- [x] All Phase 1 unit tests stay green (102/102)
+- [x] All 9 invariants verified exactly
 - [x] Conservation laws (buy/sell balance) verified
 - [x] Slow-rug ceiling property verified
-- [x] Treasury growth monotonic (across 180 buys, treasury growth = 27M LINEA gross, net 12.3M после 98 sells)
-- [x] Test runs in под 12 секунд (CI-friendly)
+- [x] Treasury growth monotonic (across 180 buys, treasury growth = 27M LINEA gross, net 12.3M after 98 sells)
+- [x] Test runs in under 12 seconds (CI-friendly)
 
 ---
 
-## Что дальше: Phase 3
+## What's next: Phase 3
 
-Phase 3 (Base Sepolia public testnet, ~7 дней):
-1. Deploy полной LDAT-инфраструктуры на Base Sepolia
-2. CREATE2 hook mining с правильными permission flags
+Phase 3 (Base Sepolia public testnet, ~7 days):
+1. Deploy the full LDAT infrastructure on Base Sepolia
+2. CREATE2 hook mining with the correct permission flags
 3. Pool initialization + LP-NFT seed
-4. **Smart-contract бот** (atomic, не EOA) для buyTokens/sellTokens automation
-5. **Next.js frontend** с 3 вариантами дизайна (**все mobile-responsive**: desktop / tablet / mobile breakpoints)
+4. **Smart-contract bot** (atomic, not EOA) for buyTokens/sellTokens automation
+5. **Next.js frontend** with 3 design variants (**all mobile-responsive**: desktop / tablet / mobile breakpoints)
 6. Live testnet observation period (7 days)
 
-После Phase 3 → Phase 4 (Linea mainnet production deploy).
+After Phase 3 → Phase 4 (Linea mainnet production deploy).

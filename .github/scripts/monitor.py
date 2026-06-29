@@ -143,7 +143,7 @@ def trades_feed(dat, dstate, trades_token):
         lines.append(
             f"{emoji} {s['side'].upper()} {eth:.4f} ETH{usd} ↔ {tok:,.0f} {sym} · {who} · {hhmm} UTC · {link}"
         )
-    extra = f"\n… и ещё {len(items) - 25}" if len(items) > 25 else ""
+    extra = f"\n… and {len(items) - 25} more" if len(items) > 25 else ""
     send(trades_token, f"<b>{dat['name']}</b>\n" + "\n".join(lines) + extra, silent=True, html=True)
     dstate["tradesTs"] = max(int(s["timestamp"]) for s in items)
 
@@ -176,7 +176,7 @@ class Alerter:
                 send(token, f"🔴 {text}")
                 self.alerts[key] = self.now
         elif prev is not None:
-            send(token, f"🟢 восстановилось: {key}")
+            send(token, f"🟢 recovered: {key}")
             del self.alerts[key]
 
 
@@ -193,7 +193,7 @@ def main(state=None):
 
     # --- platform -> status bot ---
     site_code, _ = fetch(SITE_URL)
-    al.check(status_token, "site", site_code != 200, f"сайт on-chaindat.com отвечает {site_code or 'timeout'} (не 200)")
+    al.check(status_token, "site", site_code != 200, f"on-chaindat.com site responds {site_code or 'timeout'} (not 200)")
 
     # Snapshot must be LIVE, not just a 200 envelope: during the 2026-06-13
     # Infura outage the route returned a structurally-valid all-ZEROS payload
@@ -212,11 +212,11 @@ def main(state=None):
         status_token,
         "snapshot",
         not snap_live,
-        f"/api/snapshot отдаёт пустые/нулевые данные (http {snap_code or 'timeout'}) - вероятно все RPC недоступны, сайт покажет $0",
+        f"/api/snapshot returns empty/zero data (http {snap_code or 'timeout'}) - likely all RPCs are unavailable, the site will show $0",
     )
 
     if ping:
-        send(status_token, "🧪 монитор задеплоен и работает (платформенный канал). Проверяю сайт + snapshot каждые ~5 минут.")
+        send(status_token, "🧪 monitor deployed and running (platform channel). Checking site + snapshot every ~5 minutes.")
 
     # --- per-DAT -> own bot ---
     for dat in DATS:
@@ -226,12 +226,12 @@ def main(state=None):
 
         k_code, k = fetch(dat["keeper"])
         k_ok = k_code == 200 and isinstance(k, dict)
-        al.check(token, f"{name}: keeper http", not k_ok, f"{name}: keeper /status недоступен (http {k_code or 'timeout'})")
+        al.check(token, f"{name}: keeper http", not k_ok, f"{name}: keeper /status unavailable (http {k_code or 'timeout'})")
 
         if k_ok:
-            al.check(token, f"{name}: keeper alive", not k.get("alive"), f"{name}: кипер сообщает alive=false")
+            al.check(token, f"{name}: keeper alive", not k.get("alive"), f"{name}: keeper reports alive=false")
             err = k.get("lastError")
-            al.check(token, f"{name}: keeper error", bool(err), f"{name}: кипер lastError: {str(err)[:160]}")
+            al.check(token, f"{name}: keeper error", bool(err), f"{name}: keeper lastError: {str(err)[:160]}")
 
             # RPC failover / revert notifications. The keeper exposes its active
             # RPC as e.g. "linea-mainnet.infura.io (1/4)" / "linea.drpc.org (2/4)".
@@ -244,20 +244,20 @@ def main(state=None):
                 prev_host = str(prev_rpc or "").split(" ")[0]
                 if prev_host and host != prev_host:
                     if "infura" in host.lower():
-                        send(token, f"🟢 {name}: RPC вернулся на платную Infura ({rpc})")
+                        send(token, f"🟢 {name}: RPC switched back to paid Infura ({rpc})")
                     elif "infura" in prev_host.lower():
-                        send(token, f"⚠️ {name}: платная Infura недоступна - кипер ушёл на публичный RPC {rpc}")
+                        send(token, f"⚠️ {name}: paid Infura unavailable - keeper failed over to public RPC {rpc}")
                     else:
-                        send(token, f"⚠️ {name}: публичный RPC сменился {prev_host} → {rpc} (предыдущий отвалился)")
+                        send(token, f"⚠️ {name}: public RPC changed {prev_host} → {rpc} (previous one dropped)")
                 dstate["rpc"] = rpc
             try:
                 age = time.time() - time.mktime(time.strptime(k["updatedAt"][:19], "%Y-%m-%dT%H:%M:%S"))
-                al.check(token, f"{name}: keeper stale", age > KEEPER_STALE_S, f"{name}: кипер не обновлял статус {int(age)}с (>{KEEPER_STALE_S}с) - возможно, процесс завис")
+                al.check(token, f"{name}: keeper stale", age > KEEPER_STALE_S, f"{name}: keeper has not updated status for {int(age)}s (>{KEEPER_STALE_S}s) - the process may be stuck")
             except Exception:
                 pass
             try:
                 eth = float(k.get("keeperEth") or 0)
-                al.check(token, f"{name}: keeper balance", eth < KEEPER_ETH_MIN, f"{name}: баланс кипера {eth:.4f} ETH < {KEEPER_ETH_MIN} - BUY встанут, нужен долив")
+                al.check(token, f"{name}: keeper balance", eth < KEEPER_ETH_MIN, f"{name}: keeper balance {eth:.4f} ETH < {KEEPER_ETH_MIN} - BUYs will stall, top-up needed")
             except Exception:
                 pass
 
@@ -266,7 +266,7 @@ def main(state=None):
                 bag = int(k.get("lastBagId") or 0)
                 prev_bag = int(dstate.get("lastBagId") or 0)
                 if prev_bag and bag > prev_bag:
-                    send(token, f"💰 {name}: куплен новый бэг #{bag} (было #{prev_bag}). availableFunds обнулились, копим дальше.")
+                    send(token, f"💰 {name}: new bag #{bag} bought (was #{prev_bag}). availableFunds reset to zero, accumulating again.")
                 dstate["lastBagId"] = bag
             except Exception:
                 pass
@@ -276,7 +276,7 @@ def main(state=None):
                 twap = float(k.get("ethToTwapEth") or 0)
                 if "ethToTwap" in dstate and twap > float(dstate["ethToTwap"]) + 1e-9:
                     gain = twap - float(dstate["ethToTwap"])
-                    send(token, f"💸 {name}: бэг продан - ethToTwap пополнился на {gain:.4f} ETH (теперь {twap:.4f} ETH, ждём burn).")
+                    send(token, f"💸 {name}: bag sold - ethToTwap grew by {gain:.4f} ETH (now {twap:.4f} ETH, awaiting burn).")
                 dstate["ethToTwap"] = twap
             except Exception:
                 pass
@@ -291,18 +291,18 @@ def main(state=None):
                         delta = (burned - int(dstate["burned"])) / 1e18
                         total = burned / 1e18
                         pct = burned / 1e27 * 100
-                        send(token, f"🔥 {name}: BURN! Сожжено +{delta:,.0f} токенов (всего {total:,.0f} = {pct:.4f}% supply).")
+                        send(token, f"🔥 {name}: BURN! Burned +{delta:,.0f} tokens (total {total:,.0f} = {pct:.4f}% supply).")
                     dstate["burned"] = str(burned)
                 except Exception:
                     pass
 
         i_code, _ = fetch(dat["indexer_healthz"])
-        al.check(token, f"{name}: indexer", i_code != 200, f"{name}: индексер healthz {i_code or 'timeout'} (таблицы на сайте перестанут обновляться)")
+        al.check(token, f"{name}: indexer", i_code != 200, f"{name}: indexer healthz {i_code or 'timeout'} (tables on the site will stop updating)")
 
         trades_feed(dat, dstate, trades_token)
 
         if ping:
-            send(token, f"🧪 монитор задеплоен и работает (канал {name}). Слежу за кипером, индексером, бэгами и burn'ами каждые ~5 минут.")
+            send(token, f"🧪 monitor deployed and running ({name} channel). Watching the keeper, indexer, bags and burns every ~5 minutes.")
 
     if persist:
         save_state(state)
@@ -317,7 +317,7 @@ def run_forever():
     state = {"alerts": {}, "dats": {}}
     status_token = os.environ.get("TG_TOKEN_STATUS")
     if status_token:
-        send(status_token, f"🛰️ лайв-монитор запущен на Fly (опрос каждые {interval}с). Ловлю смену RPC, падения и восстановления в реальном времени.")
+        send(status_token, f"🛰️ live monitor started on Fly (polling every {interval}s). Catching RPC changes, outages and recoveries in real time.")
     while True:
         try:
             main(state)

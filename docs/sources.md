@@ -1,8 +1,8 @@
 # Sources
 
-Сводный индекс всех ссылок, использованных при research-проходе.
+Consolidated index of all links used during the research pass.
 
-## Прототипы - Etherscan / Sourcify
+## Prototypes - Etherscan / Sourcify
 
 ### REKTSTR (ERC20Strategy v2)
 - Proxy: <https://etherscan.io/address/0xb40ede070d9d9f37e32a106b04b29e20ef6ee26e>
@@ -11,7 +11,7 @@
 - Underlying $REKT: <https://etherscan.io/token/0xdd3b11ef34cd511a2da159034a05fcb94d806686>
 - TokenStrategy UI: <https://www.tokenstrategy.com/strategies/0xb40ede070d9d9f37e32a106b04b29e20ef6ee26e>
 
-### WBTCSTR (ERC20Strategy v3) - наш прототип
+### WBTCSTR (ERC20Strategy v3) - our prototype
 - Proxy: <https://etherscan.io/address/0x7af2a142c3486a9726791098e6415b768513e363>
 - Implementation: <https://etherscan.io/address/0xb1a3015b61e4eac9253a674c6942cdc5dd8de510>
 - Hook: <https://etherscan.io/address/0x9f8f375b2d246da6be816b453f13d43d8240a444>
@@ -28,7 +28,7 @@
 - Twitter: <https://x.com/token_works>
 - Adam Lizek (Rhynotic): <https://x.com/Rhynotic>, <https://warpcast.com/rhynotic>
 
-### Связанные
+### Related
 - PunkStrategy ($PNKSTR): <https://etherscan.io/address/0xc50673EDb3A7b94E8CAD8a7d4E0cD68864E33eDF>
 - 0xQuit Twitter (Yuga Labs VP, slow-rug fix author): <https://x.com/0xQuit>
 - Slow-rug arbitrageur addr (20.09.2025): <https://etherscan.io/address/0xa3d297423b17a3894dddd582dc41ff20e237ab75>
@@ -41,7 +41,7 @@
 - $LINEA token (canonical L2): <https://lineascan.build/token/0x1789e0043623282D5DCc7F213d703C6D8BAfBB04>
 - $LINEA implementation: <https://lineascan.build/address/0xe03F157dE67AC4b2A9a949D64d2A3C64Ffa1BC55#code>
 
-### Uniswap v4 на Linea
+### Uniswap v4 on Linea
 - PoolManager: <https://lineascan.build/address/0x248083fb965359d82b06c1f5322480dcfc1ad857>
 - PositionManager: <https://lineascan.build/address/0xddcad5775b2816a87495f207731b3571d7ee3c76>
 - StateView: <https://lineascan.build/address/0xe861de206e460a8b936b05ad3816520b58ccdf9b>
@@ -54,13 +54,13 @@
 - `addresses.ts` (Linea entries): `sdks/sdk-core/src/addresses.ts`
 - `universal-router-sdk/src/utils/constants.ts`
 
-## Live API endpoints (для аналитики)
+## Live API endpoints (for analytics)
 
 - DefiLlama Coins: <https://coins.llama.fi/prices/current/...>
 - DefiLlama Yields: <https://yields.llama.fi/pools>
 - GeckoTerminal: <https://api.geckoterminal.com/api/v2/networks/linea/...>
 
-## Документация Uniswap v4
+## Uniswap v4 documentation
 
 - v4-core: <https://github.com/Uniswap/v4-core>
 - v4-periphery: <https://github.com/Uniswap/v4-periphery>
@@ -70,20 +70,20 @@
 ## TokenStrategy public mentions
 
 - docs.tokenstrategy.com - fee structure, anti-snipe details
-- bankless.com / Adam Levy - анализ PNKSTR launch и патчей
-- nftstrategy.fun - UI для NFTStrategy токенов
-- punkstrategy.fun - UI для PNKSTR
-- Bindoon's PunkStrategy v1 community разбор: <https://github.com/bindoon/PunkStrategy>
+- bankless.com / Adam Levy - analysis of the PNKSTR launch and patches
+- nftstrategy.fun - UI for NFTStrategy tokens
+- punkstrategy.fun - UI for PNKSTR
+- Bindoon's PunkStrategy v1 community breakdown: <https://github.com/bindoon/PunkStrategy>
 
 ## Incidents references
 
-- Rhynotic tweet после 20.09.2025: <https://x.com/Rhynotic/status/1969098120219775306>
-- 0xQuit personal bot deploy: упомянуто Bankless / Twitter контексте
+- Rhynotic tweet after 20.09.2025: <https://x.com/Rhynotic/status/1969098120219775306>
+- 0xQuit personal bot deploy: mentioned in the Bankless / Twitter context
 - SquiggleStrategy exploit: TokenWorks Twitter, 28.09.2025
 
-## Что НЕ нашли в публичных источниках
+## What we did NOT find in public sources
 
-- Реакции samczsun / pashov / spreekaway / DeFiHackLabs на TokenWorks bugs - не публиковались
-- Rekt.news статья - не было (импакт ниже их $1M+ порога)
-- Тех-postmortem от Rhynotic в Medium / Mirror / HackMD - не найден
-- `0xleastwood` audit report - упоминание есть, отчёт публично не опубликован
+- Reactions from samczsun / pashov / spreekaway / DeFiHackLabs to TokenWorks bugs - not published
+- Rekt.news article - there was none (impact below their $1M+ threshold)
+- Technical postmortem from Rhynotic on Medium / Mirror / HackMD - not found
+- `0xleastwood` audit report - a mention exists, but the report was not published publicly

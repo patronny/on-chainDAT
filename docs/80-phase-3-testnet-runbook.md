@@ -1,51 +1,51 @@
 # Phase 3 - Base Sepolia Testnet Deployment Runbook
 
-**Дата:** 2026-05-01
-**Статус:** Готов к деплою (deploy script успешно протестирован на Anvil fork Base Sepolia)
+**Date:** 2026-05-01
+**Status:** Ready to deploy (deploy script successfully tested on Anvil fork of Base Sepolia)
 **Network:** Base Sepolia (chainId 84532)
 **Deploy script:** [`contracts/script/DeployBaseSepolia.s.sol`](../contracts/script/DeployBaseSepolia.s.sol)
 
 ---
 
-## Что делает Phase 3
+## What Phase 3 does
 
-Phase 3 - это live валидация LDAT + бота на публичном тестнете (Base Sepolia, ~7 дней). Цель:
+Phase 3 is the live validation of LDAT + the bot on a public testnet (Base Sepolia, ~7 days). Goals:
 
-1. Подтвердить, что LineaDATStrategy корректно работает в реальной L2-среде (block timing, gas, sequencer ordering)
-2. Подтвердить, что LineaDATBot успешно крутит buyTokens / sellTokens циклы под live keeper trigger'ом (cron-job.org / GitHub Actions)
-3. Frontend (Next.js + RainbowKit + wagmi) работает с реальным RPC и смарт-контрактами
-4. Собрать метрики 7-дневного непрерывного прогона: число успешных раундов, средний `paid` per buy, gas стоимость, времена-до-продажи
+1. Confirm that LineaDATStrategy works correctly in a real L2 environment (block timing, gas, sequencer ordering)
+2. Confirm that LineaDATBot successfully runs buyTokens / sellTokens cycles under a live keeper trigger (cron-job.org / GitHub Actions)
+3. Frontend (Next.js + RainbowKit + wagmi) works with a real RPC and smart contracts
+4. Collect metrics from a 7-day continuous run: number of successful rounds, average `paid` per buy, gas cost, time-to-sale
 
 ---
 
-## Scope decisions (зафиксированы для Phase 3)
+## Scope decisions (locked for Phase 3)
 
-**Деплоится:**
-- ✅ `MockTLINEA` - testnet stub для $LINEA (faucet-enabled ERC20)
-- ✅ `LineaDATStrategy` impl + proxy через `LineaDATFactory`
+**Deployed:**
+- ✅ `MockTLINEA` - testnet stub for $LINEA (faucet-enabled ERC20)
+- ✅ `LineaDATStrategy` impl + proxy via `LineaDATFactory`
 - ✅ `LineaDATBot` (multicall keeper-bot)
-- ✅ Owner/keeper/feeAddress настраиваются через env vars
+- ✅ Owner/keeper/feeAddress configured via env vars
 
-**НЕ деплоится в Phase 3 (отложено до Phase 4 mainnet):**
-- ❌ CREATE2-mined hook (`LineaDATHook`) - вместо него используется deployer EOA как hookAddress
-- ❌ Uniswap v4 pool init (требует hook с правильными permission flags)
-- ❌ LP-NFT seed (требует pool)
-- ❌ `processTokenTwap` execution (требует pool для swap'ов - bot's `_tryTwap` поймает revert через try/catch и продолжит)
+**NOT deployed in Phase 3 (deferred to Phase 4 mainnet):**
+- ❌ CREATE2-mined hook (`LineaDATHook`) - the deployer EOA is used as hookAddress instead
+- ❌ Uniswap v4 pool init (requires a hook with the correct permission flags)
+- ❌ LP-NFT seed (requires a pool)
+- ❌ `processTokenTwap` execution (requires a pool for swaps - the bot's `_tryTwap` will catch the revert via try/catch and continue)
 
-**Почему такой scope?** Phase 3 main goal - bot validation under live network conditions. P2P `buyTokens` / `sellTokens` не зависят от Uniswap pool - они работают через `currentFees` и `onSale` state. Достаточно, чтобы deployer EOA мог сидить fees через `strategy.addFees{value:X}()` (он же hookAddress). Phase 4 mainnet добавит full hook + pool init.
+**Why this scope?** Phase 3's main goal is bot validation under live network conditions. P2P `buyTokens` / `sellTokens` do not depend on the Uniswap pool - they work via `currentFees` and `onSale` state. It is enough for the deployer EOA to be able to seed fees via `strategy.addFees{value:X}()` (it is also the hookAddress). Phase 4 mainnet will add the full hook + pool init.
 
 ---
 
 ## Pre-flight checklist
 
-- [ ] Deployer EOA создан, имеет ≥0.5 ETH на Base Sepolia
-  - Faucet: https://www.alchemy.com/faucets/base-sepolia (или Coinbase, или QuickNode)
-- [ ] RPC endpoint выбран:
+- [ ] Deployer EOA created, has ≥0.5 ETH on Base Sepolia
+  - Faucet: https://www.alchemy.com/faucets/base-sepolia (or Coinbase, or QuickNode)
+- [ ] RPC endpoint chosen:
   - **Default:** `https://base-sepolia.drpc.org` (no API key, ~50 RPS)
   - **Alternative 1:** `https://base-sepolia-rpc.publicnode.com` (no key, ~30 RPS)
-  - **Alternative 2:** `https://sepolia.base.org` (default, ~25 RPS, иногда rate-limit'ы)
-  - **Premium:** `https://base-sepolia.g.alchemy.com/v2/YOUR_KEY` (с Alchemy free tier, ~25 RPS, 30M CU/мес)
-- [ ] Все env vars готовы:
+  - **Alternative 2:** `https://sepolia.base.org` (default, ~25 RPS, occasional rate-limits)
+  - **Premium:** `https://base-sepolia.g.alchemy.com/v2/YOUR_KEY` (with Alchemy free tier, ~25 RPS, 30M CU/month)
+- [ ] All env vars ready:
   ```bash
   export BASE_SEPOLIA_RPC=https://base-sepolia.drpc.org
   export PRIVATE_KEY=0x...                       # deployer (also acts as hook)
@@ -58,7 +58,7 @@ Phase 3 - это live валидация LDAT + бота на публичном
 
 ## Deploy sequence
 
-### Step 1 - Запустить deploy script
+### Step 1 - Run the deploy script
 
 ```bash
 cd contracts/
@@ -70,20 +70,20 @@ forge script script/DeployBaseSepolia.s.sol:DeployBaseSepolia \
   -vvvv
 ```
 
-**Ожидаемый output:** addresses всех 5 контрактов (MockTLINEA, impl, factory, proxy, bot) + summary с next-steps.
+**Expected output:** addresses of all 5 contracts (MockTLINEA, impl, factory, proxy, bot) + summary with next steps.
 
-**Estimated gas:** ~8.4M total = ~0.0001 ETH at typical Base Sepolia gas prices (~0.011 gwei). Деплой стоит копейки.
+**Estimated gas:** ~8.4M total = ~0.0001 ETH at typical Base Sepolia gas prices (~0.011 gwei). The deploy costs pennies.
 
-### Step 2 - Сохранить адреса
+### Step 2 - Save the addresses
 
-После успешного деплоя forge сохранит broadcast в `contracts/broadcast/DeployBaseSepolia.s.sol/84532/run-latest.json`. Извлеки 5 адресов:
+After a successful deploy, forge will save the broadcast to `contracts/broadcast/DeployBaseSepolia.s.sol/84532/run-latest.json`. Extract the 5 addresses:
 
 ```bash
 jq -r '.transactions[] | select(.contractAddress != null) | "\(.contractName): \(.contractAddress)"' \
   contracts/broadcast/DeployBaseSepolia.s.sol/84532/run-latest.json
 ```
 
-Также скопируй адреса в `frontend/.env.local`:
+Also copy the addresses into `frontend/.env.local`:
 
 ```env
 NEXT_PUBLIC_CHAIN_ID=84532
@@ -94,15 +94,15 @@ NEXT_PUBLIC_STRATEGY_ADDRESS=0x...
 NEXT_PUBLIC_BOT_ADDRESS=0x...
 ```
 
-### Step 3 - Отправить ETH на бота для sellTokens
+### Step 3 - Send ETH to the bot for sellTokens
 
-Бот тратит ETH на `sellTokens` (платит listPrice бэкам). Owner отправляет 5 ETH на адрес бота:
+The bot spends ETH on `sellTokens` (pays listPrice to bags). The owner sends 5 ETH to the bot's address:
 
 ```bash
 cast send $BOT --value 5ether --rpc-url $BASE_SEPOLIA_RPC --private-key $PRIVATE_KEY
 ```
 
-### Step 4 - Verify на Basescan (Base Sepolia explorer)
+### Step 4 - Verify on Basescan (Base Sepolia explorer)
 
 ```bash
 forge verify-contract \
@@ -113,19 +113,19 @@ forge verify-contract \
   src/LineaDATStrategy.sol:LineaDATStrategy
 ```
 
-(Опционально, но желательно для прозрачности frontend.)
+(Optional, but desirable for frontend transparency.)
 
-### Step 5 - Настроить keeper cron
+### Step 5 - Set up the keeper cron
 
-Вариант A - **GitHub Actions** (рекомендован):
+Option A - **GitHub Actions** (recommended):
 
-Создать `.github/workflows/keeper.yml`:
+Create `.github/workflows/keeper.yml`:
 
 ```yaml
 name: LDAT Keeper
 on:
   schedule:
-    - cron: '*/10 * * * *'  # каждые 10 минут
+    - cron: '*/10 * * * *'  # every 10 minutes
   workflow_dispatch:
 jobs:
   run-round:
@@ -146,13 +146,13 @@ jobs:
 
 Secrets needed: `BASE_SEPOLIA_RPC`, `KEEPER_PK`, `BOT_ADDRESS`.
 
-Вариант B - **cron-job.org**:
+Option B - **cron-job.org**:
 
-cron-job.org делает HTTP requests, не tx, поэтому надо поднять простой relay-сервер (например, Vercel serverless function), который при HTTP-запросе вызывает `bot.executeRound()`. Усложнение - лучше использовать вариант A.
+cron-job.org makes HTTP requests, not txs, so you need to stand up a simple relay server (for example, a Vercel serverless function) that calls `bot.executeRound()` on an HTTP request. This adds complexity - it is better to use option A.
 
-### Step 6 - Периодически сидить fees
+### Step 6 - Seed fees periodically
 
-Чтобы бот имел работу (`availableFunds > 0`), кто-то должен пополнять `currentFees`. На testnet это делает deployer EOA через helper-скрипт:
+For the bot to have work (`availableFunds > 0`), someone has to top up `currentFees`. On testnet this is done by the deployer EOA via a helper script:
 
 ```bash
 STRATEGY=0x... SEED_AMOUNT=0.05ether \
@@ -161,29 +161,29 @@ STRATEGY=0x... SEED_AMOUNT=0.05ether \
   --broadcast --private-key $PRIVATE_KEY
 ```
 
-Запускать каждые 1-2 часа (можно тоже через GitHub Actions cron).
+Run every 1-2 hours (this can also be done via a GitHub Actions cron).
 
 ---
 
-## Acceptance criteria для Phase 3
+## Acceptance criteria for Phase 3
 
-- [ ] Deploy script успешно выполнен на Base Sepolia
-- [ ] Бот делает ≥ 50 успешных `buyTokens` за 7 дней непрерывной работы
-- [ ] Frontend подключается к Base Sepolia, показывает strategy state, позволяет user'ам swap (через faucet → buy bag → sell bag flow)
-- [ ] Keeper cron работает без сбоев 7 дней (≤ 5 пропущенных раундов из ~1000)
-- [ ] Все 3 design variants frontend полностью responsive на iPhone SE / iPhone 14 Pro / iPad / desktop
+- [ ] Deploy script successfully executed on Base Sepolia
+- [ ] Bot makes ≥ 50 successful `buyTokens` over 7 days of continuous operation
+- [ ] Frontend connects to Base Sepolia, shows strategy state, lets users swap (via faucet → buy bag → sell bag flow)
+- [ ] Keeper cron runs without failures for 7 days (≤ 5 missed rounds out of ~1000)
+- [ ] All 3 frontend design variants are fully responsive on iPhone SE / iPhone 14 Pro / iPad / desktop
 - [ ] Lighthouse mobile score ≥ 85
-- [ ] Метрики Phase 3 задокументированы в `docs/80-phase-3-results.md` после observation period
+- [ ] Phase 3 metrics documented in `docs/80-phase-3-results.md` after the observation period
 
 ---
 
-## Что дальше: Phase 4
+## What's next: Phase 4
 
-После успешного Phase 3 → Phase 4 (Linea mainnet production):
-1. CREATE2 hook mining + full hook deploy через `Deploy.s.sol`
-2. Uniswap v4 pool initialization с calibrated `sqrtPriceX96`
-3. LP-NFT seed с single-sided liquidity (1B LDAT, [-887220, +175020])
+After a successful Phase 3 → Phase 4 (Linea mainnet production):
+1. CREATE2 hook mining + full hook deploy via `Deploy.s.sol`
+2. Uniswap v4 pool initialization with calibrated `sqrtPriceX96`
+3. LP-NFT seed with single-sided liquidity (1B LDAT, [-887220, +175020])
 4. Transfer LP-NFT → `0x000…dEaD`
-5. Lineascan verification всех контрактов
-6. Покупка домена `on-chaindat.com` (already secured 2026-05-05), deploy frontend на Vercel
-7. Production keeper migration (если testnet keeper стабилен - оставить ту же архитектуру)
+5. Lineascan verification of all contracts
+6. Purchase of the `on-chaindat.com` domain (already secured 2026-05-05), deploy frontend on Vercel
+7. Production keeper migration (if the testnet keeper is stable - keep the same architecture)

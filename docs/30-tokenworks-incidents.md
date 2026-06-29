@@ -1,207 +1,207 @@
-# 30. Инциденты TokenWorks и кривые фиксы
+# 30. TokenWorks Incidents and Hacky Fixes
 
-Полный реестр публично известных багов, эксплоитов и архитектурных дизайн-flaw'ов в экосистеме TokenStrategy. Все эти случаи учитываем **в исходном коде LDAT до деплоя**, а не как wrapper-ы поверх (как у TokenWorks).
+A complete registry of publicly known bugs, exploits, and architectural design flaws in the TokenStrategy ecosystem. We account for all of these cases **in the LDAT source code before deployment**, rather than as wrappers on top (the way TokenWorks did).
 
-## Дисклеймер по охвату
+## Scope disclaimer
 
-Что **не найдено** в публичных источниках (важно зафиксировать - это не значит, что багов нет, это значит, что они не публичны):
-- Reentrancy в `beforeSwap` / `afterSwap` хуке TokenStrategy - публичный disclosure не найден
-- Неверный `sqrtPriceX96` в hook - не найдено
-- Drain treasury через подменённый pool - не найдено
-- Proxy / upgradeability vulns - нерелевантно (контракты renounced на legacy-deployment'ах)
-- Fee-on-transfer interaction bugs - не найдено
-- DOS vectors - не найдено
-- Реакции samczsun / pashov / spreekaway / DeFiHackLabs - не найдено
-- Rekt.news статья - не публиковали (импакт ниже их $1M+ порога)
-- Тех-postmortem от Rhynotic в Medium / Mirror / HackMD - не найдено
+What was **not found** in public sources (important to record - this does not mean the bugs do not exist, it means they are not public):
+- Reentrancy in the `beforeSwap` / `afterSwap` hook of TokenStrategy - no public disclosure found
+- Incorrect `sqrtPriceX96` in the hook - not found
+- Treasury drain via a substituted pool - not found
+- Proxy / upgradeability vulns - irrelevant (contracts renounced on legacy deployments)
+- Fee-on-transfer interaction bugs - not found
+- DOS vectors - not found
+- Reactions from samczsun / pashov / spreekaway / DeFiHackLabs - not found
+- Rekt.news article - not published (impact below their $1M+ threshold)
+- Technical postmortem from Rhynotic on Medium / Mirror / HackMD - not found
 
-`0xleastwood` упомянут как «аудитор» после паузы 28.09.2025 («no critical findings, but minor fixes and improvements were applied») - но **публичный отчёт не существует**, только косвенное упоминание в Twitter-индексе.
+`0xleastwood` is mentioned as an "auditor" after the pause on 2025-09-28 ("no critical findings, but minor fixes and improvements were applied") - but a **public report does not exist**, only an indirect mention in a Twitter index.
 
-## Инцидент 1 - PNKSTR ETH-drain bug + wrapper-фикс
+## Incident 1 - PNKSTR ETH-drain bug + wrapper fix
 
-| Поле | Значение |
+| Field | Value |
 |---|---|
-| **Дата** | примерно 6-9 сентября 2025 (после launch 6 сент) |
-| **Токен** | $PNKSTR |
-| **Класс бага** | Auth check / withdraw helper |
-| **Импакт** | $0 (whitehat-disclosure, не эксплуатировано) |
+| **Date** | approximately September 6-9, 2025 (after the September 6 launch) |
+| **Token** | $PNKSTR |
+| **Bug class** | Auth check / withdraw helper |
+| **Impact** | $0 (whitehat disclosure, not exploited) |
 
-### Суть
+### Summary
 
-Community-аудитор `@0xQuit` (Yuga Labs VP of Blockchain) обнаружил баг, через который теоретически можно было дренить ETH, накопленный в контракте PunkStrategy. Точные техдетали публично не раскрывались. Учитывая архитектуру (8% trade fee → внутренний баланс → автоматическая покупка floor Punk через CryptoPunks marketplace), наиболее вероятные классы бага:
-- неверный auth check на внутреннем `buyPunk()` / `withdraw` хелпере
-- неправильная проверка cost при вызове CryptoPunks `buyPunk(uint)` - позволяла бы передать минимальную цену, забрав излишек ETH
-- проблема с `transferEther` / fallback - рефанд шёл вызывающему, а не контракту-владельцу
+Community auditor `@0xQuit` (Yuga Labs VP of Blockchain) discovered a bug through which it was theoretically possible to drain the ETH accumulated in the PunkStrategy contract. The exact technical details were not publicly disclosed. Given the architecture (8% trade fee -> internal balance -> automatic purchase of a floor Punk via the CryptoPunks marketplace), the most likely bug classes are:
+- an incorrect auth check on the internal `buyPunk()` / `withdraw` helper
+- an incorrect cost check when calling the CryptoPunks `buyPunk(uint)` - which would allow passing a minimal price and pocketing the excess ETH
+- an issue with `transferEther` / fallback - the refund went to the caller rather than to the owner contract
 
-### Фикс (классический «костыль поверх контракта»)
+### Fix (the classic "crutch on top of the contract")
 
-> «A patch was developed quickly through a wrapper smart contract, thus avoiding the headaches of a token migration» (Bankless)
+> "A patch was developed quickly through a wrapper smart contract, thus avoiding the headaches of a token migration" (Bankless)
 
-- **Базовый ERC-20 не менялся** (он renounced - ничего нельзя поменять)
-- Сверху задеплоили wrapper-контракт, который теперь служит точкой входа для всей логики
-- Старый контракт остался в торговле как сам ERC-20, но критичные функции в нём фактически больше не используются
-- Это и объясняет ремарку из docs.tokenstrategy.com: **«Trades are NOT enforced through the hook»** для PNKSTR
+- **The base ERC-20 was not changed** (it is renounced - nothing can be changed)
+- A wrapper contract was deployed on top, which now serves as the entry point for all logic
+- The old contract remained in trading as the ERC-20 itself, but its critical functions are effectively no longer used
+- This is what explains the remark from docs.tokenstrategy.com: **"Trades are NOT enforced through the hook"** for PNKSTR
 
-### Урок для LDAT
+### Lesson for LDAT
 
-🔴 **НЕ renounce ownership сразу.** Стартуем с non-renounced (ты выбрал этот вариант), сохраняем возможность патчить implementation через UUPS upgrade.
+🔴 **Do NOT renounce ownership immediately.** We start non-renounced (you chose this option), preserving the ability to patch the implementation via UUPS upgrade.
 
-🔴 **Hook должен быть сменяемым через owner-only setter** (это уже есть в v3 как `updateHookAddress`).
+🔴 **The hook must be swappable through an owner-only setter** (this already exists in v3 as `updateHookAddress`).
 
-🔴 **Все ETH-движения внутри контракта проходят через инвариант-чекер** (баланс до vs после, no-leftover-allowed).
+🔴 **All ETH movements inside the contract go through an invariant checker** (balance before vs after, no-leftover-allowed).
 
-## Инцидент 2 - Slow-rug на 181.706 ETH ($813K) ⚠️ САМЫЙ ВАЖНЫЙ
+## Incident 2 - Slow-rug of 181.706 ETH ($813K) ⚠️ MOST IMPORTANT
 
-| Поле | Значение |
+| Field | Value |
 |---|---|
-| **Дата** | 20 сентября 2025, ~3 часа после launch |
-| **Токен** | $APESTR, $PUDGYSTR, $MOONSTR/$BIRBSTR, $MEEBSTR, $DICKSTR (5 токенов одновременно) |
-| **Класс бага** | Дизайн-flaw + ops-omission |
-| **Импакт** | **181.706 ETH ≈ $813,400** ушло из protocol treasury 5 strategies в одного актора |
-| **Адрес арбитражёра** | `0xa3d297423b17a3894dddd582dc41ff20e237ab75` |
+| **Date** | September 20, 2025, ~3 hours after launch |
+| **Token** | $APESTR, $PUDGYSTR, $MOONSTR/$BIRBSTR, $MEEBSTR, $DICKSTR (5 tokens simultaneously) |
+| **Bug class** | Design flaw + ops omission |
+| **Impact** | **181.706 ETH ≈ $813,400** left the protocol treasury of 5 strategies into a single actor |
+| **Arbitrageur address** | `0xa3d297423b17a3894dddd582dc41ff20e237ab75` |
 
-### Суть
+### Summary
 
-**Архитектура anti-snipe:** buy fee стартует с **95%** и убывает на 1%/мин до 10% resting. На пиковом интересе пул накопил больше ETH, чем нужно для floor NFT соответствующих коллекций.
+**Anti-snipe architecture:** the buy fee starts at **95%** and decreases by 1%/min down to a 10% resting level. At peak interest the pool accumulated more ETH than was needed for the floor NFT of the respective collections.
 
-**Архитектурное отличие от PNKSTR:** у CryptoPunks есть on-chain marketplace (`buyPunk`), а у других коллекций - нет. Поэтому покупка NFT не происходила автоматически из контракта, а должна была триггериться внешне (бот, вызов trigger-функции).
+**Architectural difference from PNKSTR:** CryptoPunks has an on-chain marketplace (`buyPunk`), while other collections do not. Therefore the NFT purchase did not happen automatically from the contract but had to be triggered externally (a bot, a call to a trigger function).
 
-**Команда не задеплоила бот** под эти 5 токенов.
+**The team did not deploy a bot** for these 5 tokens.
 
-В итоге внешний арбитражёр за 3 часа купил 10 BAYC, 7 Moonbirds, 5 Pudgy Penguins, 4 Meebits и продал их в стратегии (использовав raised fee floor strategy buying), извлёк дельту между real floor и накопленным пулом стратегии - нетто **181.706 ETH ≈ $813,400** прибыли.
+As a result, an external arbitrageur over 3 hours bought 10 BAYC, 7 Moonbirds, 5 Pudgy Penguins, 4 Meebits and sold them into the strategies (exploiting the raised fee floor strategy buying), extracting the delta between the real floor and the strategy's accumulated pool - a net profit of **181.706 ETH ≈ $813,400**.
 
-### Фикс (тоже снаружи)
+### Fix (also external)
 
-- Tweet Rhynotic: «We're fixing the frontend, but there's no exploit. The fees pooled up fast, and bots took the arb. Sadly the frontend "Buy Target NFT" button would have helped prevent this... Back to fixing»
-- **0xQuit** лично написал и задеплоил приватный bot для запуска `buyTarget` сразу при достижении floor
-- В контракт ничего не пушили - снова костыль снаружи: фронтенд + бот
+- Rhynotic's tweet: "We're fixing the frontend, but there's no exploit. The fees pooled up fast, and bots took the arb. Sadly the frontend "Buy Target NFT" button would have helped prevent this... Back to fixing"
+- **0xQuit** personally wrote and deployed a private bot to call `buyTarget` as soon as the floor was reached
+- Nothing was pushed into the contract - again a crutch on the outside: frontend + bot
 
-### Математика slow-rug - почему именно `buyIncrement` критичен
+### Slow-rug math - why `buyIncrement` specifically is critical
 
-Источник: [`BaseStrategy.getMaxPriceForBuy`, `availableFunds`](../research/tokenworks-sources/src_strategies_BaseStrategy.sol).
+Source: [`BaseStrategy.getMaxPriceForBuy`, `availableFunds`](../research/tokenworks-sources/src_strategies_BaseStrategy.sol).
 
 ```
 getMaxPriceForBuy() = (block.number - lastBuyBlock + 1) * buyIncrement
 availableFunds()    = min(currentFees, getMaxPriceForBuy())
 ```
 
-Бот хочет получить **максимальный `availableFunds`** при условии, что `availableFunds > marketPrice(bagSize)`. Профит за один вызов:
+The bot wants to obtain the **maximum `availableFunds`** under the condition that `availableFunds > marketPrice(bagSize)`. Profit per single call:
 
 ```
 profit = availableFunds - marketPrice(bagSize) - gas
 ```
 
-После вызова `lastBuyBlock = block.number` - потолок сбрасывается. Бот получает прибыль **только когда успевает дождаться роста потолка выше рынка**, и эта прибыль ограничена `min(currentFees, getMaxPriceForBuy)`.
+After the call, `lastBuyBlock = block.number` - the ceiling resets. The bot earns a profit **only when it manages to wait for the ceiling to grow above the market**, and this profit is bounded by `min(currentFees, getMaxPriceForBuy)`.
 
-**Сравнение режимов:**
+**Comparison of modes:**
 
-| Параметр | NFTStrategy gen-2 (slow-rug 20.09.2025) | WBTCSTR gen-3 | LDAT (наши параметры) |
+| Parameter | NFTStrategy gen-2 (slow-rug 2025-09-20) | WBTCSTR gen-3 | LDAT (our parameters) |
 |---|---|---|---|
-| `buyIncrement` | низкий (~0.001-0.01 ETH/блок) | **0.1 ETH/блок** | **0.02 ETH/блок** |
-| Block time | 12 секунд (mainnet) | 12 секунд | **3 секунды (Linea)** |
-| `bagSize` стоимость | ~5 ETH (флор пунка) | 0.54 ETH | **0.236 ETH** |
-| Catch-up time потолка до bagSize | часы → дни | 5.4 блока ≈ 65 сек | **12 блоков ≈ 36 сек** |
-| Окно накопления премии | большое | минимальное | **минимальное** |
-| Single-bot risk | **критический** | низкий | **низкий** |
+| `buyIncrement` | low (~0.001-0.01 ETH/block) | **0.1 ETH/block** | **0.02 ETH/block** |
+| Block time | 12 seconds (mainnet) | 12 seconds | **3 seconds (Linea)** |
+| `bagSize` cost | ~5 ETH (Punk floor) | 0.54 ETH | **0.236 ETH** |
+| Ceiling catch-up time to bagSize | hours -> days | 5.4 blocks ≈ 65 sec | **12 blocks ≈ 36 sec** |
+| Premium accumulation window | large | minimal | **minimal** |
+| Single-bot risk | **critical** | low | **low** |
 
-**Цифры атаки 20.09.2025:** 181.706 ETH ушло одному арбитражёру за ~3 часа на 5 токенах одновременно ⇒ ~12.1 ETH/час/токен. При предполагаемом `buyIncrement ≈ 0.005 ETH` потолок за час набирал ~1.5 ETH - но `currentFees` копился ещё быстрее (high initial fee curve = 99→10% сжимало сотни ETH в treasury за минуты). Это и был пробой.
+**Attack figures for 2025-09-20:** 181.706 ETH went to a single arbitrageur over ~3 hours across 5 tokens simultaneously => ~12.1 ETH/hour/token. With an assumed `buyIncrement ≈ 0.005 ETH`, the ceiling gained ~1.5 ETH per hour - but `currentFees` accrued even faster (the high initial fee curve = 99->10% compressed hundreds of ETH into the treasury within minutes). This was the breach.
 
-**WBTCSTR-фикс** - подняли `buyIncrement` до 0.1 ETH/блок. На рынке 0.0125 wBTC = 0.3 ETH ⇒ потолок догоняет рынок за 3 блока ≈ 36 секунд.
+**The WBTCSTR fix** - they raised `buyIncrement` to 0.1 ETH/block. On the market 0.0125 wBTC = 0.3 ETH => the ceiling catches up to the market in 3 blocks ≈ 36 seconds.
 
-**LDAT подход:** `buyIncrement = 0.02 ETH/блок` × Linea 3-сек блоки = **6.67 ETH/мин потенциального роста потолка**. На bagSize 0.236 ETH catch-up = **12 блоков ≈ 36 сек** (тот же эквивалент, что и WBTCSTR на mainnet).
+**LDAT approach:** `buyIncrement = 0.02 ETH/block` × Linea 3-sec blocks = **6.67 ETH/min of potential ceiling growth**. At a bagSize of 0.236 ETH the catch-up = **12 blocks ≈ 36 sec** (the same equivalent as WBTCSTR on mainnet).
 
-### Уроки для LDAT
+### Lessons for LDAT
 
-🔴 **Bot для buy-target - обязательно с launch.** 2 бота (active + standby), capital 3 ETH суммарно (см. [`50-lineadat-spec.md`](50-lineadat-spec.md)).
+🔴 **A bot for buy-target is mandatory at launch.** 2 bots (active + standby), 3 ETH of capital in total (see [`50-lineadat-spec.md`](50-lineadat-spec.md)).
 
-🔴 **Buy fee curve копируем v3 точно (99% → 10% за 89 минут).** Ты выбрал этот вариант для траста копии. Это держим под защитой высокого `buyIncrement` + бота.
+🔴 **We copy the buy fee curve from v3 exactly (99% -> 10% over 89 minutes).** You chose this option for the trust of the copy. We keep it under the protection of a high `buyIncrement` + the bot.
 
-🔴 **Per-tx ceiling уже встроен в v3** через `getMaxPriceForBuy` (формула: `(blocks+1) × buyIncrement`).
+🔴 **A per-tx ceiling is already built into v3** via `getMaxPriceForBuy` (formula: `(blocks+1) × buyIncrement`).
 
-## Инцидент 3 - SquiggleStrategy NFT-swap exploit ⚠️
+## Incident 3 - SquiggleStrategy NFT-swap exploit ⚠️
 
-| Поле | Значение |
+| Field | Value |
 |---|---|
-| **Дата** | 28 сентября 2025 |
-| **Токен** | SquiggleStrategy |
-| **Класс бага** | **Implementation bug** - неверная валидация поступающего NFT |
-| **Импакт** | Утечка ценных Chromie Squiggles из treasury (десятки ETH eq); replaced на дешёвые "Day One AB: Genesis", "Construction Token" |
+| **Date** | September 28, 2025 |
+| **Token** | SquiggleStrategy |
+| **Bug class** | **Implementation bug** - incorrect validation of the incoming NFT |
+| **Impact** | Leakage of valuable Chromie Squiggles from the treasury (tens of ETH eq); replaced with cheap "Day One AB: Genesis", "Construction Token" |
 
-### Суть
+### Summary
 
-Атакующий нашёл, что контракт SquiggleStrategy позволял **swap NFT внутри стратегии** - отдать стратегии низкоценный NFT, забрать высокоценный Chromie Squiggle, удерживаемый стратегией.
+The attacker found that the SquiggleStrategy contract allowed **swapping an NFT inside the strategy** - giving the strategy a low-value NFT and taking out a high-value Chromie Squiggle held by the strategy.
 
-**Корень бага:** Chromie Squiggles, Day One AB и Construction Token шарят **один и тот же ERC-721 контракт** Art Blocks Curated (`0x059EDD72Cd353dF5106D2B9cC5ab83a52287aC3a`). У Art Blocks все Curated проекты - токены одного ERC-721, отличаются только диапазоном `tokenId` (`projectId * 1_000_000 + mintNumber`).
+**Root of the bug:** Chromie Squiggles, Day One AB, and Construction Token share **the same ERC-721 contract** of Art Blocks Curated (`0x059EDD72Cd353dF5106D2B9cC5ab83a52287aC3a`). With Art Blocks, all Curated projects are tokens of a single ERC-721, differing only by `tokenId` range (`projectId * 1_000_000 + mintNumber`).
 
-Стратегия валидировала «принимаемый NFT» **по адресу контракта, а не по `(contract, projectId)` паре**. Атакующий слал в стратегию ID из коллекций «Day One AB» / «Construction Token» (другой projectId, но тот же contract), стратегия принимала их как «valid Squiggle» и отдавала настоящий Squiggle взамен.
+The strategy validated the "accepted NFT" **by the contract address, not by the `(contract, projectId)` pair**. The attacker sent the strategy IDs from the "Day One AB" / "Construction Token" collections (a different projectId but the same contract), the strategy accepted them as a "valid Squiggle" and handed out a real Squiggle in exchange.
 
-### Фикс
+### Fix
 
-- Через X: «We are actively investigating an exploit on the SquiggleStrategy contract. All other strategies remain unaffected»
-- Пауза остальных NFTStrategy токенов на «аудит»
-- В контракт-фикс не пошли (SquiggleStrategy renounced); strategy фактически списан как dead
+- Via X: "We are actively investigating an exploit on the SquiggleStrategy contract. All other strategies remain unaffected"
+- Pause of the remaining NFTStrategy tokens for an "audit"
+- They did not go for a contract fix (SquiggleStrategy is renounced); the strategy was effectively written off as dead
 
-### Уроки для LDAT
+### Lessons for LDAT
 
-🟢 **Для LDAT этот баг неприменим напрямую** - underlying у нас ERC-20 (`$LINEA`), там нет projectId-внутри-contract проблемы.
+🟢 **For LDAT this bug is not directly applicable** - our underlying is an ERC-20 (`$LINEA`), where there is no projectId-within-contract problem.
 
-🔴 **Но принцип шире:** валидация underlying должна быть строгой. Проверяем `address(underlying) == LINEA_ADDRESS` immutable-константой при initialize и при каждой fee-обработке.
+🔴 **But the principle is broader:** underlying validation must be strict. We check `address(underlying) == LINEA_ADDRESS` with an immutable constant at initialize and on every fee processing.
 
-🔴 **Если underlying - fee-on-transfer токен, rebase-токен или blacklist-токен**, наш код должен detection'ить это и отказывать. $LINEA - стандартный non-rebasing ERC-20 без fee-on-transfer (verified из source `L2LineaToken` на Lineascan).
+🔴 **If the underlying is a fee-on-transfer token, a rebase token, or a blacklist token**, our code must detect this and refuse. $LINEA is a standard non-rebasing ERC-20 without fee-on-transfer (verified from the `L2LineaToken` source on Lineascan).
 
-🔴 **Slither + Aderyn + manual review** - критичная финальная очередь. Этот класс бага ловится Slither за минуту.
+🔴 **Slither + Aderyn + manual review** - the critical final stage. This class of bug is caught by Slither in a minute.
 
-## Инцидент 4 - High initial fee window (95-99%): структурная уязвимость
+## Incident 4 - High initial fee window (95-99%): a structural vulnerability
 
-| Поле | Значение |
+| Field | Value |
 |---|---|
-| **Дата** | хроническое (с 20.09.2025 и далее на каждом launch) |
-| **Токены** | все strategies, использующие decay-fee schedule |
-| **Класс бага** | Дизайн-flaw |
-| **Импакт** | См. Инцидент 2 |
+| **Date** | chronic (from 2025-09-20 onward at every launch) |
+| **Tokens** | all strategies using the decay-fee schedule |
+| **Bug class** | Design flaw |
+| **Impact** | See Incident 2 |
 
-### Суть
+### Summary
 
-Согласно `docs.tokenstrategy.com`: «Buy tax starts at 99% and decreases 1% per minute to prevent sniping». Источники сообщают разные числа - 95% (первый батч NFTStrategy), затем 99% (TokenStrategy permissionless). Декей -1%/мин до 10%.
+According to `docs.tokenstrategy.com`: "Buy tax starts at 99% and decreases 1% per minute to prevent sniping". Sources report different numbers - 95% (the first NFTStrategy batch), then 99% (TokenStrategy permissionless). Decay of -1%/min down to 10%.
 
-Это **не привычный anti-snipe**: за 89 минут fee → 10%, и весь этот период любая покупка платит огромный fee, который мгновенно идёт в treasury. Это и привело к Инциденту 2.
+This is **not the usual anti-snipe**: over 89 minutes the fee -> 10%, and throughout this entire period any purchase pays a huge fee that instantly goes into the treasury. This is what led to Incident 2.
 
-### Урок для LDAT
+### Lesson for LDAT
 
-🟡 **Ты выбрал копию 99% → 10% за 89 минут** для траста. Это допустимо при условиях:
-- `buyIncrement = 0.02 ETH/блок` высокий ⇒ потолок быстро догоняет
-- Свой bot активен с launch (2 бота, 3 ETH капитала)
-- Frontend-кнопка «Buy Target $LINEA» доступна с момента deploy
+🟡 **You chose to copy 99% -> 10% over 89 minutes** for trust. This is acceptable under the conditions:
+- `buyIncrement = 0.02 ETH/block` is high => the ceiling catches up quickly
+- Our own bot is active from launch (2 bots, 3 ETH of capital)
+- The frontend "Buy Target $LINEA" button is available from the moment of deploy
 
-Если эти 3 условия выполнены - slow-rug математически почти невозможен. Если хоть одно отвалится - повторим инцидент 20.09.2025.
+If these 3 conditions are met, a slow-rug is mathematically almost impossible. If even one falls away, we will repeat the incident of 2025-09-20.
 
-## Инцидент 5 - PNKSTR без хука: fees enforced ONLY off-contract
+## Incident 5 - PNKSTR without a hook: fees enforced ONLY off-contract
 
-| Поле | Значение |
+| Field | Value |
 |---|---|
-| **Класс** | Архитектура pre-v2 |
-| **Импакт** | Trade на любом не-Uniswap DEX обходит fee целиком |
+| **Class** | Pre-v2 architecture |
+| **Impact** | A trade on any non-Uniswap DEX bypasses the fee entirely |
 
-### Суть
+### Summary
 
-PNKSTR деплоился до того, как TokenWorks ввели Uniswap v4 hook. Trade fee enforcement был полностью off-contract: docs.tokenstrategy.com открыто пишет «Trades are NOT enforced through the hook». На практике любой DEX, отличный от их Uniswap pool, не платит fee - это значит arbitrage-маршруты обходят treasury.
+PNKSTR was deployed before TokenWorks introduced the Uniswap v4 hook. Trade fee enforcement was entirely off-contract: docs.tokenstrategy.com openly states "Trades are NOT enforced through the hook". In practice, any DEX other than their Uniswap pool does not pay the fee - this means arbitrage routes bypass the treasury.
 
-### Фикс
+### Fix
 
-С v2 (REKTSTR) и v3 (WBTCSTR) - все trade fees enforced через Uniswap v4 hook. Любой swap в их pool платит fee (через `_afterSwap`).
+Since v2 (REKTSTR) and v3 (WBTCSTR) - all trade fees are enforced through the Uniswap v4 hook. Any swap in their pool pays the fee (via `_afterSwap`).
 
-### Урок для LDAT
+### Lesson for LDAT
 
-🟢 **Уже встроено в v3 ⇒ копируем как есть.** Hook permissions = `beforeInitialize | afterAddLiquidity | afterSwap | afterSwapReturnDelta`.
+🟢 **Already built into v3 => we copy it as is.** Hook permissions = `beforeInitialize | afterAddLiquidity | afterSwap | afterSwapReturnDelta`.
 
-⚠️ **Но это работает только в нашем pool.** Если кто-то создаст shadow-pool LDAT/USDC на каком-то DEX - там fee не работает. Мы не можем этого предотвратить (open ERC-20), но можем не давать ликвидность таким shadow pools.
+⚠️ **But this works only in our pool.** If someone creates a shadow-pool LDAT/USDC on some DEX - the fee does not work there. We cannot prevent this (open ERC-20), but we can refrain from providing liquidity to such shadow pools.
 
-## Сводная таблица
+## Summary table
 
-| Инцидент | Дата | Токен | Класс | Импакт | Реальный фикс | Что делаем в LDAT |
+| Incident | Date | Token | Class | Impact | Real fix | What we do in LDAT |
 |---|---|---|---|---|---|---|
-| 1 | 6-9 сент 2025 | PNKSTR | auth check / withdraw | $0 (whitehat) | Wrapper контракт поверх | Non-renounced owner + UUPS proxy → можем патчить |
-| 2 | 20 сент 2025 | 5 NFTStrategy | slow-rug дизайн | **$813K** в одного | Frontend + private bot | 2 наших бота с launch + высокий `buyIncrement` 0.02 ETH/блок |
-| 3 | 28 сент 2025 | SquiggleStrategy | NFT validation | десятки ETH | Strategy брошен | N/A для ERC-20; valid `address(underlying)` immutable |
-| 4 | хронический | все NFTStrategy | high initial fee | См. инцидент 2 | Bot + frontend | Копия 99→10% защищена ботом + `buyIncrement` |
-| 5 | архитектура | PNKSTR | fees off-contract | obfuscated | Введение hook в v2/v3 | Hook with `afterSwap` (как v3) |
+| 1 | Sep 6-9, 2025 | PNKSTR | auth check / withdraw | $0 (whitehat) | Wrapper contract on top | Non-renounced owner + UUPS proxy -> we can patch |
+| 2 | Sep 20, 2025 | 5 NFTStrategy | slow-rug design | **$813K** to a single actor | Frontend + private bot | 2 of our bots from launch + high `buyIncrement` 0.02 ETH/block |
+| 3 | Sep 28, 2025 | SquiggleStrategy | NFT validation | tens of ETH | Strategy abandoned | N/A for ERC-20; valid `address(underlying)` immutable |
+| 4 | chronic | all NFTStrategy | high initial fee | See incident 2 | Bot + frontend | A copy of 99->10% protected by the bot + `buyIncrement` |
+| 5 | architecture | PNKSTR | fees off-contract | obfuscated | Introduction of the hook in v2/v3 | Hook with `afterSwap` (like v3) |
