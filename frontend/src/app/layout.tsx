@@ -4,6 +4,7 @@ import { Providers } from "./providers";
 import { TermsGate } from "@/components/terms-gate";
 import { Analytics } from "@vercel/analytics/next";
 import { GoogleAnalytics } from "@/components/google-analytics";
+import { CookieConsent } from "@/components/cookie-consent";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
@@ -37,6 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen bg-background text-foreground antialiased">
         <Providers>{children}</Providers>
         <TermsGate />
+        <CookieConsent />
         <Analytics />
         <GoogleAnalytics />
       </body>
