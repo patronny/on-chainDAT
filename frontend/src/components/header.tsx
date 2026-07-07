@@ -31,7 +31,15 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md">
       <div className="container flex h-14 sm:h-16 items-center justify-between gap-3 sm:gap-4">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 flex-shrink-0">
+        <Link href="/" aria-label="on-chainDAT home" className="flex items-center gap-2 flex-shrink-0">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/onchaindat-mark.svg"
+            alt=""
+            width={32}
+            height={32}
+            className="w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0"
+          />
           <span className="text-base sm:text-lg md:text-xl font-display font-bold tracking-tight whitespace-nowrap">
             on-chain<span className="text-primary">DAT</span>
           </span>

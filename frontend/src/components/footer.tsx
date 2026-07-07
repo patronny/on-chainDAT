@@ -8,8 +8,16 @@ export function Footer() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8">
           <div className="col-span-2 sm:col-span-1">
             <h3 className="text-lg font-display font-bold mb-2">
-              <Link href="/" aria-label="on-chainDAT home" className="hover:opacity-90 focus-visible:ring-2 focus-visible:ring-primary rounded-sm">
-                on-chain<span className="text-primary">DAT</span>
+              <Link href="/" aria-label="on-chainDAT home" className="inline-flex items-center gap-2 hover:opacity-90 focus-visible:ring-2 focus-visible:ring-primary rounded-sm">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/onchaindat-mark.svg"
+                  alt=""
+                  width={28}
+                  height={28}
+                  className="w-7 h-7 flex-shrink-0"
+                />
+                <span>on-chain<span className="text-primary">DAT</span></span>
               </Link>
             </h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
