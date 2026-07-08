@@ -230,8 +230,18 @@ def main(state=None):
 
         if k_ok:
             al.check(token, f"{name}: keeper alive", not k.get("alive"), f"{name}: keeper reports alive=false")
+            # Debounce single-tick transients. The keeper sets lastError on ONE failed
+            # tick and clears it on the next successful tick (~6s later); a benign RPC
+            # blip (e.g. Infura returning "missing revert data" mid-eth_call on the
+            # aggregate3 snapshot) self-heals without any action ever firing. Alerting on
+            # the first sighting flapped a 🔴/🟢 pair inside a minute. Require the error to
+            # survive >=2 consecutive polls (~2 min) before paging: a genuinely stuck
+            # keeper (sustained RPC outage / wedged process) still trips it, a self-healing
+            # blip stays silent. Streak persists in dstate (Fly in-memory loop + GH cache).
             err = k.get("lastError")
-            al.check(token, f"{name}: keeper error", bool(err), f"{name}: keeper lastError: {str(err)[:160]}")
+            streak = (dstate.get("keeperErrStreak", 0) + 1) if err else 0
+            dstate["keeperErrStreak"] = streak
+            al.check(token, f"{name}: keeper error", streak >= 2, f"{name}: keeper lastError: {str(err)[:160]}")
 
             # RPC failover / revert notifications. The keeper exposes its active
             # RPC as e.g. "linea-mainnet.infura.io (1/4)" / "linea.drpc.org (2/4)".
