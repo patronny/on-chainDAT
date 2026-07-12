@@ -30,6 +30,17 @@ REALERT_MIN = 30
 KEEPER_ETH_MIN = 0.3
 KEEPER_STALE_S = 240
 
+# Indexer disk self-guard (needs FLY_API_TOKEN; disabled if unset). The 2026-07-12
+# outage was an ENOSPC crash-loop: the PGlite /data volume filled to 100%, so Postgres
+# aborted creating a WAL segment, Fly restart-looped, and healthz timed out. A clean
+# restart checkpoints the WAL and reclaims space (observed 736MB->164MB), so we measure
+# /data and auto-restart the indexer to reclaim BEFORE it hits 100% - self-healing.
+FLY_API = "https://api.machines.dev/v1"
+INDEXER_DISK_WARN_PCT = 70            # notify (visibility)
+INDEXER_DISK_CRIT_PCT = 85            # auto-reclaim (restart); still ~450MB free on 3GB
+INDEXER_DISK_CHECK_EVERY_S = 300      # measure every ~5 min, not every poll
+INDEXER_RESTART_COOLDOWN_S = 1800     # >=30 min between auto-restarts (recover + settle)
+
 SITE_URL = "https://www.on-chaindat.com"
 SNAPSHOT_URL = "https://www.on-chaindat.com/api/snapshot"
 
@@ -41,6 +52,9 @@ DATS = [
         "keeper": "https://lineadat-keeper.fly.dev/status",
         "indexer_healthz": "https://lineadat-indexer.fly.dev/healthz",
         "indexer_graphql": "https://lineadat-indexer.fly.dev/graphql",
+        # Fly app for the indexer disk self-guard (auto-reclaim). Machine id is
+        # looked up dynamically so it survives machine recreation.
+        "fly_app": "lineadat-indexer",
         "explorer_tx": "https://lineascan.build/tx/",
         # CDN-cached server route with this DAT's on-chain state (burned etc.)
         "snapshot": SNAPSHOT_URL,
@@ -180,6 +194,99 @@ class Alerter:
             del self.alerts[key]
 
 
+def _fly(method, path, token, body=None, timeout=25):
+    """Fly Machines API call. Returns parsed JSON ({} for empty 2xx), None on error."""
+    data = json.dumps(body).encode() if body is not None else None
+    req = urllib.request.Request(
+        f"{FLY_API}{path}", data=data, method=method,
+        headers={"authorization": f"Bearer {token}", "content-type": "application/json"},
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            raw = r.read()
+            return json.loads(raw) if raw else {}
+    except Exception:
+        return None
+
+
+def fly_machine_id(app, token):
+    """Id of the app's running machine (dynamic lookup survives machine recreation)."""
+    ms = _fly("GET", f"/apps/{app}/machines", token)
+    if not isinstance(ms, list) or not ms:
+        return None
+    started = [m for m in ms if m.get("state") == "started"]
+    return (started or ms)[0].get("id")
+
+
+def fly_disk_pct(app, machine, token, mount="/data"):
+    """Used percent of `mount` via `df` exec, or None if the call/parse fails."""
+    out = _fly("POST", f"/apps/{app}/machines/{machine}/exec", token,
+               {"command": ["df", "-B1", mount], "timeout": 10})
+    if not isinstance(out, dict) or out.get("exit_code") != 0:
+        return None
+    for line in (out.get("stdout") or "").splitlines():
+        p = line.split()
+        if len(p) >= 6 and p[5] == mount:
+            try:
+                return int(p[4].rstrip("%"))
+            except ValueError:
+                return None
+    return None
+
+
+def fly_restart(app, machine, token):
+    """Restart the machine (checkpoints PGlite WAL -> reclaims /data). True on success."""
+    return _fly("POST", f"/apps/{app}/machines/{machine}/restart", token) is not None
+
+
+def indexer_disk_guard(dat, dstate, token, al):
+    """Keep the indexer /data volume off 100% (prevents the ENOSPC crash-loop). Measure
+    disk every ~5 min; at CRIT auto-restart to checkpoint the WAL and reclaim space. If a
+    restart does NOT reclaim (real data growth, not WAL bloat), stop restarting and page a
+    human to extend the volume. No-op when FLY_API_TOKEN / fly_app are unset (GitHub cron)."""
+    app = dat.get("fly_app")
+    fly_token = os.environ.get("FLY_API_TOKEN")
+    if not (app and fly_token):
+        return
+    now = time.time()
+    if now - float(dstate.get("diskCheckedAt", 0)) < INDEXER_DISK_CHECK_EVERY_S:
+        return
+    machine = fly_machine_id(app, fly_token)
+    if not machine:
+        return  # transient API failure; healthz check already covers a truly-down indexer
+    pct = fly_disk_pct(app, machine, fly_token)
+    if pct is None:
+        return  # exec failed (e.g. mid-restart) - retry next cycle, don't stamp diskCheckedAt
+    dstate["diskCheckedAt"] = now
+    name = dat["name"]
+    key = f"{name}: indexer disk"
+    # Positive liveness in `fly logs`: a silent guard (stale token / API change) would
+    # otherwise look identical to a healthy one until the disk actually fills.
+    print(f"{name}: indexer /data {pct}% used (warn {INDEXER_DISK_WARN_PCT}/crit {INDEXER_DISK_CRIT_PCT})")
+
+    if pct >= INDEXER_DISK_CRIT_PCT:
+        if dstate.get("diskManual"):
+            al.check(token, key, True, f"{name}: indexer /data {pct}% full - a prior auto-restart did NOT free space, so this is real data growth. Extend the Fly volume (`flyctl volumes extend`); a restart won't help.")
+        elif now - float(dstate.get("diskRestartAt", 0)) >= INDEXER_RESTART_COOLDOWN_S:
+            if float(dstate.get("diskRestartAt", 0)) > 0:
+                # restarted before, waited a full cooldown, still critical -> ineffective
+                dstate["diskManual"] = True
+                al.check(token, key, True, f"{name}: indexer /data still {pct}% after an auto-restart - escalating; extend the Fly volume.")
+            else:
+                send(token, f"🟠 {name}: indexer /data {pct}% full (>{INDEXER_DISK_CRIT_PCT}%) - auto-restarting to checkpoint PGlite WAL and reclaim space.")
+                ok = fly_restart(app, machine, fly_token)
+                dstate["diskRestartAt"] = now
+                if not ok:
+                    al.check(token, key, True, f"{name}: indexer /data {pct}% and the auto-restart API call FAILED - restart it manually.")
+        # else: within cooldown, a restart is already in flight -> stay quiet
+    elif pct >= INDEXER_DISK_WARN_PCT:
+        al.check(token, key, True, f"{name}: indexer /data {pct}% full (warn >{INDEXER_DISK_WARN_PCT}%); auto-reclaim triggers at {INDEXER_DISK_CRIT_PCT}%.")
+    else:
+        al.check(token, key, False, "")   # healthy -> clears any disk alert (recovery note)
+        dstate["diskRestartAt"] = 0
+        dstate["diskManual"] = False
+
+
 def main(state=None):
     # GitHub one-shot: load+save file state. Fly loop: caller passes a persistent
     # in-memory dict, so we neither load nor save a file.
@@ -308,6 +415,9 @@ def main(state=None):
 
         i_code, _ = fetch(dat["indexer_healthz"])
         al.check(token, f"{name}: indexer", i_code != 200, f"{name}: indexer healthz {i_code or 'timeout'} (tables on the site will stop updating)")
+
+        # Self-guard the indexer disk so it never repeats the 2026-07-12 ENOSPC crash-loop.
+        indexer_disk_guard(dat, dstate, token, al)
 
         trades_feed(dat, dstate, trades_token)
 
