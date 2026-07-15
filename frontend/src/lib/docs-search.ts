@@ -23,6 +23,25 @@ export const docsSearch: DocSearchEntry[] = [
     keywords: ["overview", "intro", "introduction", "start"],
   },
   {
+    title: "What is an on-chain DAT?",
+    href: "/docs/what-is-an-onchain-dat",
+    group: "Docs",
+    summary:
+      "DAT names three things: a listed company holding crypto, a token carrying that company's share rights, and a smart contract holding a treasury.",
+    keywords: [
+      "dat",
+      "datco",
+      "onchain dat",
+      "on-chain dat",
+      "digital asset treasury",
+      "mnav",
+      "strategy token",
+      "tokenized equity",
+      "definition",
+      "what is",
+    ],
+  },
+  {
     title: "LDAT",
     href: "/docs/ldat",
     group: "Docs",

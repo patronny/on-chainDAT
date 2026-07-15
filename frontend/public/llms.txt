@@ -5,7 +5,7 @@
 > $LDAT is the protocol's core ecosystem token on Linea L2, built on top of the network's base asset $LINEA. It launched on 2026-06-09 on Linea (chain 59144) at contract 0x02F289E429655d0C0D713A7dFD26850A81f7cFC5. The site is operated by PaTRoN Labs, an unincorporated team of independent open-source contributors, and is not affiliated with Linea, ConsenSys, Uniswap, or any other company or foundation.
 
 ## How the LDAT cycle works
-- Every LDAT buy or sell pays a 10% tax: 8% accumulates $LINEA in the treasury, 2% funds the project. The tax is collected inside the pool's own Uniswap v4 hook at swap time, so there are no exemptions and no whitelist.
+- Every LDAT buy or sell pays a 10% tax: 8% accumulates $LINEA in the treasury, 2% funds the project. The tax is collected inside the pool's own Uniswap v4 hook at swap time. The hook has no address-based branch, so no swap through the pool is exempt from the fee. A separate owner-controlled whitelist (isDistributor) exists, but it governs transfers, not the fee. The 8/2 split depends on owner-settable fee destinations; the hook itself splits 80/20.
 - Once enough ETH has built up, the treasury buys a bag of 150,000 $LINEA from whoever offers one, paying out the ETH released so far (which ramps up block by block rather than emptying the balance at once).
 - The contract relists that bag at 1.2x the ETH it paid. Any address that sends that exact amount receives the LINEA. Nothing obliges anyone to send it, and a bag can sit unsold indefinitely.
 - When a bag sells, its ETH is queued for a buyback and the contract burns the LDAT it buys. No bag sale, no burn. Triggering the buyback is permissionless and pays the caller 0.5% of the burn.
@@ -23,6 +23,7 @@
 
 ## Documentation
 - [Overview](https://www.on-chaindat.com/docs): what a DAT is, how a $XXXDAT is launched on top of an existing $XXX, and the models a treasury can use for its accumulated fees.
+- [What is an on-chain DAT?](https://www.on-chaindat.com/docs/what-is-an-onchain-dat): the disambiguation page for the contested term - DAT company (DATCO) vs tokenized DAT equity vs protocol-native DAT, plus synthetic price exposure as a fourth shape, every third-party claim linked to its source. Start here if a question is about what "DAT" means.
 - [FAQ](https://www.on-chaindat.com/docs/faq): short answers on the fee split, the 99% launch fee, the relay, the contract address, supply, upgradeability and the audit status.
 - [LDAT](https://www.on-chaindat.com/docs/ldat): the full LDAT breakdown - the 10% fee split, why every other DAT on Linea burns LDAT, and the current upgradeability and ownership state.
 - [Tokenomics](https://www.on-chaindat.com/docs/tokenomics): the 1,000,000,000 max supply, the single-sided pool seeding at launch, and the burned LP position.
@@ -33,7 +34,7 @@
 
 ## Risk and status
 - The contracts are UPGRADEABLE. Ownership sits behind a 2-of-3 Safe multisig that can replace the logic described above. The project has said it intends to revoke upgradeability after post-launch testing, but has committed to no date and is under no obligation to do it.
-- Several numbers are settings, not constants. The bag size, the 1.2x relist multiplier (settable from 1.1x to 10x), and the burn increment and delay are owner-adjustable in a single transaction, without an upgrade. Only the 10% trade tax and the 0.5% caller share are fixed in code.
+- Some numbers are settings, not constants. The bag size (updateBagSize) and the burn increment and delay (setTwapIncrement, setTwapDelayInBlocks) are owner-adjustable in a single transaction, without an upgrade. The 10% trade tax, the 0.5% caller share and the 1.2x relist multiplier are not: setPriceMultiplier is gated to the factory, which exposes no path to it, so the multiplier moves only if the implementation is upgraded.
 - There has been NO third-party audit. The code is open source and verified on Lineascan, and the treasury is readable on-chain, but no external auditor has reviewed it.
 - This is an experimental prototype. Smart contract bugs, exploits and regulatory uncertainty are real and unresolved. The cycle only turns while people trade, offer bags and trigger burns. Total loss is possible.
 - No oracles, no centralized market makers, no manual trade management. Once launched, a DAT keeps operating for as long as the chain it sits on remains functional.

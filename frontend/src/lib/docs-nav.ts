@@ -12,6 +12,7 @@ export type DocItem = {
 
 export const docsNav: DocItem[] = [
   { title: "Overview", href: "/docs" },
+  { title: "What is an on-chain DAT?", href: "/docs/what-is-an-onchain-dat" },
   { title: "LDAT", href: "/docs/ldat" },
   { title: "Tokenomics", href: "/docs/tokenomics" },
   { title: "Transfer", href: "/docs/transfer" },

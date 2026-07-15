@@ -22,6 +22,7 @@ const ROUTES = [
   "/contacts",
   "/terms",
   "/docs",
+  "/docs/what-is-an-onchain-dat",
   "/docs/faq",
   "/docs/ldat",
   "/docs/tokenomics",
