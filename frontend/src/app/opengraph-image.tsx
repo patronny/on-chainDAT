@@ -5,7 +5,7 @@ import { ImageResponse } from "next/og";
 // Visual language matches icon.tsx: black field, brand magenta -> cyan gradient.
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export const alt = "LDAT - perpetual, automated digital asset treasury on Linea L2";
+export const alt = "LDAT - autonomous digital asset treasury on Linea L2";
 
 const MONO = "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace";
 
