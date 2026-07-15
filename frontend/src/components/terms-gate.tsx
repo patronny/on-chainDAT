@@ -24,16 +24,6 @@ export function TermsGate() {
     // Never block /docs/* either - public reading material, no swap/funding
     // interactions originate here so the TOS gate is unnecessary friction.
     if (pathname === "/docs" || pathname.startsWith("/docs/")) return;
-    // Never block on the docs subdomain. Note: middleware rewrites
-    // docs.on-chaindat.com/* to internal /docs/*, but `usePathname()` returns
-    // the visible URL (e.g. "/quickstart"), so the path-based skip above
-    // wouldn't catch docs.on-chaindat.com pages - we have to look at host.
-    try {
-      const host = window.location.hostname.toLowerCase();
-      if (host.startsWith("docs.")) return;
-    } catch {
-      // ignore - fall through to gate logic
-    }
     try {
       const accepted = window.localStorage.getItem(STORAGE_KEY);
       if (!accepted) setOpen(true);

@@ -15,6 +15,9 @@ export const metadata: Metadata = {
   description:
     "LDAT is a deflationary, perpetual digital asset treasury on Linea L2. Buy and sell bags through a P2P mechanism with built-in slow-rug protection. The protocol burns LDAT on every cycle.",
   metadataBase: new URL("https://www.on-chaindat.com"),
+  // "./" resolves against metadataBase + the live pathname, so every route emits its own
+  // self-referencing canonical. Keeps the docs subdomain and any deploy alias pointing at www.
+  alternates: { canonical: "./" },
   openGraph: {
     title: "LDAT",
     description: "Perpetual, automated digital asset treasury on Linea L2",

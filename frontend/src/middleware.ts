@@ -2,21 +2,26 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 /**
- * Subdomain ↔ path rewrites for sister sites of on-chaindat.com.
+ * Subdomain -> canonical path redirects for sister sites of on-chaindat.com.
  *
- * Each subdomain is served by the same Next.js app at a `/<prefix>/*` route.
+ * Each subdomain is a branded alias for a `/<prefix>/*` route on the canonical host:
  *
- *   docs.on-chaindat.com/             ←→  /docs            (rewrite, transparent)
- *   docs.on-chaindat.com/quickstart   ←→  /docs/quickstart (rewrite, transparent)
- *   docs.on-chaindat.com/docs/foo     →   docs.on-chaindat.com/foo  (308 redirect - strip stray prefix)
+ *   docs.on-chaindat.com/            ->  www.on-chaindat.com/docs        (308)
+ *   docs.on-chaindat.com/ldat        ->  www.on-chaindat.com/docs/ldat   (308)
+ *   docs.on-chaindat.com/docs/ldat   ->  www.on-chaindat.com/docs/ldat   (308, stray prefix)
  *
- * Why both rewrite and redirect? `Link href="/docs/quickstart"` on the canonical
- * domain works as-is; on the subdomain, clicks would push the literal `/docs/...`
- * into the address bar. The redirect normalizes those URLs back to clean form.
+ * Why redirect rather than rewrite? A rewrite served byte-identical pages on two hosts
+ * with no way to emit a correct canonical: Next resolves a relative `alternates.canonical`
+ * against the REQUEST path (`/ldat`), not the rewritten one (`/docs/ldat`), so the
+ * subdomain advertised `www.on-chaindat.com/ldat` - a 404. A 308 removes the duplicate
+ * outright, and dropping the host check from `docs/layout.tsx` lets the docs tree
+ * prerender statically again (which keeps its metadata in <head>, not <body>).
  *
  * Static assets (`_next/static`, `_next/image`, files with an extension) are
  * excluded via the matcher.
  */
+const CANONICAL_HOST = "www.on-chaindat.com";
+
 const SUBDOMAIN_PREFIXES: Array<[string, string]> = [
   ["docs.", "/docs"],
 ];
@@ -27,19 +32,19 @@ export function middleware(req: NextRequest) {
   for (const [hostPrefix, pathPrefix] of SUBDOMAIN_PREFIXES) {
     if (!host.startsWith(hostPrefix)) continue;
 
+    // Strip a stray prefix first, so /ldat and /docs/ldat converge on one target.
+    const path =
+      req.nextUrl.pathname === pathPrefix ||
+      req.nextUrl.pathname.startsWith(pathPrefix + "/")
+        ? req.nextUrl.pathname.slice(pathPrefix.length)
+        : req.nextUrl.pathname;
+
     const url = req.nextUrl.clone();
-
-    // 1. Strip stray `/docs` prefix on the subdomain - keeps URL bar clean.
-    if (url.pathname === pathPrefix || url.pathname.startsWith(pathPrefix + "/")) {
-      const stripped = url.pathname.slice(pathPrefix.length) || "/";
-      url.pathname = stripped;
-      return NextResponse.redirect(url);
-    }
-
-    // 2. Bare path on the subdomain → rewrite to internal `/<prefix>/<path>`.
-    const trimmed = url.pathname.replace(/\/$/, "");
-    url.pathname = `${pathPrefix}${trimmed}` || pathPrefix;
-    return NextResponse.rewrite(url);
+    url.protocol = "https:";
+    url.host = CANONICAL_HOST;
+    url.port = "";
+    url.pathname = `${pathPrefix}${path.replace(/\/$/, "")}`;
+    return NextResponse.redirect(url, 308);
   }
 
   return NextResponse.next();

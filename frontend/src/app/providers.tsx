@@ -1,30 +1,41 @@
 "use client";
 
-import dynamic from "next/dynamic";
+import { RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { WagmiProvider } from "wagmi";
 
-/**
- * Client-only wrapper for the actual Providers (WagmiProvider + RainbowKit + QueryClient).
- *
- * Why dynamic with ssr:false?
- *   wagmi/RainbowKit v2 uses `indexedDB` (browser-only) for connector storage even with
- *   `ssr: true` in `getDefaultConfig`. During Vercel prerendering Node.js attempts to evaluate
- *   the WagmiProvider tree and crashes with `ReferenceError: indexedDB is not defined`.
- *
- *   The fix is to never render the wagmi tree on the server - load it only in the browser.
- *   This is the canonical solution from wagmi/RainbowKit docs for Next.js 15 App Router.
- *
- * Trade-off: a brief flash of "no header / no connect button" on initial page load before JS
- *   hydrates. Acceptable, and stat tiles + page content render normally because they don't
- *   depend on wagmi to mount (they show "-" until data loads).
- */
-const InnerProviders = dynamic(
-  () => import("./providers-impl").then((mod) => mod.Providers),
-  {
-    ssr: false,
-    loading: () => null,
-  }
-);
+import { config } from "@/lib/wagmi-client";
+import { DEFAULT_CHAIN_ID } from "@/lib/wagmi";
+
+import "@rainbow-me/rainbowkit/styles.css";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 2,
+      staleTime: 10_000,
+    },
+  },
+});
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  return <InnerProviders>{children}</InnerProviders>;
+  return (
+    <WagmiProvider config={config}>
+      <QueryClientProvider client={queryClient}>
+        <RainbowKitProvider
+          theme={darkTheme({
+            accentColor: "hsl(320, 100%, 60%)",
+            accentColorForeground: "hsl(0, 0%, 8%)",
+            borderRadius: "small",
+          })}
+          initialChain={DEFAULT_CHAIN_ID}
+          showRecentTransactions={true}
+          locale="en-US"
+        >
+          {children}
+        </RainbowKitProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
+  );
 }

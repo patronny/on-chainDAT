@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { docsNav, getAdjacent, getChildren, type DocItem } from "@/lib/docs-nav";
@@ -10,41 +10,13 @@ import { DocsSearch } from "@/components/docs-search";
  * Docs layout shell - left sidebar (sticky on desktop, drawer on mobile) +
  * main content column. Mirrors the Mintlify reference (docs.etherex.finance)
  * but rendered in our cyberpunk palette.
- *
- * `isSubdomain` lets the shell render bare hrefs (e.g. `/quickstart`) on the
- * `docs.on-chaindat.com` host so that Next.js Link click navigations don't
- * push the literal `/docs/*` prefix into the address bar.
  */
-export function DocsShell({
-  children,
-  isSubdomain = false,
-}: {
-  children: React.ReactNode;
-  isSubdomain?: boolean;
-}) {
+export function DocsShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() || "";
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Strip the `/docs` prefix from canonical hrefs when on the subdomain.
-  const toHref = useMemo(
-    () =>
-      (canonical: string): string => {
-        if (!isSubdomain) return canonical;
-        const stripped = canonical.replace(/^\/docs/, "");
-        return stripped || "/";
-      },
-    [isSubdomain]
-  );
-
-  // On the docs subdomain `usePathname()` returns the visible URL
-  // (e.g. `/dat-types`), not the internal `/docs/*` route — so prepend
-  // `/docs` before consulting the nav tree.
-  const canonicalPath = isSubdomain
-    ? pathname === "/" ? "/docs" : `/docs${pathname}`
-    : pathname || "";
-  const adj = getAdjacent(canonicalPath);
-  const childSections = getChildren(canonicalPath);
-  const brandHref = toHref("/docs");
+  const adj = getAdjacent(pathname);
+  const childSections = getChildren(pathname);
 
   return (
     <>
@@ -54,7 +26,7 @@ export function DocsShell({
           {/* Brand */}
           <div className="flex items-center gap-2 text-sm shrink-0">
             <Link
-              href={brandHref as never}
+              href="/docs"
               className="font-display font-bold tracking-tight text-foreground hover:opacity-90"
             >
               <span className="text-primary">Linea</span>DAT{" "}
@@ -64,7 +36,7 @@ export function DocsShell({
 
           {/* Center: search */}
           <div className="flex-1 flex justify-center px-2 sm:px-4">
-            <DocsSearch isSubdomain={isSubdomain} />
+            <DocsSearch />
           </div>
 
           {/* Right cluster */}
@@ -95,7 +67,7 @@ export function DocsShell({
         {/* Sidebar - desktop */}
         <aside className="hidden md:block">
           <div className="sticky top-[4rem] max-h-[calc(100vh-4.5rem)] overflow-y-auto pr-2">
-            <Sidebar pathname={canonicalPath} toHref={toHref} />
+            <Sidebar pathname={pathname} />
           </div>
         </aside>
 
@@ -117,8 +89,7 @@ export function DocsShell({
                 Close ✕
               </button>
               <Sidebar
-                pathname={canonicalPath}
-                toHref={toHref}
+                pathname={pathname}
                 onNavigate={() => setMobileOpen(false)}
               />
             </div>
@@ -139,7 +110,7 @@ export function DocsShell({
               {childSections.map((c) => (
                 <Link
                   key={c.href}
-                  href={toHref(c.href) as never}
+                  href={c.href as never}
                   className="group flex items-center justify-between gap-3 rounded-md border border-border bg-card/40 px-4 py-3 hover:border-primary/50 hover:bg-primary/5 transition-colors"
                 >
                   <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
@@ -170,7 +141,7 @@ export function DocsShell({
               <div>
                 {adj.prev ? (
                   <Link
-                    href={toHref(adj.prev.href) as never}
+                    href={adj.prev.href as never}
                     className="block rounded-md border border-border p-4 hover:border-primary/40 transition-colors group"
                   >
                     <div className="text-xs text-muted-foreground mb-1">← Previous</div>
@@ -183,7 +154,7 @@ export function DocsShell({
               <div className="text-right">
                 {adj.next ? (
                   <Link
-                    href={toHref(adj.next.href) as never}
+                    href={adj.next.href as never}
                     className="block rounded-md border border-border p-4 hover:border-primary/40 transition-colors group"
                   >
                     <div className="text-xs text-muted-foreground mb-1">Next →</div>
@@ -206,11 +177,9 @@ export function DocsShell({
 
 function Sidebar({
   pathname,
-  toHref,
   onNavigate,
 }: {
   pathname: string;
-  toHref: (canonical: string) => string;
   onNavigate?: () => void;
 }) {
   return (
@@ -221,7 +190,6 @@ function Sidebar({
             key={item.href}
             item={item}
             pathname={pathname}
-            toHref={toHref}
             depth={0}
             onNavigate={onNavigate}
           />
@@ -234,13 +202,11 @@ function Sidebar({
 function SidebarLink({
   item,
   pathname,
-  toHref,
   depth,
   onNavigate,
 }: {
   item: DocItem;
   pathname: string;
-  toHref: (canonical: string) => string;
   depth: number;
   onNavigate?: () => void;
 }) {
@@ -252,7 +218,7 @@ function SidebarLink({
   return (
     <li>
       <Link
-        href={toHref(item.href) as never}
+        href={item.href as never}
         onClick={onNavigate}
         className={
           "group block rounded-md pr-3 py-1.5 transition-colors border-l-2 " +
@@ -279,7 +245,6 @@ function SidebarLink({
               key={child.href}
               item={child}
               pathname={pathname}
-              toHref={toHref}
               depth={depth + 1}
               onNavigate={onNavigate}
             />

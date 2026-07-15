@@ -9,7 +9,7 @@ import { searchDocs, type DocSearchEntry } from "@/lib/docs-search";
  * with ⌘K (Ctrl+K on non-Mac) global shortcut. No external deps; substring
  * matching against the static `docsSearch` index.
  */
-export function DocsSearch({ isSubdomain = false }: { isSubdomain?: boolean }) {
+export function DocsSearch() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [activeIdx, setActiveIdx] = useState(0);
@@ -20,13 +20,10 @@ export function DocsSearch({ isSubdomain = false }: { isSubdomain?: boolean }) {
   const results = useMemo(() => searchDocs(query), [query]);
 
   const navTo = useCallback(
-    (canonical: string) => {
-      const target = isSubdomain
-        ? canonical.replace(/^\/docs/, "") || "/"
-        : canonical;
-      router.push(target as never);
+    (href: string) => {
+      router.push(href as never);
     },
-    [isSubdomain, router]
+    [router]
   );
 
   const close = useCallback(() => {
