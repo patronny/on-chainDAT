@@ -52,7 +52,7 @@ export default function OpengraphImage() {
 
         <div style={{ display: "flex", flexDirection: "column", marginTop: 22 }}>
           <div style={{ display: "flex", fontFamily: MONO, fontSize: 41, color: "#f2f2f2", lineHeight: 1.32 }}>
-            Perpetual, automated digital asset
+            Autonomous digital asset
           </div>
           <div style={{ display: "flex", fontFamily: MONO, fontSize: 41, color: "#f2f2f2", lineHeight: 1.32 }}>
             treasury on Linea L2

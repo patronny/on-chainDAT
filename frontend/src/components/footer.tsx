@@ -21,7 +21,8 @@ export function Footer() {
               </Link>
             </h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Perpetual, automated digital asset treasury on Linea. Buy bags, sell bags, watch supply burn.
+              An autonomous digital asset treasury on Linea. It taxes its own trades, buys $LINEA bags,
+              relists them, and burns $LDAT with what a sale returns.
             </p>
             <div className="inline-flex items-center gap-2 mt-4 flex-wrap">
               <span className="text-sm text-muted-foreground">Created by</span>

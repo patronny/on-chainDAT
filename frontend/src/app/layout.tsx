@@ -13,11 +13,14 @@ const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mon
 
 export const metadata: Metadata = {
   title: {
-    default: "LDAT - Perpetual, Automated DAT on Linea",
+    default: "LDAT - Autonomous DAT on Linea",
     template: "%s - LDAT",
   },
+  // No outcome, no price direction: this string is the most syndicated on the site
+  // (SERP snippet, X card, link previews) and travels without the risk copy or the
+  // Terms attached to it. Keep it to what the contract does. See /terms section 7.
   description:
-    "LDAT is an on-chain digital asset treasury on Linea L2: an autonomous smart-contract treasury with no company, no shares, no dilution. Every cycle buys and burns LDAT.",
+    "LDAT is an on-chain digital asset treasury on Linea L2: an autonomous smart-contract treasury with no company and no shares. It taxes its own trades, accumulates $LINEA, and burns $LDAT when a bag sells.",
   metadataBase: new URL("https://www.on-chaindat.com"),
   // "./" resolves against metadataBase + the live pathname, so every route emits its own
   // self-referencing canonical. Keeps any deploy alias pointing at www.
