@@ -212,10 +212,11 @@ export default function HomePage() {
                 date and is under no obligation to do it. Until it happens, treat the code as changeable.
               </li>
               <li className="border-l-2 border-destructive/50 pl-4">
-                <span className="font-semibold text-foreground">The numbers here are settings, not constants.</span>{" "}
-                The bag size, the 1.2× relist multiplier (settable anywhere from 1.1× to 10×), and the burn
-                increment and delay are all owner-adjustable in a single transaction, without an upgrade. Only
-                the 10% trade tax and the 0.5% caller share are fixed in code.
+                <span className="font-semibold text-foreground">Some numbers here are settings, not constants.</span>{" "}
+                The bag size and the burn increment and delay are owner-adjustable in a single transaction,
+                without an upgrade. The 10% trade tax, the 0.5% caller share and the 1.2× relist multiplier are
+                not: the multiplier&apos;s setter is gated to the factory, which exposes no path to it, so it
+                moves only if the contracts are upgraded.
               </li>
               <li className="border-l-2 border-destructive/50 pl-4">
                 <span className="font-semibold text-foreground">There is no third-party audit.</span> The code is
