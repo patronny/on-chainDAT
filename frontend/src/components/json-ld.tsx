@@ -115,7 +115,7 @@ const FAQ_ITEMS: { q: string; a: string }[] = [
   },
   {
     q: "What is the $LDAT trading fee, and where does it go?",
-    a: "Every $LDAT buy or sell pays a 10% fee, charged inside the pool's own Uniswap v4 hook, so there are no exemptions and no whitelist. Of that fee, 8% accumulates $LINEA in the treasury and 2% funds the project. The fee is not extracted from the ecosystem: it stays inside the token's own mechanics.",
+    a: "Every $LDAT buy or sell pays a 10% fee, charged inside the pool's own Uniswap v4 hook. The hook has no address-based branch, so no swap through the pool is exempt from it. (There is a separate owner-controlled whitelist, but it governs transfers rather than the fee.) Of that fee, 8% accumulates $LINEA in the treasury and 2% funds the project. The fee is not extracted from the ecosystem: it stays inside the token's own mechanics.",
   },
   {
     q: "What is the maximum supply?",
