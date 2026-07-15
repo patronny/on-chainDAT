@@ -5,6 +5,7 @@ import { TermsGate } from "@/components/terms-gate";
 import { Analytics } from "@vercel/analytics/next";
 import { GoogleAnalytics } from "@/components/google-analytics";
 import { CookieConsent } from "@/components/cookie-consent";
+import { SiteJsonLd } from "@/components/json-ld";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
@@ -43,6 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`} suppressHydrationWarning>
       <body className="min-h-screen bg-background text-foreground antialiased">
+        <SiteJsonLd />
         <Providers>{children}</Providers>
         <TermsGate />
         <CookieConsent />

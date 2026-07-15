@@ -1,0 +1,35 @@
+name: IndexNow ping
+
+# Tells Bing/Yandex the URL set changed, after Vercel has published the push.
+# Google is not an IndexNow participant - Google gets the same URLs via the
+# Search Console sitemap (property: sc-domain:on-chaindat.com).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "frontend/src/app/**"
+      - "frontend/public/**"
+  workflow_dispatch:
+
+concurrency:
+  group: indexnow
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      # Vercel keeps the previous deployment live until the new one is READY, so the
+      # sitemap fetch never fails - but a brand-new URL would 404 for the key-validation
+      # window. Waiting costs nothing and is exactly the case IndexNow exists for.
+      - name: Wait for the Vercel deploy to go live
+        run: sleep 120
+
+      - name: Submit
+        run: node .github/scripts/indexnow.mjs

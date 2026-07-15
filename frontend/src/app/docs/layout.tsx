@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { DocsShell } from "@/components/docs-shell";
+import { DocsBreadcrumbJsonLd } from "@/components/docs-breadcrumb-jsonld";
 
 export const metadata: Metadata = {
   title: { default: "LDAT Docs", template: "%s - LDAT Docs" },
@@ -8,5 +9,10 @@ export const metadata: Metadata = {
 };
 
 export default function DocsLayout({ children }: { children: React.ReactNode }) {
-  return <DocsShell>{children}</DocsShell>;
+  return (
+    <>
+      <DocsBreadcrumbJsonLd />
+      <DocsShell>{children}</DocsShell>
+    </>
+  );
 }
