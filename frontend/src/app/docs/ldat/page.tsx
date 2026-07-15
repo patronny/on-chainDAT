@@ -65,13 +65,14 @@ export default function LineadatDocPage() {
 
       <p>
         The <code>$LDAT</code> contract is currently upgradeable, and ownership
-        sits behind a 2-of-3 multisig. Upgradeability will be permanently
-        revoked once post-launch testing completes.
+        sits behind a 2-of-3 multisig, which means the logic described above can
+        be replaced. The intention is to revoke upgradeability once post-launch
+        testing completes, but no date has been committed to.
       </p>
 
       <p>
-        Once locked, nobody, including the creator, will be able to change even
-        a single symbol in the contract. This is important because{" "}
+        Once locked, nobody, including the creator, would be able to change even
+        a single symbol in the contract. This matters because{" "}
         <code>$LDAT</code> will become the base ecosystem token of{" "}
         <strong>on-chaindat.com</strong> on Linea L2. All future DAT tokens
         launched on this network will route part of their trading fees into

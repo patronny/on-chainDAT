@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 
@@ -30,24 +31,20 @@ export default function AboutPage() {
           <h2 className="text-xl font-display font-semibold text-secondary pt-4">Why we built it</h2>
 
           <p>
-            <strong className="text-foreground">1. Amplified $LINEA exposure with no liquidation risk.</strong>
+            <strong className="text-foreground">1. $LINEA exposure without borrowing.</strong>
           </p>
           <p>
-            $LDAT acts like leverage on $LINEA, but without margin calls and without interest on the
-            leverage. The logic is simple:
+            The protocol takes on no debt, so it has no position anyone can liquidate and no interest to
+            service. What it does instead:
           </p>
           <ul className="list-disc pl-6 space-y-1">
             <li>the treasury holds $LINEA and $ETH;</li>
-            <li>when $LINEA appreciates, the dollar value of the treasury grows with it;</li>
-            <li>in parallel, the treasury buys $LDAT from the market and burns it, shrinking supply;</li>
-            <li>
-              these two effects compound, and $LDAT&apos;s price typically moves harder than $LINEA
-              itself.
-            </li>
+            <li>the dollar value of that treasury tracks the price of what it holds;</li>
+            <li>in parallel, the treasury buys $LDAT from the market and burns it, shrinking supply.</li>
           </ul>
           <p>
-            The downside is symmetrical. But nobody force-closes you, nobody confiscates your token, you
-            pay no interest.
+            Those are the two mechanisms. How the market prices $LDAT against them is the market&apos;s
+            business, and it can move in either direction, including to zero.
           </p>
 
           <p>
@@ -69,7 +66,7 @@ export default function AboutPage() {
           </p>
 
           <h2 className="text-xl font-display font-semibold text-secondary pt-4">
-            Why it will work as long as Ethereum works
+            What the design does not depend on
           </h2>
 
           <p>
@@ -89,12 +86,12 @@ export default function AboutPage() {
               on any Linea DEX, an arbitrage opens up;
             </li>
             <li>
-              any user can hand the protocol 150,000 $LINEA and walk away with all of the accumulated $ETH.
+              any address can hand the protocol 150,000 $LINEA and receive the $ETH released so far.
             </li>
           </ul>
           <p>
-            No centralized market maker, no off-chain deals. The market itself brings $LINEA to the
-            protocol at a favorable price exactly when that becomes profitable.
+            No centralized market maker, no off-chain deals. The protocol picks no counterparty: it
+            states a standing price and waits for someone to take it.
           </p>
 
           <p>
@@ -125,25 +122,26 @@ export default function AboutPage() {
           <ul className="list-disc pl-6 space-y-1">
             <li>nobody, including the team, can pull liquidity;</li>
             <li>even if the Uniswap frontend is taken offline, the pool keeps working directly on-chain;</li>
-            <li>$LDAT will be tradeable for as long as Ethereum lives.</li>
+            <li>the pool stays reachable for as long as Linea keeps producing blocks.</li>
           </ul>
 
           <p>
-            <strong className="text-foreground">5. The contracts will become Immutable over time.</strong>
+            <strong className="text-foreground">5. The contracts are upgradeable for now.</strong>
           </p>
           <p>
-            For now, during the first months of mainnet, upgrade keys are held behind a 2-of-3 multisig, so we
-            can fix a bug quickly if one shows up. Once the full stress-test cycle is finished, we will
-            revoke those keys. From that moment the contracts are frozen: nobody, including us, can
-            change them. The trust question is closed for good.
+            During the first months of mainnet, upgrade keys are held behind a 2-of-3 multisig, so we can
+            fix a bug quickly if one shows up. That also means the logic described on this page can be
+            replaced. We intend to revoke those keys once the stress-test cycle is finished, which would
+            freeze the contracts for good, but we have committed to no date and you should treat the code
+            as changeable until it actually happens.
           </p>
 
           <h2 className="text-xl font-display font-semibold text-secondary pt-4">
-            Why this is interesting for a holder
+            What the design implies
           </h2>
           <p>
-            The core idea of LDAT is a reflexive loop. It spins in both directions and never
-            switches off.
+            The core idea of LDAT is a reflexive loop, driven by trading volume rather than by price
+            direction. What follows is what the mechanism does, not a forecast of what it is worth.
           </p>
 
           <p>
@@ -161,36 +159,35 @@ export default function AboutPage() {
           </p>
           <p>
             $LDAT&apos;s market cap is the combined value of all tokens in circulation. The treasury
-            is how much $LINEA and $ETH sits inside the protocol. When market cap falls below the
-            treasury, $LDAT effectively trades at a discount to its net assets, the signal is read
-            quickly, and the gap closes. When the situation reverses, holders take profit. The cycle
-            repeats, and every loop generates volume, fees, and treasury growth.
+            is how much $LINEA and $ETH sits inside the protocol. Both numbers are on-chain, and the
+            site shows them side by side, so anyone can see when market cap sits below treasury. What
+            the market does with that information is not something the protocol controls or predicts.
           </p>
 
           <p>
-            <strong className="text-foreground">3. $LINEA up → $LDAT usually up harder.</strong>
+            <strong className="text-foreground">3. The treasury tracks $LINEA.</strong>
           </p>
           <p>
-            The dollar value of the treasury rises, and part of the $LINEA position gradually converts
-            back into $ETH through the P2P mechanism, and that $ETH buys $LDAT for burning. Two
-            flows pull the price up at the same time.
-          </p>
-
-          <p>
-            <strong className="text-foreground">4. $LINEA down → also good for the protocol.</strong>
-          </p>
-          <p>
-            When the base asset gets cheaper, holders get nervous and trade more. $LDAT volume
-            rises, fees in the treasury rise, the buy-and-burn cycle never stops. The protocol feeds on
-            movement, not on direction.
+            When $LINEA rises, the dollar value of the treasury rises with it. Separately, part of the
+            $LINEA position converts back into $ETH through the P2P mechanism, and that $ETH buys $LDAT
+            for burning. Those are two distinct mechanisms; neither one sets a price.
           </p>
 
           <p>
-            <strong className="text-foreground">5. Volatility is our ally.</strong>
+            <strong className="text-foreground">4. The cycle does not need a direction.</strong>
           </p>
           <p>
-            Most protocols fear sharp markets. LDAT loves them. Any move, up or down, equals volume,
-            equals fees, equals buy-and-burn of $LDAT.
+            The tax is charged on every swap, buy or sell alike, so the treasury accrues on falling
+            markets exactly as it does on rising ones. The mechanism responds to volume, not to
+            direction. If trading stops, the cycle stops with it.
+          </p>
+
+          <p>
+            <strong className="text-foreground">5. Volatility drives the loop.</strong>
+          </p>
+          <p>
+            Any move, up or down, is volume, and volume is what feeds the fee, the bag purchases, and
+            the buy-and-burn. A quiet market means a quiet protocol.
           </p>
 
           <h2 className="text-xl font-display font-semibold text-secondary pt-4">What comes next</h2>
@@ -205,15 +202,14 @@ export default function AboutPage() {
           </ul>
 
           <p className="pt-6">
-            You can also read the detailed project documentation{" "}
-            <a
-              href="https://docs.on-chaindat.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary hover:underline"
-            >
+            The detailed project documentation is{" "}
+            <Link href="/docs" className="text-primary hover:underline">
               here
-            </a>
+            </Link>
+            , and the risks are listed{" "}
+            <Link href="/#risks" className="text-primary hover:underline">
+              on the front page
+            </Link>
             .
           </p>
         </div>

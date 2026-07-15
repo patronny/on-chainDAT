@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { FaqJsonLd } from "@/components/json-ld";
 
 export const metadata: Metadata = {
   title: "FAQ",
@@ -6,9 +7,14 @@ export const metadata: Metadata = {
     "Answers about $LDAT on Linea L2: what a DAT token is, the 10% fee split, the 99% launch fee, why transfers need the relay, the contract address, and the supply.",
 };
 
+/**
+ * Edit an answer below and you must edit FAQ_ITEMS in src/components/json-ld.tsx
+ * to match: it mirrors these 14 questions for the FAQPage markup.
+ */
 export default function FaqDocPage() {
   return (
     <>
+      <FaqJsonLd />
       <h1>FAQ</h1>
 
       <p className="docs-lead">
@@ -127,11 +133,13 @@ export default function FaqDocPage() {
 
       <h2>Is the $LDAT contract immutable?</h2>
       <p>
-        Not yet. The contract is currently upgradeable and its ownership sits
-        behind a 2-of-3 multisig, so a bug can be fixed quickly during the first
-        months of mainnet. Upgradeability will be permanently revoked once
-        post-launch testing completes; after that nobody, including the creator,
-        can change a single symbol in it. See <a href="/docs/ldat">LDAT</a>.
+        No. The contract is currently upgradeable and its ownership sits behind
+        a 2-of-3 multisig, so a bug can be fixed quickly during the first months
+        of mainnet, and so the logic can be replaced. The intention is to revoke
+        upgradeability once post-launch testing completes, after which nobody,
+        including the creator, could change a single symbol in it. No date has
+        been committed to, so treat the code as changeable until it happens. See{" "}
+        <a href="/docs/ldat">LDAT</a>.
       </p>
 
       <h2>Has the protocol been audited?</h2>
