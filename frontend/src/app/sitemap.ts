@@ -9,7 +9,7 @@ const BASE = "https://www.on-chaindat.com";
 const LDAT = "0x02F289E429655d0C0D713A7dFD26850A81f7cFC5";
 
 // Omitted on purpose:
-//   /docs/faq, /docs/dat-types, /docs/dat-types/yield - h1-only stubs, nothing to crawl yet
+//   /docs/dat-types/yield - noindex until a yield DAT actually exists
 //   /portfolio, /status - wallet-gated app shells with no search demand
 // No lastModified/changeFrequency/priority: Google ignores the last two, and a build-time
 // lastModified would restamp every URL on each deploy and devalue the signal.
@@ -22,10 +22,12 @@ const ROUTES = [
   "/contacts",
   "/terms",
   "/docs",
+  "/docs/faq",
   "/docs/ldat",
   "/docs/tokenomics",
   "/docs/new-launches",
   "/docs/transfer",
+  "/docs/dat-types",
   "/docs/dat-types/classic",
 ];
 

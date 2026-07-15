@@ -450,6 +450,9 @@
     padding: 0.12em 0.38em;
     border-radius: 4px;
     border: 1px solid hsl(var(--border));
+    /* A 42-char contract address is wider than a 320px viewport and has no break
+       opportunities, so without this it pushes the whole page into a sideways scroll. */
+    overflow-wrap: anywhere;
   }
   .docs-prose pre {
     font-family: var(--font-mono);
