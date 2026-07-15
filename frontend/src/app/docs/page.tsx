@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
 
-export const metadata: Metadata = { title: "Overview" };
+export const metadata: Metadata = {
+  // absolute: docs/layout's "%s - LDAT Docs" template applies to child segments, not
+  // to this page, so without it /docs shipped the bare dictionary word "Overview".
+  title: { absolute: "Documentation - LDAT" },
+  description:
+    "Start here: what a digital asset treasury (DAT) is, how the LDAT protocol accumulates and resells $LINEA, and how the burn cycle works on Linea L2.",
+};
 
 export default function DocsOverviewPage() {
   return (

@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 
-export const metadata: Metadata = { title: "Tokenomics" };
+export const metadata: Metadata = {
+  title: "Tokenomics",
+  description:
+    "$LDAT tokenomics: 1,000,000,000 max supply, the entire supply seeded into the Uniswap v4 pool at launch, and the LP position burned so it can never be recovered.",
+};
 
 export default function TokenomicsDocPage() {
   return (
@@ -64,9 +68,7 @@ export default function TokenomicsDocPage() {
       </p>
 
       <p>
-        <a href="https://www.on-chaindat.com/dats/contract">
-          https://www.on-chaindat.com/dats/<code>contract</code>
-        </a>
+        <code>https://www.on-chaindat.com/dats/&lt;contract&gt;</code>
       </p>
 
       <p>

@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { TransferCard } from "@/components/transfer-card";
 
 export const metadata: Metadata = {
-  title: "Transfer - LDAT",
+  title: "Transfer",
   description:
     "Send $LDAT wallet-to-wallet through the official relay contract. A 1% fee is burned on every transfer; the recipient receives 99%.",
 };

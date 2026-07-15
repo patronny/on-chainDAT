@@ -29,7 +29,7 @@ export function DocsShell({ children }: { children: React.ReactNode }) {
               href="/docs"
               className="font-display font-bold tracking-tight text-foreground hover:opacity-90"
             >
-              <span className="text-primary">Linea</span>DAT{" "}
+              on-chain<span className="text-primary">DAT</span>{" "}
               <span className="text-muted-foreground font-normal">/ docs</span>
             </Link>
           </div>

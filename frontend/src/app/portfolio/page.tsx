@@ -7,9 +7,11 @@ import { PortfolioHoldings } from "@/components/portfolio-holdings";
 import { PortfolioSummary } from "@/components/portfolio-summary";
 
 export const metadata: Metadata = {
-  title: "Portfolio - LDAT",
+  title: "Portfolio",
   description:
     "Your DAT holdings across on-chainDAT: balances, position value, 24h change, and since-first-buy P&L.",
+  // Wallet-gated: renders nothing without a connection, and has no search demand.
+  robots: { index: false, follow: true },
 };
 
 export default function PortfolioPage() {

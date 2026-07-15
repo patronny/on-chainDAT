@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 
-export const metadata: Metadata = { title: "Transfer" };
+export const metadata: Metadata = {
+  title: "Transfer",
+  description:
+    "$LDAT cannot move by ordinary ERC-20 transfer. Wallet-to-wallet moves go through a whitelisted relay contract that burns a 1% fee. How it works and what it costs.",
+};
 
 export default function TransferDocPage() {
   return (

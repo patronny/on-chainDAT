@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 
-export const metadata: Metadata = { title: "New Launches" };
+export const metadata: Metadata = {
+  title: "New Launches",
+  description:
+    "How a new DAT launches on on-chainDAT: the 99% initial buy fee that decays to 10%, why it blocks snipers, and what the launch gate does.",
+};
 
 export default function NewLaunchesDocPage() {
   return (

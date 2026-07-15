@@ -100,9 +100,10 @@ export default function HomePage() {
               <div>
                 <h4 className="text-secondary font-semibold mb-2">1. Trading tax</h4>
                 <p>
-                  Every buy or sell of LDAT pays <span className="font-mono text-foreground">10%</span> straight
-                  to the treasury. The tax lives inside the pool&apos;s own hook, so there are no exemptions and no
-                  whitelist.
+                  Every buy or sell of LDAT pays a <span className="font-mono text-foreground">10%</span> tax:{" "}
+                  <span className="font-mono text-foreground">8%</span> accumulates $LINEA in the treasury and{" "}
+                  <span className="font-mono text-foreground">2%</span> funds the project. The tax lives inside the
+                  pool&apos;s own hook, so there are no exemptions and no whitelist.
                 </p>
               </div>
               <div>

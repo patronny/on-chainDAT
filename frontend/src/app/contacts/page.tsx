@@ -3,7 +3,7 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 
 export const metadata: Metadata = {
-  title: "Contacts - LDAT",
+  title: "Contacts",
   description:
     "All contact channels for the on-chainDAT / LDAT team: founder, legal, security, support, and partnerships.",
 };
@@ -111,7 +111,7 @@ export default function ContactsPage() {
           </h2>
           <ul className="space-y-1 list-disc pl-5">
             <li>
-              Stuck with a swap, faucet, or wallet flow on the testnet UI -{" "}
+              Stuck with a swap, transfer, or wallet flow -{" "}
               <strong className="text-foreground">support@</strong>.
             </li>
             <li>

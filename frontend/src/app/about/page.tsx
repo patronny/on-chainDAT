@@ -1,5 +1,13 @@
+import type { Metadata } from "next";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
+
+export const metadata: Metadata = {
+  // absolute: the title already carries the brand, so skip the root "%s - LDAT" template.
+  title: { absolute: "How LDAT Works - Digital Asset Treasury on Linea" },
+  description:
+    "How the LDAT treasury accumulates $LINEA, resells it P2P at a markup, and burns $LDAT with the proceeds. Slow-rug protection and the path to immutable contracts.",
+};
 
 export default function AboutPage() {
   return (
@@ -73,7 +81,8 @@ export default function AboutPage() {
           </p>
           <ul className="list-disc pl-6 space-y-1">
             <li>
-              while anyone trades $LDAT on Uniswap, $ETH builds up in the treasury (10% of every swap);
+              while anyone trades $LDAT on Uniswap, $ETH builds up in the treasury (8% of every swap; the
+              other 2% of the 10% tax funds the project);
             </li>
             <li>
               once the dollar value of the accumulated $ETH exceeds the market price of 150,000 $LINEA
@@ -123,7 +132,7 @@ export default function AboutPage() {
             <strong className="text-foreground">5. The contracts will become Immutable over time.</strong>
           </p>
           <p>
-            For now, during testnet and the first months of mainnet, the team keeps upgrade keys, so we
+            For now, during the first months of mainnet, upgrade keys are held behind a 2-of-3 multisig, so we
             can fix a bug quickly if one shows up. Once the full stress-test cycle is finished, we will
             revoke those keys. From that moment the contracts are frozen: nobody, including us, can
             change them. The trust question is closed for good.

@@ -3,7 +3,7 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 
 export const metadata: Metadata = {
-  title: "Terms of Service - LDAT",
+  title: "Terms of Service",
   description:
     "Terms of Service for the LDAT / on-chainDAT website and smart contracts operated by PaTRoN Labs.",
 };

@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 
-export const metadata: Metadata = { title: "LDAT" };
+export const metadata: Metadata = {
+  title: "LDAT",
+  description:
+    "$LDAT is the core ecosystem token of on-chainDAT on Linea L2. The 10% trade fee splits 8% into the $LINEA treasury and 2% to the project, and every DAT launched here burns $LDAT.",
+};
 
 export default function LineadatDocPage() {
   return (
@@ -13,9 +17,11 @@ export default function LineadatDocPage() {
       </p>
 
       <p>
-        The first network to launch will be Linea L2. Each supported network
-        will have its own core ecosystem token. For Linea, that token will be{" "}
-        <code>$LDAT</code>.
+        <code>$LDAT</code> launched on Linea L2 (chain 59144) on 2026-06-09.
+        Its contract address is{" "}
+        <code>0x02F289E429655d0C0D713A7dFD26850A81f7cFC5</code>. Linea was the
+        first network to launch; each network supported in future will have its
+        own core ecosystem token.
       </p>
 
       <p>
@@ -58,9 +64,9 @@ export default function LineadatDocPage() {
       </ul>
 
       <p>
-        After launch, the <code>$LDAT</code> contract will go through
-        additional testing for potential bugs. Shortly after that, the ability
-        to modify the contract will be permanently locked.
+        The <code>$LDAT</code> contract is currently upgradeable, and ownership
+        sits behind a 2-of-3 multisig. Upgradeability will be permanently
+        revoked once post-launch testing completes.
       </p>
 
       <p>
@@ -81,10 +87,11 @@ export default function LineadatDocPage() {
       </p>
 
       <p>
-        This means that regular wallet-to-wallet token transfers will be
-        restricted. Later, a dedicated interface will be added to the website,
-        allowing users to transfer tokens between wallets through an approved
-        whitelisted intermediary contract.
+        This means that regular wallet-to-wallet token transfers are
+        restricted. Since 2026-06-21 they are possible through an approved
+        whitelisted intermediary contract, which burns a 1% fee. The interface
+        for it is live at <a href="/transfer">on-chaindat.com/transfer</a>, and
+        the mechanics are documented in <a href="/docs/transfer">Transfer</a>.
       </p>
     </>
   );

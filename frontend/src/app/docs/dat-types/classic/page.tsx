@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 
-export const metadata: Metadata = { title: "Classic DATs" };
+export const metadata: Metadata = {
+  title: "Classic DATs",
+  description:
+    "Classic DATs follow $LDAT economics with one difference: their 10% fee splits 8% into the base asset, 1% into burning the ecosystem token, and 1% to the creator.",
+};
 
 export default function ClassicDatsDocPage() {
   return (

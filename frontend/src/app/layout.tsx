@@ -11,18 +11,22 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-sans", display: "swa
 const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono", display: "swap" });
 
 export const metadata: Metadata = {
-  title: "LDAT - Perpetual, Automated DAT on Linea",
+  title: {
+    default: "LDAT - Perpetual, Automated DAT on Linea",
+    template: "%s - LDAT",
+  },
   description:
-    "LDAT is a deflationary, perpetual digital asset treasury on Linea L2. Buy and sell bags through a P2P mechanism with built-in slow-rug protection. The protocol burns LDAT on every cycle.",
+    "LDAT is an on-chain digital asset treasury on Linea L2: an autonomous smart-contract treasury with no company, no shares, no dilution. Every cycle buys and burns LDAT.",
   metadataBase: new URL("https://www.on-chaindat.com"),
   // "./" resolves against metadataBase + the live pathname, so every route emits its own
-  // self-referencing canonical. Keeps the docs subdomain and any deploy alias pointing at www.
+  // self-referencing canonical. Keeps any deploy alias pointing at www.
   alternates: { canonical: "./" },
   openGraph: {
-    title: "LDAT",
-    description: "Perpetual, automated digital asset treasury on Linea L2",
+    url: "https://www.on-chaindat.com",
+    siteName: "on-chainDAT",
     type: "website",
   },
+  twitter: { card: "summary_large_image" },
 };
 
 export const viewport: Viewport = {
