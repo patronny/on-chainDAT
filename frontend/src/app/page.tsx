@@ -21,10 +21,12 @@ import { ADDR } from "@/lib/wagmi";
  * (upgradeable, owner-settable params, unaudited, total loss) stay next to the
  * CTA, not buried in /terms.
  *
- * Numbers here are the CURRENT on-chain parameters, not constants: bagSize,
- * priceMultiplier, twapIncrement and twapDelayInBlocks are all owner-settable
- * (LineaDATStrategy.updateBagSize, BaseStrategy.setPriceMultiplier / etc).
- * The risk panel says so - keep it that way if you edit a number.
+ * Some numbers here are CURRENT on-chain parameters rather than constants:
+ * bagSize (LineaDATStrategy.updateBagSize) and the twap drip
+ * (BaseStrategy.setTwapIncrement / setTwapDelayInBlocks) are onlyOwner. The
+ * 1.2x multiplier is NOT: BaseStrategy.setPriceMultiplier is onlyFactory and
+ * LineaDATFactory exposes no path to it, so it moves only via an upgrade. The
+ * risk panel draws that line exactly - do not blur it back.
  *
  * Layout:
  *   - Hero: what the contract is, the risk state, then the CTAs
@@ -95,7 +97,7 @@ export default function HomePage() {
                 </Button>
                 <Button size="xl" variant="outline" asChild>
                   <Link href={`/dats/${ADDR.strategy}` as never}>
-                    Open the DAT
+                    Buy $LDAT
                   </Link>
                 </Button>
               </div>
