@@ -233,8 +233,8 @@ checked-in fallbacks in `frontend/src/lib/wagmi.ts`,
   markers match `docs/INVARIANTS.md`, xrefs resolve, no long dashes, no
   Cyrillic [inv: no-em-dash] [inv: repo-english-only].
 - Owner (Keycard) operations: `tools/relay-whitelist-signer.html` and
-  `tools/transfer-ownership-to-safe.html`, opened locally, no build.
-- Break-glass: `frontend/scripts/break-glass-swap.mjs` trades against the
+  tools/transfer-ownership-to-safe.html (local, untracked), opened locally, no build.
+- Break-glass: frontend/scripts/break-glass-swap.mjs (local, untracked) trades against the
   v4 pool via UniversalRouter directly if the site is down.
 
 ## Generated vs tracked
@@ -248,5 +248,5 @@ checked-in fallbacks in `frontend/src/lib/wagmi.ts`,
   (IndexNow key file [inv: indexnow-key-immutable]).
 - Gitignored but critical (see boundaries above): obsidian/, .env,
   brand/, automation/keeper/, .vercel/.
-- Untracked-but-live at the time of writing: `frontend/scripts/break-glass-swap.mjs`
-  and `tools/transfer-ownership-to-safe.html` (pending commit).
+- Untracked-but-live at the time of writing: frontend/scripts/break-glass-swap.mjs
+  and tools/transfer-ownership-to-safe.html (pending commit).
