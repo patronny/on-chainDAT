@@ -285,7 +285,7 @@ Steps:
    `proxy.upgradeToAndCall(newImpl, "")` call is owner-only and the owner
    is the cold Keycard.
 4. Keycard flow: build a single-file signing page in `tools/` following
-   `tools/relay-whitelist-signer.html` / tools/transfer-ownership-to-safe.html (local, untracked)
+   `tools/relay-whitelist-signer.html` / tools/transfer-ownership-to-safe.html (deliberately local, never committed)
    (opened locally, no build step; encodes the exact calldata, the owner
    reviews and signs with the Keycard). The on-chain rename to LDAT
    (VERSION=4) is the proven precedent for this flow.

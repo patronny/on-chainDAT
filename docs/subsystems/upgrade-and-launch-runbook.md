@@ -61,7 +61,7 @@ does, this doc owns how it changes.
    Linea Hub listing requirement). The hook has NO owner - admin fns
    check lineaDATFactory.owner(), so two transferOwnership txs move all
    admin. Solady transferOwnership is 1-step and irreversible, so
-   tools/transfer-ownership-to-safe.html (local, untracked) hard-gates signing on live
+   tools/transfer-ownership-to-safe.html (deliberately local, never committed) hard-gates signing on live
    getThreshold/getOwners/isOwner reads of the target. The hot EOA
    deploys bytecode and pays gas; no owner power since the handover.
 6. **Impl upgrades are a ceremony; the rename is the precedent.**
@@ -96,7 +96,7 @@ does, this doc owns how it changes.
 
 The process docs `REHEARSAL-RUNBOOK.md`, `docs/60-deployment-runbook.md`,
 `docs/80-phase-3-testnet-runbook.md`, and the ceremony page
-tools/transfer-ownership-to-safe.html (local, untracked as of 2026-07-17). The
+tools/transfer-ownership-to-safe.html (deliberately local, never committed). The
 deploy scripts and contracts belong to `docs/subsystems/contracts-core.md`,
 the Vercel/Fly/Infura surfaces to `docs/subsystems/deploy-and-infra.md`.
 

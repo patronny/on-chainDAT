@@ -120,7 +120,7 @@ Full path: /Users/berlenkayauheni/.claude/projects/-Users-berlenkayauheni-Deskto
   `setDistributor` (revoking, or whitelisting a new relay) is a Safe
   transaction; `tools/relay-whitelist-signer.html` hardcodes the old Keycard
   EOA as OWNER and is dead for owner ops - kept as the historical record
-  (see tools/transfer-ownership-to-safe.html (local, untracked) for the migration page).
+  (see tools/transfer-ownership-to-safe.html (deliberately local, never committed) for the migration page).
 - Same staleness inside `contracts/test/ForkTransferRelay.t.sol`: it pranks
   the old Keycard for `setDistributor`, which no longer matches `owner()` on
   a current fork - prank `owner()` instead when re-running it.
