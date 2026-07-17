@@ -1,0 +1,19 @@
+# Mechanical canon-docs freshness check (paths exist, INV markers match the
+# register, no em/en dashes, no Cyrillic). See CLAUDE.md "Canon vs episodic".
+name: docs-lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  docs-lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/docs-lint.mjs

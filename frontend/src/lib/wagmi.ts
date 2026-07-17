@@ -63,6 +63,7 @@ function addressOrFallback(envVar: string | undefined, fallback: string): `0x${s
   return envVar as `0x${string}`;
 }
 
+// INV:vercel-env-overrides Vercel envs override these dead fallbacks; see docs/INVARIANTS.md
 export const ADDR = {
   tLINEA:   addressOrFallback(process.env.NEXT_PUBLIC_TLINEA_ADDRESS,   FALLBACK_TLINEA),
   factory:  addressOrFallback(process.env.NEXT_PUBLIC_FACTORY_ADDRESS,  FALLBACK_FACTORY),
@@ -89,6 +90,7 @@ export const V4_QUOTER = addressOrFallback(
   "0x2c125569c0bee20a66e33e5491c552b37ebd9934"
 );
 
+// INV:pool-id-derived-at-runtime pool id derived from this key; see docs/INVARIANTS.md
 /// LDAT Uniswap v4 pool key (currency0=ETH, currency1=LDAT strategy token, dynamic fee).
 /// Passed to V4_SWAP actions in the Universal Router.
 export const POOL_KEY = {

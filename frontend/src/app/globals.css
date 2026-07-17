@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+/* INV:theme-lock-responsive-matrix locked single theme, verify five widths; see docs/INVARIANTS.md */
 /*
  * LINEASTR design palette - cyberpunk (single theme).
  * Locked in 2026-05-03 after Phase 3 frontend review.

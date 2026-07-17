@@ -55,6 +55,7 @@ export function useHoldingsRows(): { rows: BagRow[]; isLoading: boolean; unavail
   return { rows, isLoading, unavailable: !indexer.loading && !indexer.usable };
 }
 
+// INV:valuations-use-list-price totals sum live onSale list prices; see docs/INVARIANTS.md
 /**
  * Aggregate live unsold-bag totals: count, total underlying tokens, total paid (ETH),
  * total listed-at (ETH). Fed by the same data path as HoldingsTable, plus live

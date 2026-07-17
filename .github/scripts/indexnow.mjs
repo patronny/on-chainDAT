@@ -9,6 +9,7 @@
 // production does not actually serve. Set INDEXNOW_DRY=1 to build and print the payload without
 // submitting.
 
+// INV:indexnow-key-immutable never regenerate this IndexNow key; see docs/INVARIANTS.md
 const KEY = '8152797bdb756f9c95f5ad2505b1a19b';
 const HOST = 'www.on-chaindat.com';
 const KEY_LOCATION = `https://${HOST}/${KEY}.txt`;

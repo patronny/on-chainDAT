@@ -64,6 +64,7 @@ abstract contract BaseStrategy is
     /// @notice Address of the Global Distribution Handler (Ethereum mainnet only - Linea uses storage var)
     /// @dev Set to address(0) for LineaDAT fork; on Linea the fallback in `_globalDistributor()` reads from storage `globalDistributor`.
     address public constant GLOBAL_DISTRIBUTION_HANDLER = address(0);
+    // INV:buyincrement-immutable assigned once in initialize, no setter; see docs/INVARIANTS.md
     /// @notice ETH amount increment for maximum buy price calculation
     uint256 public buyIncrement;
 
@@ -278,6 +279,7 @@ abstract contract BaseStrategy is
         priceMultiplier = _newMultiplier;
     }
 
+    // INV:distributor-whitelist-after-swapper-redeploy re-whitelist swapper after any redeploy; see docs/INVARIANTS.md
     /// @notice Allows factory to whitelist addresses that can distribute tokens freely
     /// @param distributor Address to whitelist
     /// @param status True to whitelist, false to remove from whitelist
@@ -456,6 +458,7 @@ abstract contract BaseStrategy is
 
         // Allow whitelisted distributors to send tokens freely
         // Check if a local distributor is sending tokens or if a user is sending tokens to a local distributor
+        // INV:transfers-distributor-gated only whitelisted paths bypass transfer revert; see docs/INVARIANTS.md
         if (isDistributor[from] || isDistributor[to]) {
             return;
         }

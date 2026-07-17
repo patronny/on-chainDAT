@@ -16,6 +16,7 @@
 // the Fly indexer directly: fly.dev is unreachable from sanctioned regions
 // (e.g. Belarus), which blanked swaps/bags/sales/24h-volume/24h-change there.
 // The proxy route forwards to the real indexer server-side (server-only env).
+// INV:same-origin-proxies browser hits same-origin proxy only; see docs/INVARIANTS.md
 export const INDEXER_URL = "/api/indexer";
 
 export const INDEXER_ENABLED = !!INDEXER_URL && !INDEXER_URL.includes("disabled");

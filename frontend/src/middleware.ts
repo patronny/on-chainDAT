@@ -22,6 +22,7 @@ import type { NextRequest } from "next/server";
  */
 const CANONICAL_HOST = "www.on-chaindat.com";
 
+// INV:docs-subdomain-308-not-rewrite 308 redirect, never a rewrite; see docs/INVARIANTS.md
 const SUBDOMAIN_PREFIXES: Array<[string, string]> = [
   ["docs.", "/docs"],
 ];

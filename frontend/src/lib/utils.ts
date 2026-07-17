@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
+// INV:rpc-cost-not-per-visitor no per-visitor reads of shared state; see docs/INVARIANTS.md
 // NOTE: the on-chain getLogs fallback (getEventsChunked) was REMOVED for good
 // after launch day 2026-06-09: it burned 82% of the daily Infura quota in ~1h
 // (eth_getLogs is the priciest method and it scaled per visitor tab). Tables are

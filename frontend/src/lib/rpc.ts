@@ -36,6 +36,7 @@ function parseList(...candidates: (string | undefined)[]): string[] {
   return [];
 }
 
+// INV:rpc-failover-infura-first shared fallback transport, never single URL; see docs/INVARIANTS.md
 function buildTransport(primary: string[]): Transport {
   const urls = [...new Set([...primary, ...PUBLIC_POOL])];
   return fallback(

@@ -84,6 +84,7 @@ const ETHEREX_TICK_SPACING = 50;
 
 const client = createPublicClient({ chain: linea, transport: lineaServerTransport() });
 
+// INV:burn-reads-dead-balance burn metric reads dead-address balance; see docs/INVARIANTS.md
 const DEAD = "0x000000000000000000000000000000000000dEaD" as `0x${string}`;
 const STRATEGY = ADDR.strategy;
 

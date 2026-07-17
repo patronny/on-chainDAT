@@ -109,6 +109,7 @@ export function ActionsCard() {
   const now = Math.floor(Date.now() / 1000);
   const faucetReady = last === 0 || now - last >= cooldown;
 
+  // INV:tx-busy-guard tx buttons disabled until receipt; see docs/INVARIANTS.md
   const txBusy = isPending || isConfirming;
 
   // Stage-aware copy: Linea mainnet uses canonical $LINEA.

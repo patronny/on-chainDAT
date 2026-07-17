@@ -308,6 +308,7 @@ def main(state=None):
     # fine and the Status channel never alerted while the site showed $0. Require
     # real on-chain data (block number + a non-zero pool price).
     snap_code, snap = fetch(SNAPSHOT_URL)
+    # INV:snapshot-live-data-validation assert real values, not envelope shape; see docs/INVARIANTS.md
     snap_live = (
         snap_code == 200
         and isinstance(snap, dict)

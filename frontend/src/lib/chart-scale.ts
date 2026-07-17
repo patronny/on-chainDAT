@@ -44,6 +44,7 @@ export function priceSanityBand(prices: number[], anchor?: number): PriceBand | 
   return { lo: center / OUTLIER_BAND, hi: center * OUTLIER_BAND };
 }
 
+// INV:chart-corrupt-tick-defense junk-tick band plus robust axis range; see docs/INVARIANTS.md
 /** True if price is positive and inside the band (a null band = no anchor = keep). */
 export function inPriceBand(price: number, band: PriceBand | null): boolean {
   if (!(Number.isFinite(price) && price > 0)) return false;

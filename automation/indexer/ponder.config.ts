@@ -69,6 +69,7 @@ export default createConfig({
       startBlock: START_BLOCK,
     },
   },
+  // INV:indexer-fresh-pglite-dir bump directory before every code redeploy; see docs/INVARIANTS.md
   database: {
     kind: "pglite",
     directory: process.env.PONDER_DATABASE_DIRECTORY ?? "./.ponder/pglite",

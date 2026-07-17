@@ -205,6 +205,7 @@ contract Deploy is Script {
 
         // 6b. Claim 10% creator share. Combined with constructor-set hook.feeAddress, gives 80/20 split.
         //     Required step per docs/50-lineadat-spec.md sec 3 to avoid ownerAmount silently merging into treasury.
+        // INV:fee-address-claim-after-redeploy repeat after every proxy redeploy; see docs/INVARIANTS.md
         LineaDATHook(payable(hookAddr)).adminUpdateFeeAddress(proxyAddr, creatorFeeAddr);
         console.log("[6b] feeAddressClaimedByOwner[proxy] -> ", creatorFeeAddr);
 
