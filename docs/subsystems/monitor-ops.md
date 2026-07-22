@@ -43,19 +43,47 @@ actuator, the indexer disk self-guard.
    RPC blip ~6s later and first-sight alerting flapped a red/green pair in
    a minute (benign signature: "missing revert data" on the aggregate3
    snapshot eth_call); keeper staleness (updatedAt > KEEPER_STALE_S 240s);
-   keeper balance < KEEPER_ETH_MIN 0.3 ETH; indexer healthz not 200.
+   indexer healthz not 200. Keeper balance is the one EXCEPTION - it is
+   edge-triggered, not deduped (see point 6): the owner drained the keeper
+   deliberately and asked to hear only on a CHANGE, so a still-low balance
+   never re-nags.
 5. **RPC failover tracking rides the keeper's own /status rpc field**
    [inv: rpc-failover-infura-first]. On a HOST change the monitor sends:
    off paid Infura -> "failed over to public RPC" warning, back onto
    Infura -> green, public-to-public hop -> warning.
-6. **Good news classes.** New bag (keeper lastBagId grew), bag sold
-   (ethToTwapEth grew - ETH now awaiting burn), burn (burned delta from the
-   CDN snapshot, which reads the DEAD balance per
+6. **Good news + owner-actionable classes.** New bag (keeper lastBagId grew),
+   bag sold (ethToTwapEth grew - ETH now awaiting burn), burn (burned delta
+   from the CDN snapshot, which reads the DEAD balance per
    [inv: burn-reads-dead-balance]), and the trades digest: new swaps since
    a timestamp high-water mark via the indexer GraphQL endpoint (the first
    run only baselines the mark; block-atomic Ponder indexing plus distinct
    Linea block timestamps mean timestamp_gt cannot split a block). Digest
    ETH/USD: DefiLlama, same keyless source as `frontend/src/hooks/useEthPrice.ts`.
+   Two owner-requested keeper classes live here too (both edge-triggered, not
+   deduped; helpers keeper_balance_msg / arb_opportunity_msg):
+   - **Keeper balance change** - one note when keeperEth crosses below
+     KEEPER_ETH_MIN (0.3), one on recovery, and a silent baseline on the
+     first poll after a (re)start; never a repeat while it stays low.
+     keeperEth is read through parse_eth so a missing field (keeper warmup
+     payload) or "?" (keeper error branch) is treated as unknown and skipped,
+     not as a phantom 0.0 that would false-fire the low-balance edge.
+   - **Arbitrage pre-alert** - the keeper fires a BUY when buyEdgeEth >= 0,
+     so `needed = availableFundsEth - buyEdgeEth` is the exact ETH the keeper
+     must hold to buy one 150k-LINEA bag, and readiness = availableFunds /
+     needed. Two escalating stages, each paged ONCE per window with the
+     top-up gap for the hot keeper EOA: APPROACHING at readiness >=
+     ARB_READY_PCT (90%, the owner's "10% before the window") and LIVE when
+     buyEdgeEth >= 0 (readiness >= 100%, the keeper's real fire point). A
+     highest-stage-paged latch resets only after readiness falls back below
+     ARB_REARM_PCT (80%) - window closed - and a stage must hold
+     ARB_READY_STREAK (2) consecutive polls before it pages, so a jittery or
+     one-off Etherex quote never spams. The owner drained the keeper on
+     purpose, so no BUY resets availableFunds and readiness only climbs;
+     escalating from APPROACHING to LIVE re-notifies at the moment the window
+     actually opens (a single 90% alert would otherwise go silent forever as
+     it widens). No periodic reminder while LIVE-and-unfunded, by design
+     (owner asked not to be spammed); revisit if a slow "still open" nudge is
+     wanted.
 7. **The monitor spends ZERO Infura credits.** Every probe is a free
    endpoint: Fly /status, indexer healthz/graphql, the CDN-cached
    /api/snapshot, site HTML, DefiLlama. Corollary of launch-day incident
@@ -119,8 +147,12 @@ placed in the code; register markers are pending repo-wide). Reads [inv: rpc-fai
   one-shot run fails outright. Only a missing TG_CHAT_ID (read at import)
   actually crash-loops the machine.
 - A Fly redeploy resets in-memory state: baselines (trades mark, burned,
-  ethToTwap, lastBagId) re-init silently, so events during the deploy
-  window are swallowed, and a still-broken condition re-pages once.
+  ethToTwap, lastBagId, keeperLow, arb window) re-init silently, so events
+  during the deploy window are swallowed, and a still-broken condition
+  re-pages once. The drained-keeper low balance is deliberately in this set:
+  the keeperLow baseline means a redeploy stays silent about it, exactly as
+  the owner asked; a genuinely open arb window re-pages ~2 min after a
+  redeploy (2-poll debounce), which is wanted.
 - ca-certificates in the Docker image is mandatory: without it urllib fails
   TLS on every probe and the monitor spams false full-outage alerts.
 - The monitor probes fly.dev hosts directly, NOT the same-origin proxies:

@@ -30,6 +30,25 @@ REALERT_MIN = 30
 KEEPER_ETH_MIN = 0.3
 KEEPER_STALE_S = 240
 
+# Arbitrage-opportunity pre-alert. The keeper fires a BUY when buyEdge >= 0, i.e.
+# availableFunds >= bagCost*(1+slippage)+gas. `needed = availableFunds - buyEdge` is
+# exactly that trigger level (and the ETH the keeper must hold to front one bag), so
+# readiness = availableFunds / needed says how close the window is - derived purely
+# from two /status fields, no keeper constants.
+#
+# Two escalating, edge-triggered stages, each paged ONCE per window so the owner can
+# pre-fund the hot keeper EOA (they drained it deliberately, so no BUY resets the pot
+# and readiness only climbs): APPROACHING at >= READY% ("10% before"), then LIVE when
+# buyEdge >= 0 (readiness >= 100%, the keeper's real fire point). Firing only on 90%
+# once would go silent forever as the window opens and widens; escalating to LIVE
+# re-notifies at the moment it actually opens without nagging. The latch (highest
+# stage paged) resets only when readiness falls back below REARM% (window closed) -
+# hysteresis - and a STREAK-poll debounce guards against a one-off anomalous quote.
+ARB_READY_PCT = 90     # APPROACHING: within 10% of the buy window
+ARB_REARM_PCT = 80     # window considered closed (re-arm both stages) below this
+ARB_READY_STREAK = 2   # consecutive polls a stage must hold before it pages
+KEEPER_EOA = "0xc31E...e87b"
+
 # Indexer disk self-guard (needs FLY_API_TOKEN; disabled if unset). The 2026-07-12
 # outage was an ENOSPC crash-loop: the PGlite /data volume filled to 100%, so Postgres
 # aborted creating a WAL segment, Fly restart-looped, and healthz timed out. A clean
@@ -287,6 +306,107 @@ def indexer_disk_guard(dat, dstate, token, al):
         dstate["diskManual"] = False
 
 
+def parse_eth(raw):
+    """Parse a keeper /status ETH string to float, or None when the field is absent
+    or non-numeric. The keeper omits balances entirely in its `{alive:false, note:
+    "warming up"}` payload (status server answers before the first tick lands) and
+    sets them to "?" in its error branch. Coercing a MISSING value to 0.0 (the old
+    `float(k.get(...) or 0)`) reads as a real 0-ETH balance and false-fires the
+    low-balance edge on every keeper restart - treat unknown as unknown and skip."""
+    if raw is None or raw == "?":
+        return None
+    try:
+        return float(raw)
+    except (TypeError, ValueError):
+        return None
+
+
+def keeper_balance_msg(name, eth, dstate, threshold=KEEPER_ETH_MIN):
+    """Edge-triggered keeper-balance note: one red on the down-cross, one green on
+    recovery, and NEVER a repeated nag while it stays low. The owner drained the
+    keeper deliberately and asked to be told only when the balance CHANGES, so the
+    first observation after a (re)start just baselines silently. Returns a message
+    or None; updates dstate['keeperLow']."""
+    low = eth < threshold
+    prev = dstate.get("keeperLow")
+    dstate["keeperLow"] = low
+    if prev is None or low == prev:
+        return None  # baseline (owner already knows) or unchanged -> silent
+    if low:
+        return f"🔴 {name}: keeper balance {eth:.4f} ETH < {threshold} ETH - BUYs will stall until topped up"
+    return f"🟢 {name}: keeper balance recovered to {eth:.4f} ETH (>= {threshold})"
+
+
+def arb_readiness(funds, edge):
+    """How close availableFunds is to the keeper's BUY trigger, plus the trigger
+    level itself. needed = funds - edge = bagCost*(1+slippage)+gas (the ETH the
+    keeper must hold to buy one bag); readiness = funds/needed (>=1 means buyEdge is
+    already non-negative, the window is open). Returns (readiness, needed), or
+    (None, None) if a field is missing or the maths is degenerate (bad quote)."""
+    if funds is None or edge is None:
+        return None, None
+    needed = funds - edge
+    if needed <= 0:  # edge >= funds is physically impossible; guard a corrupt quote
+        return None, None
+    return funds / needed, needed
+
+
+def arb_stage(readiness, edge):
+    """0 = window not near, 1 = APPROACHING (readiness >= READY%), 2 = LIVE (buyEdge
+    >= 0, i.e. the keeper would fire now if funded). LIVE is keyed on edge, not a
+    readiness rounding, so it lines up with the keeper's own gate exactly."""
+    if edge is not None and edge >= 0:
+        return 2
+    if readiness >= ARB_READY_PCT / 100.0:
+        return 1
+    return 0
+
+
+def arb_opportunity_msg(name, funds, edge, keeper_eth, dstate):
+    """Pre-alert that the keeper's BUY window is opening, so the owner can pre-fund the
+    hot keeper EOA before it can act. Two escalating stages (APPROACHING, LIVE), each
+    paged once, with a consecutive-poll debounce and a highest-stage-paged latch that
+    re-arms only after the window closes (readiness < REARM%). Returns a message or
+    None; updates dstate['arbStageSeen'], ['arbStageStreak'], ['arbStagePaged']."""
+    readiness, needed = arb_readiness(funds, edge)
+    if readiness is None:
+        return None  # missing/degenerate quote - leave stage tracking untouched
+    stage = arb_stage(readiness, edge)
+
+    # Debounce: a stage must persist ARB_READY_STREAK consecutive polls before it pages,
+    # so a single anomalous Etherex quote never fires. Streak resets on any stage change.
+    if stage == dstate.get("arbStageSeen"):
+        streak = dstate.get("arbStageStreak", 0) + 1
+    else:
+        streak = 1
+        dstate["arbStageSeen"] = stage
+    dstate["arbStageStreak"] = streak
+
+    # Hysteresis: only a clearly-closed window (or a BUY, which drives readiness to ~0)
+    # re-arms the stages. Without this the latch would let a jittery readiness re-page.
+    if readiness < ARB_REARM_PCT / 100.0:
+        dstate["arbStagePaged"] = 0
+
+    if stage == 0 or streak < ARB_READY_STREAK:
+        return None
+    if stage <= dstate.get("arbStagePaged", 0):
+        return None  # this stage (or a higher one) already paged this window
+    dstate["arbStagePaged"] = stage
+
+    keth = keeper_eth or 0.0
+    gap = max(0.0, needed - keth)
+    head = (
+        f"🟡 {name}: arbitrage window LIVE NOW ({readiness * 100:.0f}%)"
+        if stage == 2
+        else f"🟡 {name}: arbitrage window {readiness * 100:.0f}% ready (opening soon)"
+    )
+    return (
+        f"{head}. availableFunds {funds:.4f} / needed {needed:.4f} ETH. "
+        f"Keeper holds {keth:.4f} ETH; top up ~{gap:.3f} ETH on {KEEPER_EOA} so it can "
+        f"front the 150k-LINEA bag."
+    )
+
+
 def main(state=None):
     # GitHub one-shot: load+save file state. Fly loop: caller passes a persistent
     # in-memory dict, so we neither load nor save a file.
@@ -373,9 +493,33 @@ def main(state=None):
                 al.check(token, f"{name}: keeper stale", age > KEEPER_STALE_S, f"{name}: keeper has not updated status for {int(age)}s (>{KEEPER_STALE_S}s) - the process may be stuck")
             except Exception:
                 pass
+            # Keeper balance + arbitrage share a guarded keeperEth: parse_eth returns
+            # None for a missing/"?" value (keeper warmup or error payload) so we never
+            # read a phantom 0.0 and false-fire the balance edge.
+            keth = parse_eth(k.get("keeperEth"))
+
+            # Keeper balance: edge-triggered, not a repeated nag. The owner drained the
+            # keeper on purpose (no trades = idle capital) and asked to be told only on a
+            # CHANGE, so we baseline the current low state silently and speak on the next
+            # down/up crossing. See keeper_balance_msg.
             try:
-                eth = float(k.get("keeperEth") or 0)
-                al.check(token, f"{name}: keeper balance", eth < KEEPER_ETH_MIN, f"{name}: keeper balance {eth:.4f} ETH < {KEEPER_ETH_MIN} - BUYs will stall, top-up needed")
+                if keth is not None:
+                    bmsg = keeper_balance_msg(name, keth, dstate)
+                    if bmsg:
+                        send(token, bmsg)
+            except Exception:
+                pass
+
+            # Arbitrage-opportunity pre-alert: warn ~10% before the keeper's BUY window
+            # opens (then again when it goes LIVE) so the owner can re-fund the hot EOA in
+            # advance. buyEdgeEth mirrors the keeper's own profit gate, so needed =
+            # availableFunds - buyEdge is the exact trigger level. See arb_opportunity_msg.
+            try:
+                funds = parse_eth(k.get("availableFundsEth"))
+                edge = parse_eth(k.get("buyEdgeEth"))
+                amsg = arb_opportunity_msg(name, funds, edge, keth, dstate)
+                if amsg:
+                    send(token, amsg)
             except Exception:
                 pass
 
